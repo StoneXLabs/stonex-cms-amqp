@@ -44,7 +44,7 @@ cms::amqp::CMSTextMessage::CMSTextMessage(const std::string& text)
 	mMessage->durable(cms::DeliveryMode::PERSISTENT == 0); //default delivery mode PERISTENT -> durable(true)
 	mMessage->priority(::cms::Message::DEFAULT_MSG_PRIORITY);
 	mMessage->body(text);
-	mMessage->message_annotations().put(X_OPT_JMS_MESSAGE_TYPE.data(), static_cast<uint8_t>(MESSAGE_TYPE::TEXT_MESSAGE));
+	mMessage->message_annotations().put(X_OPT_JMS_MESSAGE_TYPE.data(), static_cast<int8_t>(MESSAGE_TYPE::TEXT_MESSAGE));
 }
 
 cms::amqp::CMSTextMessage::CMSTextMessage(proton::message* message, const proton::delivery* delivery, const proton::receiver* receiver)
@@ -90,9 +90,6 @@ cms::amqp::CMSTextMessage::~CMSTextMessage()
 
 std::string cms::amqp::CMSTextMessage::getText() const
 {
-	//body().
-//	body();
-//	proton::get<std::string>(getBody().);
 	if (!mMessage->body().empty())
 		return proton::to_string(mMessage->body());
 	else

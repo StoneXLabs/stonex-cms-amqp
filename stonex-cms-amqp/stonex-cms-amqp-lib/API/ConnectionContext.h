@@ -45,7 +45,6 @@ AMQP_DEFINES
 	private:
 		struct FailoverTransportOptions 
 		{
-			FailoverTransportOptions(const std::string& options);
 			void setParametersFromString(const std::string& parameter);
 
 			int mInitialReconnectDelay;

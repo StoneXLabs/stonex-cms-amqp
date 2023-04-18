@@ -82,9 +82,10 @@ namespace cms::amqp
 		//////////
 		void close();
 
-		void on_sendable(proton::sender& sender);
-		void on_sender_open(proton::sender& sender);
-		void on_sender_close(proton::sender& sender);
+		void on_sendable(proton::sender& sender) override;
+		void on_sender_open(proton::sender& sender) override;
+		void on_sender_error(proton::sender& sender) override;
+		void on_sender_close(proton::sender& sender) override;
 
 	private:
 		bool syncClose();

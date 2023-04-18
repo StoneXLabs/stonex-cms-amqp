@@ -38,7 +38,7 @@ cms::amqp::CMSBytesMessage::CMSBytesMessage()
 	mMessage = std::make_shared<proton::message>();
 	mMessage->durable(cms::DeliveryMode::PERSISTENT == 0); //default delivery mode PERISTENT
 	mMessage->priority(::cms::Message::DEFAULT_MSG_PRIORITY);
-	mMessage->message_annotations().put(X_OPT_JMS_MESSAGE_TYPE.data(), static_cast<uint8_t>(MESSAGE_TYPE::BYTES_MESSAGE));
+	mMessage->message_annotations().put(X_OPT_JMS_MESSAGE_TYPE.data(), static_cast<int8_t>(MESSAGE_TYPE::BYTES_MESSAGE));
 	mMessage->content_type("application/octet-stream");
 }
 

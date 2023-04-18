@@ -34,6 +34,14 @@ cms::amqp::CMSTemporaryQueue::CMSTemporaryQueue(const CMSTemporaryQueue& other)
 {
 }
 
+cms::amqp::CMSTemporaryQueue& cms::amqp::CMSTemporaryQueue::operator=(const cms::amqp::CMSTemporaryQueue& other)
+{
+    this->mDestinationType = other.mDestinationType;
+    this->mQueueName = other.mQueueName;
+
+    return *this;
+}
+
 ::cms::Destination::DestinationType cms::amqp::CMSTemporaryQueue::getDestinationType() const
 {
     return mDestinationType;

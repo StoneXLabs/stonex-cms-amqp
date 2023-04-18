@@ -81,9 +81,9 @@ namespace cms::amqp
 		static std::array<char, 16> hexStringToArray(const std::string& s);
 		static std::string hexStringToBinaryArray(const std::string& s);
 		static std::string binaryArrayToHexString(const std::vector<uint8_t>& b);
-		static  std::string destinationTypeToString(::cms::Destination::DestinationType dest_type);
-		static  uint8_t destinationTypeToJMSType(::cms::Destination::DestinationType dest_type);
-//	protected:
+		static std::string destinationTypeToString(::cms::Destination::DestinationType dest_type);
+		static int8_t destinationTypeToJMSType(::cms::Destination::DestinationType dest_type);
+
 		static std::vector<std::string> getPropertyNames(const std::shared_ptr<proton::message> message);
 		static bool propertyExists(const std::string& name, const std::shared_ptr<proton::message> message);
 		
@@ -136,6 +136,7 @@ namespace cms::amqp
 		static ::cms::Destination::DestinationType capabilityToDestinationType(const std::vector<proton::symbol>& capabilities);
 		static ::cms::Destination::DestinationType annotationsToDestinationType(const proton::message::annotation_map& annotations, const proton::symbol& annotation_key);
 		static ::cms::Destination::DestinationType JMSTypeToDestinationType(const uint8_t type);
+		static ::cms::Destination::DestinationType JMSTypeToDestinationType(const int8_t type);
 
 	};
 

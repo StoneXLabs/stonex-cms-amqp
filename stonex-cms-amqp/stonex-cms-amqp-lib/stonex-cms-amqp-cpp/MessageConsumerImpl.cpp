@@ -190,19 +190,11 @@ void cms::amqp::MessageConsumerImpl::on_receiver_open(proton::receiver& receiver
 	mProtonReceiver = std::make_unique<proton::receiver>(receiver);
 	if (receiver.error().empty())
 	{
-		mEXHandler.onResourceInitialized();
 		mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(mProtonReceiver.get()));
 		mState = ClientState::STARTED;
+		mEXHandler.onResourceInitialized();
 	}
-//	else
-//	{
-//		in case of error on_receiver_close(proton::receiver& receiver) handler is called and cleanup is made by library
-//	}
 
-		
-
-	//add comment TO DO deadlock on consumer create error
-//	mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(mProtonReceiver.get()));
 
 }
 
@@ -222,7 +214,7 @@ void cms::amqp::MessageConsumerImpl::on_receiver_detach(proton::receiver& receiv
 
 void cms::amqp::MessageConsumerImpl::on_receiver_error(proton::receiver& receiver)
 {
-	//mEXHandler.onConsumerError(receiver.error().what());
+
 }
 
 void cms::amqp::MessageConsumerImpl::on_message(proton::delivery& delivery, proton::message& message)
@@ -260,60 +252,3 @@ bool cms::amqp::MessageConsumerImpl::syncStop()
 {
 	return 	mProtonReceiver->connection().work_queue().add([=] {mProtonReceiver->detach(); });
 }
-//
-//
-//::cms::Destination* cms::amqp::MessageConsumerImpl::initializeDestination()
-//{
-//
-//	::cms::Destination* dest{ nullptr };
-//
-//	switch (capabilityToDestinationType(mProtonReceiver->source().capabilities()))
-//	{
-//	case ::cms::Destination::DestinationType::QUEUE:
-//		dest = new cms::CMSQueue(mProtonReceiver->source().address());
-//		break;
-//	case ::cms::Destination::DestinationType::TOPIC:
-//		dest = new cms::CMSTopic(mProtonReceiver->source().address());
-//		break;
-//	case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
-//		dest = new cms::CMSTemporaryQueue();
-//		dynamic_cast<cms::CMSTemporaryQueue*>(dest)->mQueueName = mProtonReceiver->source().address();
-//		break;
-//	case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
-//		//		dynamic_cast<cms::CMSTemporaryTopic*>(dest)->mTopicName = mProtonReceiver->target().address();
-//		break;
-//	default:
-//		throw ::cms::InvalidDestinationException("invalid destination type");
-//		break;
-//	}
-//	return dest;
-//}
-//
-//::cms::Destination::DestinationType cms::amqp::MessageConsumerImpl::capabilityToDestinationType(const std::vector<proton::symbol>& capabilities) const
-//{
-//	auto capability = std::find_if(std::cbegin(capabilities), std::cend(capabilities), [](const proton::symbol item) {
-//		if (item == QUEUE_CAPABILITY)
-//			return ::cms::Destination::DestinationType::QUEUE;
-//		else if (item == TOPIC_CAPABILITY)
-//			return ::cms::Destination::DestinationType::TOPIC;
-//		else if (item == TEMPORARY_QUEUE_CAPABILITY)
-//			return ::cms::Destination::DestinationType::TEMPORARY_QUEUE;
-//		else if (item == TEMPORARY_TOPIC_CAPABILITY)
-//			return ::cms::Destination::DestinationType::TEMPORARY_TOPIC;
-//		});
-//
-//	if (capability == std::cend(capabilities))
-//		throw::cms::InvalidDestinationException("missing capability type.");  //to do more explicit message
-//
-//
-//	if (auto setting = *capability; setting == QUEUE_CAPABILITY)
-//		return ::cms::Destination::DestinationType::QUEUE;
-//	else if (setting == TOPIC_CAPABILITY)
-//		return ::cms::Destination::DestinationType::TOPIC;
-//	else if (setting == TEMPORARY_QUEUE_CAPABILITY)
-//		return ::cms::Destination::DestinationType::TEMPORARY_QUEUE;
-//	else if (setting == TEMPORARY_TOPIC_CAPABILITY)
-//		return ::cms::Destination::DestinationType::TEMPORARY_TOPIC;
-//	else
-//		throw ::cms::InvalidDestinationException("illegal capability type.");  //to do more explicit message
-//}

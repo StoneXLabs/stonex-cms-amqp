@@ -39,6 +39,8 @@ AMQP_DEFINES
         CMSTemporaryQueue(const CMSTemporaryQueue& other);
         CMSTemporaryQueue(CMSTemporaryQueue&& other) = delete;
 
+        CMSTemporaryQueue& operator=(const CMSTemporaryQueue& other);
+
         ::cms::Destination::DestinationType getDestinationType() const override;
 
         ::cms::Destination* clone() const override;
@@ -53,7 +55,7 @@ AMQP_DEFINES
 
     private:
         mutable std::string mQueueName;
-        const ::cms::Destination::DestinationType mDestinationType;
+        /*const*/ ::cms::Destination::DestinationType mDestinationType;
 		void destroy() override;
 	};
 

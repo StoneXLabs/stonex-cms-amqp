@@ -1373,3 +1373,49 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_default_Type)
 
 	EXPECT_TRUE(testMsg.getCMSType().empty());
 }
+
+
+//JMS-defined ’JMSX’ Properties  3.2.2
+
+TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMSXUserID)
+{
+	GTEST_SKIP() << "test not implemented";
+}
+
+TEST_F(Message_JMS_AMQ_Mapping_UT, JMSXDeliveryCount)
+{
+	GTEST_SKIP() << "test not implemented";
+}
+
+TEST_F(Message_JMS_AMQ_Mapping_UT, JMSXGroupID)
+{
+	CMSMessage testMsg;
+	testMsg.setStringProperty("JMSXGroupID","Group-0");
+
+	EXPECT_EQ(testMsg.getStringProperty("JMSXGroupID"), "Group-0");
+}
+
+TEST_F(Message_JMS_AMQ_Mapping_UT, JMSXGroupSeq)
+{
+	GTEST_SKIP() << "test not implemented";
+}
+
+TEST_F(Message_JMS_AMQ_Mapping_UT, JMSXProducerTXID)
+{
+	GTEST_SKIP() << "test not implemented";
+}
+
+TEST_F(Message_JMS_AMQ_Mapping_UT, JMSXConsumerTXID)
+{
+	GTEST_SKIP() << "test not implemented";
+}
+
+TEST_F(Message_JMS_AMQ_Mapping_UT, JMSXRcvTimestamp)
+{
+	GTEST_SKIP() << "test not implemented";
+}
+
+TEST_F(Message_JMS_AMQ_Mapping_UT, JMSXState)
+{
+	GTEST_SKIP() << "test not implemented";
+}

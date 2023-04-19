@@ -1,9 +1,9 @@
-/*
+*
 
-!/.gitignore
-!/.conanfile
-!README
+!stonex-cms-amqp
+!.gitignore
+!conanfile.py
+!README.md
 !NOTICE
 !LICENSE
-!/messaging-cms-client
-!/stonex-cms-amqp
+ChangeLog.txt

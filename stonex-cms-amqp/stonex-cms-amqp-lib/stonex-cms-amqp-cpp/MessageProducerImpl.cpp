@@ -66,7 +66,8 @@ cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* de
 		case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
 			address = dynamic_cast<const CMSTemporaryQueue*>(destination)->getQueueName();
 			topts.capabilities(std::vector<proton::symbol> { "temporary-queue", "delete-on-close" });
-			topts.dynamic(true); //taret or source options
+			if (address.empty())
+				topts.dynamic(true); //taret or source options
 			topts.expiry_policy(proton::terminus::expiry_policy::LINK_CLOSE); //according to documentation should be link detatch!!!!
 			break;
 		case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
@@ -81,7 +82,6 @@ cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* de
 	else 
 	{
 		topts.capabilities(std::vector<proton::symbol> { "queue" });
-//		topts.capabilities(std::vector<proton::symbol> { "ANONYMOUS-RELAY" });
 	}
 
 	
@@ -177,11 +177,20 @@ void cms::amqp::MessageProducerImpl::on_sendable(proton::sender& sender)
 void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)
 {
 	mProtonSender = std::make_unique<proton::sender>(sender);
-	//add comment
-	mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(mProtonSender.get()));
+	if (sender.error().empty())
+	{
+		
+		//add comment
+		mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(mProtonSender.get()));
+
+		mState = ClientState::STARTED;
+		mEXHandler.onResourceInitialized();
+	}
 	
-	mState = ClientState::STARTED;
-	mEXHandler.onResourceInitialized();
+}
+
+void cms::amqp::MessageProducerImpl::on_sender_error(proton::sender & sender)
+{
 }
 
 void cms::amqp::MessageProducerImpl::on_sender_close(proton::sender& sender)

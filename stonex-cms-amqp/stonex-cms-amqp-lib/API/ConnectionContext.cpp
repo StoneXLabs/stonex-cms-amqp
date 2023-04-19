@@ -128,27 +128,6 @@ int cms::amqp::FactoryContext::reconnectAttempts() const
 	return mReconnectAttempts;
 }
 
-
-
-cms::amqp::ConnectionOptions::FailoverTransportOptions::FailoverTransportOptions(const std::string& options)
-{
-	//auto start = std::begin(options);
-	//auto it = std::find_if(start, std::end(options), [](const char elem) {return elem == ','; });
-	//while (start != it)
-	//{
-	//	
-	//	setParametersFromString(options.substr(std::distance(options.begin(),start),std::distance(start,it)));
-
-	//	if (it != std::end(options))
-	//	{
-	//		start = std::next(it);
-	//		it = std::find_if(start, std::end(options), [](const char elem) {return elem == ','; });
-	//	}
-	//	else
-	//		start = it;
-	//}
-}
-
 void cms::amqp::ConnectionOptions::FailoverTransportOptions::setParametersFromString(const std::string& parameter)
 {
 	std::size_t  pos = parameter.find("=");

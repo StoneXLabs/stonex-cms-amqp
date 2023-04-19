@@ -260,6 +260,20 @@ cms::Destination::DestinationType cms::amqp::AMQPCMSMessageConverter::capability
 		throw ::cms::InvalidDestinationException("illegal capability type.");  //to do more explicit message
 }
 
+::cms::Destination::DestinationType cms::amqp::AMQPCMSMessageConverter::JMSTypeToDestinationType(const int8_t type)
+{
+	if (type == 0)
+		return ::cms::Destination::DestinationType::QUEUE;
+	else if (type == 1)
+		return ::cms::Destination::DestinationType::TOPIC;
+	else if (type == 2)
+		return ::cms::Destination::DestinationType::TEMPORARY_QUEUE;
+	else if (type == 3)
+		return ::cms::Destination::DestinationType::TEMPORARY_TOPIC;
+	else
+		throw ::cms::InvalidDestinationException("illegal capability type.");  //to do more explicit message
+}
+
 std::string cms::amqp::AMQPCMSMessageConverter::destinationToAddress(const::cms::Destination* destintion)
 {
 	std::string output{};
@@ -546,9 +560,9 @@ std::string cms::amqp::AMQPCMSMessageConverter::destinationTypeToString(::cms::D
 	return destination_type_string;
 }
 
-uint8_t cms::amqp::AMQPCMSMessageConverter::destinationTypeToJMSType(::cms::Destination::DestinationType dest_type)
+int8_t cms::amqp::AMQPCMSMessageConverter::destinationTypeToJMSType(::cms::Destination::DestinationType dest_type)
 {
-	uint8_t jms_to_type;
+	int8_t jms_to_type;
 
 	switch (dest_type)
 	{
@@ -772,7 +786,6 @@ std::string cms::amqp::AMQPCMSMessageConverter::getCMSCorrelationID(const std::s
 	std::string CMSCorrelationId;
 
 	std::regex prefixRegex("^ID:(AMQP_BINARY:|AMQP_UUID:|AMQP_ULONG:|AMQP_NO_PREFIX:|AMQP_STRING:)");
-
 	switch (proton::type_id type = message->correlation_id().type())
 	{
 	case proton::type_id::STRING:
@@ -849,7 +862,6 @@ void cms::amqp::AMQPCMSMessageConverter::setAMQPDestination(const::cms::Destinat
 	{
 		message->address(AMQPCMSMessageConverter::destinationToAddress(destination));
 		message->to(message->address());
-	//	message->message_annotations().put(X_OPT_TO_TYPE.data(), AMQPCMSMessageConverter::destinationTypeToString(destination->getDestinationType()));
 		message->message_annotations().put(X_OPT_JMS_DEST.data(), AMQPCMSMessageConverter::destinationTypeToJMSType(destination->getDestinationType()));
 	
 	}
@@ -967,6 +979,7 @@ void cms::amqp::AMQPCMSMessageConverter::setAMQPRedelivered(bool redelivered, st
 void cms::amqp::AMQPCMSMessageConverter::setAMQPReplyTo(const::cms::Destination* destination, std::shared_ptr<proton::message> message)
 {
 	message->reply_to(AMQPCMSMessageConverter::destinationToAddress(destination));
+	message->message_annotations().put(X_OPT_JMS_REPLY_TO.data(), AMQPCMSMessageConverter::destinationTypeToJMSType(destination->getDestinationType()));
 }
 
 long long cms::amqp::AMQPCMSMessageConverter::getCMSTimestamp(const std::shared_ptr<proton::message> message)

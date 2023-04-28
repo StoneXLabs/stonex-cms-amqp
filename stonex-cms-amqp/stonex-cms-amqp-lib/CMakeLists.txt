@@ -20,7 +20,7 @@ target_include_directories(stonex-cms-amqp-lib BEFORE PRIVATE  ${PROJECT_SOURCE_
 target_include_directories(stonex-cms-amqp-lib PUBLIC ${PROJECT_SOURCE_DIR}/activemq-cpp/src/main/ ${PROJECT_SOURCE_DIR})
 
 if(CONAN_BUILD)
-	target_link_libraries(stonex-cms-amqp-lib PUBLIC CONAN_PKG::red-hat-amq-clients-c++ CONAN_PKG::jsoncpp)
+	target_link_libraries(stonex-cms-amqp-lib PUBLIC CONAN_PKG::red-hat-amq-clients-c++ CONAN_PKG::jsoncpp CONAN_PKG::stonex-logger CONAN_PKG::fmt)
 else()
 	set_property(TARGET stonex-cms-amqp-lib PROPERTY  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 	target_include_directories(stonex-cms-amqp-lib BEFORE PUBLIC  ${QPID_INCLUDES} ${QPID_INCLUDES}/cpp ${QPID_INCLUDES}/c)

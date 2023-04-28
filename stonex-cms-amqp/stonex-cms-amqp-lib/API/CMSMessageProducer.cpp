@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+#include <fmt/format.h>
+
 #include "CMSMessageProducer.h"
 
 #include <cms/MessageTransformer.h>
@@ -32,41 +34,49 @@
 
 void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes)
 {
+	debug("producer", "sending message");
 	mPimpl->send(mes);
 }
 
 void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, ::cms::AsyncCallback* callback)
 {
+	debug("producer", "sending message with callback");
 	mPimpl->send(mes, callback);
 }
 
 void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive)
 {
+	debug("producer", "sending message");
 	mPimpl->send(mes, deliveryMode, priority,timeToLive);
 }
 
 void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback)
 {
+	debug("producer", "sending message with callback");
 	mPimpl->send(mes, deliveryMode, priority, timeToLive, callback);
 }
 
 void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive)
 {
+	debug("producer", "sending message");
 	mPimpl->send(destination, mes, deliveryMode, priority, timeToLive);
 }
 
 void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback)
 {
+	debug("producer", "sending message with callback");
 	mPimpl->send(destination, mes, deliveryMode, priority, timeToLive, callback);
 }
 
 void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes, ::cms::AsyncCallback* callback)
 {
+	debug("producer", "sending message");
 	mPimpl->send(destination, mes, callback);
 }
 
 void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes)
 {
+	debug("producer", "sending message");
 	mPimpl->send(destination, mes);
 }
 
@@ -74,6 +84,7 @@ void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination,
 
 void  cms::amqp::CMSMessageProducer::setDeliveryMode(int mode)
 {
+	info("producer", fmt::format("set delivery mode {}",mode));
 	mPimpl->setDeliveryMode(mode);
 }
 
@@ -84,6 +95,7 @@ int  cms::amqp::CMSMessageProducer::getDeliveryMode() const
 
 void  cms::amqp::CMSMessageProducer::setDisableMessageID(bool value)
 {
+	info("producer", fmt::format("disable message id {}", value));
 	mPimpl->setDisableMessageID(value);
 }
 
@@ -94,6 +106,7 @@ bool  cms::amqp::CMSMessageProducer::getDisableMessageID() const
 
 void  cms::amqp::CMSMessageProducer::setDisableMessageTimeStamp(bool value)
 {
+	info("producer", fmt::format("disable message timestamp id {}", value));
 	mPimpl->setDisableMessageTimeStamp(value);
 }
 
@@ -104,6 +117,7 @@ bool  cms::amqp::CMSMessageProducer::getDisableMessageTimeStamp() const
 
 void  cms::amqp::CMSMessageProducer::setPriority(int priority)
 {
+	info("producer", fmt::format("set priority {}", priority));
 	mPimpl->setPriority(priority);
 }
 
@@ -114,6 +128,7 @@ int  cms::amqp::CMSMessageProducer::getPriority() const
 
 void  cms::amqp::CMSMessageProducer::setTimeToLive(long long time)
 {
+	info("producer", fmt::format("set TTL {} [ms]", time));
 	mPimpl->setTimeToLive(time);
 }
 
@@ -124,6 +139,7 @@ long long  cms::amqp::CMSMessageProducer::getTimeToLive() const
 
 void  cms::amqp::CMSMessageProducer::setMessageTransformer(::cms::MessageTransformer* transformer)
 {
+	debug("producer", fmt::format("set message transformer: {#:x}", (void*)transformer));
 	mPimpl->setMessageTransformer(transformer);
 }
 
@@ -134,5 +150,6 @@ void  cms::amqp::CMSMessageProducer::setMessageTransformer(::cms::MessageTransfo
 
 void cms::amqp::CMSMessageProducer::close()
 {
+	info("producer", "closing");
 	mPimpl->close();
 }

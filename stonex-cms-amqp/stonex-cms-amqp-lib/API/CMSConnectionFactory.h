@@ -23,17 +23,16 @@
 #include "CMSConnection.h"
 
 #include "cms/ConnectionFactory.h"
-//#include "cms/Connection.h"
-
 
 #include "stonex-cms-amqp-lib-defines.h"
+#include <logger/StonexLogSource.h>
 
 AMQP_DEFINES
 
 
 	class ConnectionFactoryImpl;
 
-	class CMS_API CMSConnectionFactory : public ::cms::ConnectionFactory
+	class CMS_API CMSConnectionFactory : public ::cms::ConnectionFactory, public StonexLogSource
 	{
 	public:
 

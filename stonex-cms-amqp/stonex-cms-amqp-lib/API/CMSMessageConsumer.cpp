@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+#include <fmt/format.h>
+
 #include "CMSMessageConsumer.h"
 #include "ConnectionContext.h"
 #include "MessageConsumerImpl.h"
@@ -38,24 +40,28 @@ cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const::cms::Destination* desti
 
 ::cms::Message*  cms::amqp::CMSMessageConsumer::receive()
 {
+	debug("consumer", "receive");
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
 ::cms::Message*  cms::amqp::CMSMessageConsumer::receive(int milis)
 {
+	debug("consumer", fmt::format("receive. timeout: {} [ms]",milis));
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
 ::cms::Message*  cms::amqp::CMSMessageConsumer::receiveNoWait()
 {
+	debug("consumer", "receive no wait");
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
 void  cms::amqp::CMSMessageConsumer::setMessageListener(::cms::MessageListener* listener)
 {
+	debug("consumer", fmt::format("set message listener: {#:x}", (void*)listener));
 	mPimpl->setMessageListener(listener);
 }
 
@@ -71,6 +77,7 @@ std::string  cms::amqp::CMSMessageConsumer::getMessageSelector() const
 
 void  cms::amqp::CMSMessageConsumer::setMessageTransformer(::cms::MessageTransformer* transformer)
 {
+	debug("consumer", fmt::format("set message transformer: {#:x}", (void*)transformer));
 	mPimpl->setMessageTransformer(transformer);
 }
 
@@ -81,6 +88,7 @@ void  cms::amqp::CMSMessageConsumer::setMessageTransformer(::cms::MessageTransfo
 
 void  cms::amqp::CMSMessageConsumer::setMessageAvailableListener(::cms::MessageAvailableListener* listener)
 {
+	debug("consumer", fmt::format("set message available listener: {#:x}", (void*)listener));
 	mPimpl->setMessageAvailableListener(listener);
 }
 
@@ -91,15 +99,18 @@ void  cms::amqp::CMSMessageConsumer::setMessageAvailableListener(::cms::MessageA
 
 void  cms::amqp::CMSMessageConsumer::start()
 {
+	debug("consumer", "starting consumer");
 	mPimpl->start();
 }
 
 void  cms::amqp::CMSMessageConsumer::stop()
 {
+	debug("consumer", "stopping consumer");
 	mPimpl->stop();
 }
 
 void  cms::amqp::CMSMessageConsumer::close()
 {
+	debug("consumer", "closing consumer");
 	mPimpl->close();
 }

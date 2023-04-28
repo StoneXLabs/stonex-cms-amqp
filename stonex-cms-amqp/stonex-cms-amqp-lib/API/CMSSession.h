@@ -21,6 +21,7 @@
 #include <memory>
 #include <cms/Session.h>
 
+#include <logger/StonexLogSource.h>
 
 #include "stonex-cms-amqp-lib-defines.h"
 
@@ -31,7 +32,7 @@ AMQP_DEFINES
 	class SessionImpl;
 	class SessionContext;
 
-	class CMS_API CMSSession : public ::cms::Session
+	class CMS_API CMSSession : public ::cms::Session, public StonexLogSource
 	{
 
 	public:

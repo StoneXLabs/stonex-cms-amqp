@@ -25,6 +25,7 @@
 #include <cms/ConnectionMetaData.h>
 #include <cms/ExceptionListener.h>
 
+#include <logger/StonexLogSource.h>
 
 
 #include "stonex-cms-amqp-lib-defines.h"

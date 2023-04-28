@@ -20,6 +20,8 @@
 #pragma once
 #include "cms/TemporaryTopic.h"
 
+#include <logger/StonexLogSource.h>
+
 #include "stonex-cms-amqp-lib-defines.h"
 
 AMQP_DEFINES
@@ -49,6 +51,8 @@ AMQP_DEFINES
         const ::cms::CMSProperties& getCMSProperties() const override;
 
         std::string getTopicName() const override;
+
+		friend std::ostream& operator << (std::ostream& os, const cms::amqp::CMSTemporaryTopic& ob);
 
     private:
         mutable std::string mTopicName;

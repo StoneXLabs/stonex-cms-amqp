@@ -83,3 +83,9 @@ void cms::amqp::CMSTemporaryQueue::destroy()
 {
     throw ::cms::CMSException("illegal use - not implemented");
 }
+
+std::ostream & operator<<(std::ostream & os, const cms::amqp::CMSTemporaryQueue & ob)
+{
+	os << "TEMPORARY QUEUE " << ob.getQueueName();
+	return os;
+}

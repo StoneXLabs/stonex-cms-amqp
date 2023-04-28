@@ -23,6 +23,7 @@
 #include <cms/MessageConsumer.h>
 #include <cms/MessageAvailableListener.h>
 
+#include <logger/StonexLogSource.h>
 
 #include "stonex-cms-amqp-lib-defines.h"
 
@@ -32,7 +33,7 @@ AMQP_DEFINES
 	class SessionContext;
 	class MessageConsumerImpl;
 
-	class CMS_API CMSMessageConsumer : public ::cms::MessageConsumer
+	class CMS_API CMSMessageConsumer : public ::cms::MessageConsumer, public StonexLogSource
 	{
 	public:
 		CMSMessageConsumer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context);

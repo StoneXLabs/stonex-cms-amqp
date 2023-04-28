@@ -34,10 +34,12 @@
 #include "AMQPIDGenerator.h"
 #include "ClientState.h"
 
+#include <logger/StonexLogSource.h>
+
 namespace cms::amqp
 {
 
-	class MessageProducerImpl : public proton::messaging_handler
+	class MessageProducerImpl : public proton::messaging_handler, public StonexLogSource
 	{
 	private:
 		class MessageConverter 
@@ -52,8 +54,6 @@ namespace cms::amqp
 		void send(::cms::Message* message, ::cms::AsyncCallback* onComplete);
 		void send(::cms::Message* message, int deliveryMode, int priority, long long timeToLive);
 		void send(::cms::Message* message, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* onComplete);
-
-		/////////
 
         void send(const ::cms::Destination* destination, ::cms::Message* message, int deliveryMode, int priority, long long timeToLive);
 
@@ -79,7 +79,6 @@ namespace cms::amqp
 		void setMessageTransformer(::cms::MessageTransformer* transformer) { };
 		::cms::MessageTransformer* getMessageTransformer() const { return nullptr; };
 		
-		//////////
 		void close();
 
 		void on_sendable(proton::sender& sender) override;

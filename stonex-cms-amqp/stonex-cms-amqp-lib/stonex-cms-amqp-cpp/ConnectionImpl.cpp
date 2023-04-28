@@ -29,6 +29,8 @@
 
 #include "SessionImpl.h"
 
+#include <fmt/format.h>
+
  cms::amqp::ConnectionImpl::ConnectionImpl(const FactoryContext& context)
 	:mContext{ context }
 {
@@ -83,27 +85,26 @@ void  cms::amqp::ConnectionImpl::setClientID(const std::string& clientID)
 
 void  cms::amqp::ConnectionImpl::on_transport_open(proton::transport& transport)
 {
-//	std::cout << __FUNCTION__ << " " << transport.error().what() << std::endl;
+	trace("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
 }
 
 void  cms::amqp::ConnectionImpl::on_transport_close(proton::transport& transport)
 {
+	trace("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
 	mState = ClientState::CLOSED;
-//	std::cout << __FUNCTION__ << " " << transport.error().what() << std::endl;
 	mEXHandler.onResourceUninitialized(transport.error());
 }
 
 void  cms::amqp::ConnectionImpl::on_transport_error(proton::transport& transport)
 {
-//	std::cout << __FUNCTION__<<" "<<transport.error().what() << std::endl;
+	trace("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
 	if (mExceptionListener)
 		mExceptionListener->onException(transport.error().what());
 }
 
 void  cms::amqp::ConnectionImpl::on_connection_open(proton::connection& connection)
 {
-//	std::cout << __FUNCTION__ << " " << connection.error().what() << std::endl;
-
+	trace("connection implementation", fmt::format("{} {}", __func__, connection.error().what()));
 	mConnection  = std::make_shared<proton::connection>(connection);
 	mState = ClientState::STARTED;
 	mEXHandler.onResourceInitialized();
@@ -111,12 +112,12 @@ void  cms::amqp::ConnectionImpl::on_connection_open(proton::connection& connecti
 }
 void  cms::amqp::ConnectionImpl::on_connection_close(proton::connection& connection)
 {
-//	std::cout << __FUNCTION__ << std::endl;
+	trace("connection implementation", fmt::format("{} {}", __func__, connection.error().what()));
 }
 
 void  cms::amqp::ConnectionImpl::on_connection_error(proton::connection& connection)
 {
-//	std::cout << __FUNCTION__ << std::endl;
+	trace("connection implementation", fmt::format("{} {}", __func__, connection.error().what()));
 	if (mExceptionListener)
 		mExceptionListener->onException(connection.error().what());
 }

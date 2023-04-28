@@ -114,3 +114,9 @@ void  cms::amqp::CMSMessageConsumer::close()
 	debug("consumer", "closing consumer");
 	mPimpl->close();
 }
+
+void cms::amqp::CMSMessageConsumer::setLogger(std::shared_ptr<StonexLogger> sink)
+{
+	StonexLogSource::setLogger(sink);
+	mPimpl->setLogger(sink);
+};

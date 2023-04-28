@@ -47,8 +47,6 @@ AMQP_DEFINES
 		void send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive) override;
 		void send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback) override;
 
-		/////////
-
 		void send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive) override;
 														 
 		void send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback) override;
@@ -78,8 +76,9 @@ AMQP_DEFINES
 		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
 		::cms::MessageTransformer* getMessageTransformer() const override;
 
-		//////////
 		void close() override;
+
+		void setLogger(std::shared_ptr<StonexLogger> sink) override;
 
 	private:
 		std::shared_ptr<MessageProducerImpl> mPimpl;

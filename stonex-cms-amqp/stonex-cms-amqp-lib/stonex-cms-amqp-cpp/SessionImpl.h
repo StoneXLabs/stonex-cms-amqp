@@ -30,10 +30,12 @@
 #include "AsyncCallSynchronizer.h"
 #include "ClientState.h"
 
+#include <logger/StonexLogSource.h>
+
 namespace cms::amqp
 {
 
-	class SessionImpl : public proton::messaging_handler
+	class SessionImpl : public proton::messaging_handler, public StonexLogSource
 	{
 	public:
 		explicit SessionImpl(std::shared_ptr<proton::connection>  connection, ::cms::Session::AcknowledgeMode ack_mode = ::cms::Session::AUTO_ACKNOWLEDGE);

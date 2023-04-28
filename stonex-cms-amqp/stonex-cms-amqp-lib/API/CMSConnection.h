@@ -30,6 +30,7 @@
 
 #include "stonex-cms-amqp-lib-defines.h"
 
+
 AMQP_DEFINES
 
 
@@ -37,7 +38,7 @@ AMQP_DEFINES
 	class FactoryContext;
 	class ConnectionContext;
 
-	class CMS_API CMSConnection : public ::cms::Connection
+	class CMS_API CMSConnection : public ::cms::Connection, public StonexLogSource
 	{
 	public:
 		explicit CMSConnection(std::shared_ptr<FactoryContext> context);
@@ -70,6 +71,8 @@ AMQP_DEFINES
 
 		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
 		::cms::MessageTransformer* getMessageTransformer() const override;
+
+		void setLogger(std::shared_ptr<StonexLogger> sink) override;
 
 	protected:
 		std::shared_ptr<ConnectionContext> connectionContext() const;

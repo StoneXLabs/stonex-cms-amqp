@@ -26,6 +26,8 @@
 
 #include <cms/Connection.h>
 
+#include <logger/StonexLogSource.h>
+
 #include "../API/ConnectionContext.h"
 #include "AsyncCallSynchronizer.h"
 #include "ClientState.h"
@@ -39,7 +41,7 @@ namespace cms::amqp
 	* Proton connection is responsible for creating sessions for this connection by implementing proton::message_handler methods
 	* Allow Metrics <TO DO>
 	*/
-	class ConnectionImpl : public proton::messaging_handler {
+	class ConnectionImpl : public proton::messaging_handler, public StonexLogSource {
 
 	public:
 		ConnectionImpl(const FactoryContext& context);

@@ -84,6 +84,9 @@ AMQP_DEFINES
 		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
 		::cms::MessageTransformer* getMessageTransformer() const override;
 
+		void setLogger(std::shared_ptr<StonexLogger> sink) override;
+
+
 	protected:
 		std::shared_ptr<SessionContext> createSessionContext(bool durable, bool shared, bool auto_ack) const;
 

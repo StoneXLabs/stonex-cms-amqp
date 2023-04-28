@@ -35,9 +35,11 @@
 #include <regex>
 #include "ClientState.h"
 
+#include <logger/StonexLogSource.h>
+
 namespace cms::amqp
 {
-	class MessageConsumerImpl : public proton::messaging_handler 
+	class MessageConsumerImpl : public proton::messaging_handler, public StonexLogSource
 	{
 		enum class STATUS 
 		{

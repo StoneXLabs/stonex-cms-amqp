@@ -61,6 +61,8 @@ AMQP_DEFINES
 		void stop() override;
 		void close() override;
 
+		void setLogger(std::shared_ptr<StonexLogger> sink) override;
+
 	private:
 
 		std::shared_ptr<MessageConsumerImpl> mPimpl;

@@ -26,6 +26,8 @@
 #include "ConnectionContext.h"
 #include "ConnectionMetadataImpl.h"
 
+#include <fmt/format.h>
+
 cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context)
 	:mPimpl{ std::make_shared<ConnectionImpl>(*context) }
 {
@@ -108,6 +110,11 @@ std::shared_ptr <cms::amqp::ConnectionContext> cms::amqp::CMSConnection::connect
 	return std::make_shared<cms::amqp::ConnectionContext>(mPimpl->connection());
 }
 
+void cms::amqp::CMSConnection::setLogger(std::shared_ptr<StonexLogger> sink)
+{
+	StonexLogSource::setLogger(sink);
+	mPimpl->setLogger(sink);
+};
 
 
 

@@ -232,9 +232,15 @@ cms::MessageTransformer* cms::amqp::CMSSession::getMessageTransformer() const
 	return nullptr;
 }
 
+
 std::shared_ptr<cms::amqp::SessionContext> cms::amqp::CMSSession::createSessionContext(bool durable, bool shared, bool auto_ack) const
 {
 	debug("session", fmt::format("create session context: durable: {} shared: {} auto_ack: {}", durable, shared, auto_ack));
 	return std::make_shared<cms::amqp::SessionContext>(mPimpl->session(), durable, shared, auto_ack);
 }
 
+void cms::amqp::CMSSession::setLogger(std::shared_ptr<StonexLogger> sink)
+{
+	StonexLogSource::setLogger(sink);
+	mPimpl->setLogger(sink);
+};

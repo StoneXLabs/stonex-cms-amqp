@@ -1,7 +1,7 @@
 from conans import ConanFile, CMake, tools
 
 def get_verion_tag():
-    git = tools.Git("messaging-cms-client")
+    git = tools.Git("stonex-cms-amqp")
     try:
         return "%s" % (git.get_tag())
     except Exception as e:
@@ -10,15 +10,15 @@ def get_verion_tag():
 class StonexCMSAMQPLib(ConanFile):
     name = "stonex-cms-amqp-lib"
     version = get_verion_tag()
-    license = "<Put the package license here>"
+    license = "Apache 2.0"
     author = "Krzysztof Obrebski krzysztof.obrebski@stonex.com"
-    url = "https://bitbucket.gaincapital.com/projects/EM/repos/messaging-cms-client"
+    url = "https://github.com/StoneXLabs/stonex-cms-amqp.git"
     description = "amqp cms messaging library"
     topics = ("messaging", "c++", "cpp","proton","amqp","cms")
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = {"shared": False, "fPIC": True}  
-    build_requires = ["red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test","jsoncpp/1.9.5@enterprise_messaging/test","gtest/1.10.0","boost/1.78.0@enterprise_messaging/stable","stonex-logger/0.0.1@enterprise_messaging/test","fmt/9.1.0@enterprise_messaging/test"]
+    build_requires = ["red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test","jsoncpp/1.9.5@enterprise_messaging/test","gtest/1.10.0","boost/1.78.0@enterprise_messaging/stable","stonex-logger-wrapper/0.0.1@enterprise_messaging/test","fmt/9.1.0@enterprise_messaging/test"]
     generators = "cmake"
     exports_sources = ["include/activemq-cpp/src/main/*"]
     

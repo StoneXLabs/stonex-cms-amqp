@@ -31,17 +31,21 @@
 
 #include <fmt/format.h>
 
- cms::amqp::ConnectionImpl::ConnectionImpl(const FactoryContext& context)
+ cms::amqp::ConnectionImpl::ConnectionImpl(const FactoryContext& context, std::shared_ptr<StonexLogger> logger)
 	:mContext{ context }
-{
+{	
+	setLogger(logger);
 	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
+	setLogger(nullptr);
 }
 
- cms::amqp::ConnectionImpl::ConnectionImpl(const std::string& id, const FactoryContext& context)
+ cms::amqp::ConnectionImpl::ConnectionImpl(const std::string& id, const FactoryContext& context, std::shared_ptr<StonexLogger> logger)
 	 : mConnectionId{id},
 	 mContext{context}
 {
+	setLogger(logger);
 	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
+	setLogger(nullptr);
 }
 
 

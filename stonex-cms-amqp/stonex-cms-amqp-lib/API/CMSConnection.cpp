@@ -28,18 +28,18 @@
 
 #include <fmt/format.h>
 
-cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context)
-	:mPimpl{ std::make_shared<ConnectionImpl>(*context) }
+cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, std::shared_ptr<StonexLogger> logger)
+	:mPimpl{ std::make_shared<ConnectionImpl>(*context, logger)}
 {
 }
 
-cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password)
-	: mPimpl{ std::make_shared<ConnectionImpl>((*context).updateUser(username).updatePassword(password)) }
+cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, std::shared_ptr<StonexLogger> logger)
+	: mPimpl{ std::make_shared<ConnectionImpl>((*context).updateUser(username).updatePassword(password), logger) }
 {
 }
 
-cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId)
-	: mPimpl{ std::make_shared<ConnectionImpl>(clientId, (*context).updateUser(username).updatePassword(password)) }
+cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId, std::shared_ptr<StonexLogger> logger)
+	: mPimpl{ std::make_shared<ConnectionImpl>(clientId, (*context).updateUser(username).updatePassword(password),logger)}
 {
 }
 
@@ -65,13 +65,13 @@ const ::cms::ConnectionMetaData* cms::amqp::CMSConnection::getMetaData() const
 
 cms::Session* cms::amqp::CMSConnection::createSession()
 {
-	return new CMSSession(ConnectionContext(mPimpl->connection()));
+	return new CMSSession(ConnectionContext(mPimpl->connection()), cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE,mLogSink);
 }
 
 cms::Session* cms::amqp::CMSConnection::createSession(::cms::Session::AcknowledgeMode ackMode)
 {
 
-	return new CMSSession(ConnectionContext(mPimpl->connection()), ackMode);
+	return new CMSSession(ConnectionContext(mPimpl->connection()), ackMode, mLogSink);
 }
 
 std::string cms::amqp::CMSConnection::getClientID() const

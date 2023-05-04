@@ -37,14 +37,15 @@
 
 #include <fmt/format.h>
 
-cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, const std::string& selector)
-	:MessageConsumerImpl(destination, {}, session,false,false,true,selector)
+cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, const std::string& selector, std::shared_ptr<StonexLogger> logger)
+	:MessageConsumerImpl(destination, {}, session,false,false,true,selector,logger)
 {
 
 }
 
-cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable, bool shared, bool autoAck, const std::string& selector)
+cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable, bool shared, bool autoAck, const std::string& selector, std::shared_ptr<StonexLogger> logger)
 {
+	setLogger(logger);
 	mRopts.handler(*this);
 	proton::source_options sopts{};
 	std::string address;
@@ -124,6 +125,7 @@ cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* de
 
 	//waiting until all relevant resources is initialized
 	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncStart, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, mRopts, session);
+	setLogger(nullptr);
 }
 
 cms::amqp::MessageConsumerImpl::~MessageConsumerImpl()

@@ -39,7 +39,7 @@ AMQP_DEFINES
 	class CMS_API CMSMessageProducer : public ::cms::MessageProducer, public StonexLogSource
 	{
 	public:
-		CMSMessageProducer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context);
+		CMSMessageProducer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr);
 		~CMSMessageProducer() override = default;
 
 		void send(::cms::Message* mes) override;

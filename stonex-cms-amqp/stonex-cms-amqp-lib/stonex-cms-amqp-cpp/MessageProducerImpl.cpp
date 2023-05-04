@@ -46,8 +46,9 @@ constexpr std::string_view TOPIC_CAPABILITY = "topic";
 constexpr std::string_view TEMPORARY_QUEUE_CAPABILITY = "temporary-queue";
 constexpr std::string_view TEMPORARY_TOPIC_CAPABILITY = "temporary-topic";
 
-cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session)
+cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, std::shared_ptr<StonexLogger> logger)
 {
+	setLogger(logger);
 	proton::sender_options opts;
 	opts.handler(*this);
 	proton::target_options topts{};
@@ -86,14 +87,10 @@ cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* de
 		topts.capabilities(std::vector<proton::symbol> { "queue" });
 	}
 
-	
-
-	
-
-	opts.target(topts);
-	
-
+	opts.target(topts);	
 	mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncStart, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, opts, session);
+	
+	setLogger(nullptr);
 }
 
 cms::amqp::MessageProducerImpl::~MessageProducerImpl()

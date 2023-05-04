@@ -32,6 +32,8 @@
 #include "AsyncCallSynchronizer.h"
 #include "ClientState.h"
 
+#include <memory>
+
 namespace cms::amqp
 {
 	//!ProtonConnection
@@ -44,9 +46,9 @@ namespace cms::amqp
 	class ConnectionImpl : public proton::messaging_handler, public StonexLogSource {
 
 	public:
-		ConnectionImpl(const FactoryContext& context);
+		ConnectionImpl(const FactoryContext& context, std::shared_ptr<StonexLogger> logger = nullptr);
 
-		ConnectionImpl(const std::string& id, const FactoryContext& context);
+		ConnectionImpl(const std::string& id, const FactoryContext& context, std::shared_ptr<StonexLogger> logger = nullptr);
 
 		//!Constructor
 		/*!Create instance of CMS connection

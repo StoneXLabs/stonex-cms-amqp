@@ -23,17 +23,17 @@
 #include "ConnectionContext.h"
 #include "MessageConsumerImpl.h"
 
-cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context)
+cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr)
 	:mPimpl(std::make_shared<MessageConsumerImpl>(destination, context->connection()))
 {
 }
 
-cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const::cms::Destination* destination, const std::string& selector, std::shared_ptr<SessionContext> context)
+cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const::cms::Destination* destination, const std::string& selector, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr)
 	: mPimpl(std::make_shared<MessageConsumerImpl>(destination, context->connection(), selector))
 {
 }
 
-cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const::cms::Destination* destination, const std::string& name, const std::string& selector, std::shared_ptr<SessionContext> context)
+cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const::cms::Destination* destination, const std::string& name, const std::string& selector, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr)
 	: mPimpl(std::make_shared<MessageConsumerImpl>(destination, name, context->connection(),context->isDurable(), context->isShared(), context->isAutoAck(), selector))
 {
 }

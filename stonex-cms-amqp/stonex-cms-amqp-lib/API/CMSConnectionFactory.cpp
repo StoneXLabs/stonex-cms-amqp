@@ -36,7 +36,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 	try
 	{
 		info("connection factory", "creating connection");
-		return new CMSConnection(mContext);
+		return new CMSConnection(mContext, mLogSink);
 	}
 	catch (const ::cms::CMSException& ex)
 	{
@@ -52,7 +52,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 	try
 	{
 		info("connection factory", fmt::format("creating connection. user: {}",username));
-		return new CMSConnection(mContext, username, password);
+		return new CMSConnection(mContext, username, password, mLogSink);
 	}
 	catch (const ::cms::CMSException& ex)
 	{
@@ -69,7 +69,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 	{
 		info("connection factory", fmt::format("create connection. client id: {} user: {}",clientId,username));
 		mContext->updateCotainerId(clientId);
-		return new CMSConnection(mContext, username, password);
+		return new CMSConnection(mContext, username, password, mLogSink);
 	}
 	catch (const ::cms::CMSException& ex)
 	{

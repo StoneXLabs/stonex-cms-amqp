@@ -48,7 +48,7 @@ namespace cms::amqp
 			std::shared_ptr <proton::message> from_cms_message(::cms::Message* message);
 		};
 	public:
-		MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session);
+		MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, std::shared_ptr<StonexLogger> logger = nullptr);
 		~MessageProducerImpl();
 		void send(::cms::Message* message);
 		void send(::cms::Message* message, ::cms::AsyncCallback* onComplete);

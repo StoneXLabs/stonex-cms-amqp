@@ -27,8 +27,8 @@
 
 #include "ConnectionContext.h"
 
- cms::amqp::CMSMessageProducer::CMSMessageProducer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context)
-	:mPimpl(std::make_shared<MessageProducerImpl>(destination,context->connection()))
+ cms::amqp::CMSMessageProducer::CMSMessageProducer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger)
+	:mPimpl(std::make_shared<MessageProducerImpl>(destination,context->connection(), logger))
 {
 }
 

@@ -48,7 +48,8 @@ class StreamMessage : public cms::StreamMessage {};
 
 
 cms::amqp::SessionImpl::SessionImpl(std::shared_ptr<proton::connection>  connection, ::cms::Session::AcknowledgeMode ack_mode, std::shared_ptr<StonexLogger> logger)
-	:mACKMode{ack_mode}
+	:mEXHandler(logger),
+	mACKMode{ack_mode}
 {
 	setLogger(logger);
 	mEXHandler.SynchronizeCall(std::bind(&SessionImpl::syncStart, this, std::placeholders::_1), connection);

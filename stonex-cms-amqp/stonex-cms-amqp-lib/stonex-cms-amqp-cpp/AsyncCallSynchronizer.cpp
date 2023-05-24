@@ -18,27 +18,44 @@
  */
 
 #include "AsyncCallSynchronizer.h"
+#include <fmt/format.h>
+
+cms::internal::AsyncCallSynchronizer::AsyncCallSynchronizer(std::shared_ptr<StonexLogger> logger)
+{
+	setLogger(logger);
+}
 
 void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<void(proton::messaging_handler* handler)> asyncCall, proton::messaging_handler& parameter)
 {
+	trace("async call synchronizer", fmt::format("{} acquire mutex", __func__));
+
 	std::unique_lock lk(mMutex);
+
+	trace("async call synchronizer", fmt::format("{} acquired mutex", __func__));
+
 	mIdle = false;
 	mSuccess = false;
 	asyncCall(&parameter);
 	mCV.wait(lk, [this] {return mIdle; });
+	trace("async call synchronizer", fmt::format("{} done status {}", __func__, mSuccess));
 	if (!mSuccess)
 		throw cms::CMSException(mLastError.what());
 }
 
 void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool()> asyncCall)
 {
+	trace("async call synchronizer", fmt::format("{} acquire mutex", __func__));
+
 	std::unique_lock lk(mMutex);
+
+	trace("async call synchronizer", fmt::format("{} acquired mutex", __func__));
 
 	if (asyncCall())
 	{
 		mIdle = false;
 		mSuccess = false;
 		mCV.wait(lk, [this] {return mIdle; });
+		trace("async call synchronizer", fmt::format("{} done status {}", __func__, mSuccess));
 		if (!mSuccess)
 			throw cms::CMSException(mLastError.what());
 	}
@@ -47,13 +64,18 @@ void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool()>
 
 void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool(std::shared_ptr<proton::connection> connection)> asyncCall, std::shared_ptr<proton::connection> param)
 {
+	trace("async call synchronizer", fmt::format("{} acquire mutex", __func__));
+
 	std::unique_lock lk(mMutex);
+
+	trace("async call synchronizer", fmt::format("{} acquired mutex", __func__));
 
 	if (asyncCall(param))
 	{
 		mIdle = false;
 		mSuccess = false;
 		mCV.wait(lk, [this] {return mIdle; });
+		trace("async call synchronizer", fmt::format("{} done status {}", __func__, mSuccess));
 		if (!mSuccess)
 			throw cms::CMSException(mLastError.what());
 	}
@@ -61,13 +83,18 @@ void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool(st
 
 void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool(const std::string&, const proton::receiver_options&, std::shared_ptr<proton::session>)> asyncCall, const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session> param)
 {
+	trace("async call synchronizer", fmt::format("{} acquire mutex", __func__));
+
 	std::unique_lock lk(mMutex);
+
+	trace("async call synchronizer", fmt::format("{} acquired mutex", __func__));
 
 	if (asyncCall(address,options,param))
 	{
 		mIdle = false;
 		mSuccess = false;
 		mCV.wait(lk, [this] {return mIdle; });
+		trace("async call synchronizer", fmt::format("{} done status {}", __func__, mSuccess));
 		if (!mSuccess)
 			throw cms::CMSException(mLastError.what());
 	}
@@ -75,13 +102,18 @@ void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool(co
 
 void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool(const std::string&, const proton::sender_options&, std::shared_ptr<proton::session>)> asyncCall, const std::string& address, const proton::sender_options& options, std::shared_ptr<proton::session> param)
 {
+	trace("async call synchronizer", fmt::format("{} acquire mutex", __func__));
+
 	std::unique_lock lk(mMutex);
+
+	trace("async call synchronizer", fmt::format("{} acquired mutex", __func__));
 
 	if (asyncCall(address, options, param))
 	{
 		mIdle = false;
 		mSuccess = false;
 		mCV.wait(lk, [this] {return mIdle; });
+		trace("async call synchronizer", fmt::format("{} done status {}", __func__, mSuccess));
 		if (!mSuccess)
 			throw cms::CMSException(mLastError.what());
 	}
@@ -89,7 +121,12 @@ void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool(co
 
 void cms::internal::AsyncCallSynchronizer::onResourceInitialized()
 {
+	trace("async call synchronizer", fmt::format("{} acquire mutex", __func__));
+
 	std::unique_lock lk(mMutex);
+
+	trace("async call synchronizer", fmt::format("{} notify one", __func__));
+
 	mIdle = true;
 	mSuccess = true;
 	lk.unlock();
@@ -98,7 +135,12 @@ void cms::internal::AsyncCallSynchronizer::onResourceInitialized()
 
 void cms::internal::AsyncCallSynchronizer::onResourceUninitialized(const proton::error_condition& error)
 {
+	trace("async call synchronizer", fmt::format("{} acquire mutex", __func__));
+
 	std::unique_lock lk(mMutex);
+
+	trace("async call synchronizer", fmt::format("{} notify all", __func__));
+
 	mIdle = true;
 	mSuccess = error.empty();
 	if (!mSuccess)
@@ -109,7 +151,13 @@ void cms::internal::AsyncCallSynchronizer::onResourceUninitialized(const proton:
 
 void cms::internal::AsyncCallSynchronizer::waitForResource()
 {
+	trace("async call synchronizer", fmt::format("{} acquire mutex", __func__));
+
 	std::unique_lock lk(mMutex);
+
+	trace("async call synchronizer", fmt::format("{} acquired mutex", __func__));
+
 	mCV.wait(lk, [this] {return mIdle; });
+	trace("async call synchronizer", fmt::format("{} done status {}", __func__, mSuccess));
 	mIdle = false;
 }

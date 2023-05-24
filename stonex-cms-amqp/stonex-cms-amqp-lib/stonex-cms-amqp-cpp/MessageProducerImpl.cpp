@@ -47,6 +47,7 @@ constexpr std::string_view TEMPORARY_QUEUE_CAPABILITY = "temporary-queue";
 constexpr std::string_view TEMPORARY_TOPIC_CAPABILITY = "temporary-topic";
 
 cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, std::shared_ptr<StonexLogger> logger)
+	:mEXHandler(logger)
 {
 	setLogger(logger);
 	proton::sender_options opts;

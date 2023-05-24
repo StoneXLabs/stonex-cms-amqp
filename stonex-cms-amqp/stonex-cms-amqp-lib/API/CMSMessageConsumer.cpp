@@ -23,18 +23,18 @@
 #include "ConnectionContext.h"
 #include "MessageConsumerImpl.h"
 
-cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr)
-	:mPimpl(std::make_shared<MessageConsumerImpl>(destination, context->connection()))
+cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger)
+	:mPimpl(std::make_shared<MessageConsumerImpl>(destination, context->connection(),"", logger))
 {
 }
 
-cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const::cms::Destination* destination, const std::string& selector, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr)
-	: mPimpl(std::make_shared<MessageConsumerImpl>(destination, context->connection(), selector))
+cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const::cms::Destination* destination, const std::string& selector, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger)
+	: mPimpl(std::make_shared<MessageConsumerImpl>(destination, context->connection(), selector, logger))
 {
 }
 
-cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const::cms::Destination* destination, const std::string& name, const std::string& selector, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr)
-	: mPimpl(std::make_shared<MessageConsumerImpl>(destination, name, context->connection(),context->isDurable(), context->isShared(), context->isAutoAck(), selector))
+cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const::cms::Destination* destination, const std::string& name, const std::string& selector, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger)
+	: mPimpl(std::make_shared<MessageConsumerImpl>(destination, name, context->connection(),context->isDurable(), context->isShared(), context->isAutoAck(), selector, logger))
 {
 }
 
@@ -61,7 +61,7 @@ cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const::cms::Destination* desti
 
 void  cms::amqp::CMSMessageConsumer::setMessageListener(::cms::MessageListener* listener)
 {
-	debug("consumer", fmt::format("set message listener: {#:x}", (void*)listener));
+	debug("consumer", fmt::format("set message listener: {}", (void*)listener));
 	mPimpl->setMessageListener(listener);
 }
 
@@ -77,7 +77,7 @@ std::string  cms::amqp::CMSMessageConsumer::getMessageSelector() const
 
 void  cms::amqp::CMSMessageConsumer::setMessageTransformer(::cms::MessageTransformer* transformer)
 {
-	debug("consumer", fmt::format("set message transformer: {#:x}", (void*)transformer));
+	debug("consumer", fmt::format("set message transformer: {}", (void*)transformer));
 	mPimpl->setMessageTransformer(transformer);
 }
 
@@ -88,7 +88,7 @@ void  cms::amqp::CMSMessageConsumer::setMessageTransformer(::cms::MessageTransfo
 
 void  cms::amqp::CMSMessageConsumer::setMessageAvailableListener(::cms::MessageAvailableListener* listener)
 {
-	debug("consumer", fmt::format("set message available listener: {#:x}", (void*)listener));
+	debug("consumer", fmt::format("set message available listener: {}", (void*)listener));
 	mPimpl->setMessageAvailableListener(listener);
 }
 

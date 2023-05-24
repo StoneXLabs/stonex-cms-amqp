@@ -44,6 +44,7 @@ cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* de
 }
 
 cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable, bool shared, bool autoAck, const std::string& selector, std::shared_ptr<StonexLogger> logger)
+	:mEXHandler(logger)
 {
 	setLogger(logger);
 	mRopts.handler(*this);
@@ -251,18 +252,25 @@ const std::string cms::amqp::MessageConsumerImpl::getAddress() const
 
 bool cms::amqp::MessageConsumerImpl::syncClose()
 {
-	if (!mProtonReceiver->closed()/* && mState == STATUS::OPEN*/)
+	trace("message consumer implementation", fmt::format(" {}", __func__));
+
+	if (!mProtonReceiver->closed() /* && mState == STATUS::OPEN*/) {
 		return mProtonReceiver->connection().work_queue().add([=] {mProtonReceiver->close(); });
+	}
 	else
 		return false;
 }
 
 bool cms::amqp::MessageConsumerImpl::syncStart(const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session>  session)
 {
+	trace("message consumer implementation", fmt::format(" {} address {}", __func__, address));
+
 	return session->connection().work_queue().add([=] {session->open_receiver(address, mRopts); });
 }
 
 bool cms::amqp::MessageConsumerImpl::syncStop()
 {
+	trace("message consumer implementation", fmt::format("{}", __func__));
+
 	return 	mProtonReceiver->connection().work_queue().add([=] {mProtonReceiver->detach(); });
 }

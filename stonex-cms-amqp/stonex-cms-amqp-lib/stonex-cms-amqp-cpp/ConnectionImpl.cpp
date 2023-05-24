@@ -32,19 +32,25 @@
 #include <fmt/format.h>
 
  cms::amqp::ConnectionImpl::ConnectionImpl(const FactoryContext& context, std::shared_ptr<StonexLogger> logger)
-	:mContext{ context }
+	:mContext{ context },
+	 mEXHandler(logger)
 {	
 	setLogger(logger);
+	mContext.setLogger(logger);
 	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
+	mContext.setLogger(nullptr);
 	setLogger(nullptr);
 }
 
  cms::amqp::ConnectionImpl::ConnectionImpl(const std::string& id, const FactoryContext& context, std::shared_ptr<StonexLogger> logger)
-	 : mConnectionId{id},
+	 :mEXHandler(logger),
+	 mConnectionId{id},
 	 mContext{context}
 {
 	setLogger(logger);
+	mContext.setLogger(logger);
 	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
+	mContext.setLogger(nullptr);
 	setLogger(nullptr);
 }
 
@@ -65,7 +71,7 @@ void  cms::amqp::ConnectionImpl::close()
 
 void  cms::amqp::ConnectionImpl::start()
 {
-	std::cout << "connection status : " << std::boolalpha << !mConnection->closed() << " starting connection " << &mConnection << std::endl;
+	trace("connection implementation", fmt::format("{} connection closed: {} starting connection", __func__, !mConnection->closed()));
 	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
 
 }

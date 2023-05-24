@@ -36,7 +36,7 @@ namespace cms::internal
 	class AsyncCallSynchronizer : public StonexLogSource
 	{
 	public:
-		explicit AsyncCallSynchronizer(std::shared_ptr<StonexLogger> logger);
+		explicit AsyncCallSynchronizer(std::shared_ptr<StonexLogger> logger = nullptr);
 
 		void SynchronizeCall(std::function<void(proton::messaging_handler* handler)> asyncCall, proton::messaging_handler& parameter);
 

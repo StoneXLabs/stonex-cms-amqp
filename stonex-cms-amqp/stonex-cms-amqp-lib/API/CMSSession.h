@@ -36,8 +36,8 @@ AMQP_DEFINES
 	{
 
 	public:
-		explicit CMSSession(const cms::amqp::ConnectionContext& cntx, std::shared_ptr<StonexLogger> logger);
-		explicit CMSSession(const cms::amqp::ConnectionContext& cntx, const ::cms::Session::AcknowledgeMode ackMode, std::shared_ptr<StonexLogger> logger);
+		explicit CMSSession(const cms::amqp::ConnectionContext& cntx, std::shared_ptr<StonexLogger> logger = nullptr);
+		explicit CMSSession(const cms::amqp::ConnectionContext& cntx, const ::cms::Session::AcknowledgeMode ackMode, std::shared_ptr<StonexLogger> logger = nullptr);
 
 		void close() override;
 		void commit() override;

@@ -71,7 +71,9 @@ void  cms::amqp::ConnectionImpl::close()
 
 void  cms::amqp::ConnectionImpl::start()
 {
+#if _DEBUG
 	trace("connection implementation", fmt::format("{} connection closed: {} starting connection", __func__, !mConnection->closed()));
+#endif
 	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
 
 }
@@ -95,26 +97,34 @@ void  cms::amqp::ConnectionImpl::setClientID(const std::string& clientID)
 
 void  cms::amqp::ConnectionImpl::on_transport_open(proton::transport& transport)
 {
+#if _DEBUG
 	trace("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
+#endif
 }
 
 void  cms::amqp::ConnectionImpl::on_transport_close(proton::transport& transport)
 {
+#if _DEBUG
 	trace("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
+#endif
 	mState = ClientState::CLOSED;
 	mEXHandler.onResourceUninitialized(transport.error());
 }
 
 void  cms::amqp::ConnectionImpl::on_transport_error(proton::transport& transport)
 {
+#if _DEBUG
 	trace("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
+#endif
 	if (mExceptionListener)
 		mExceptionListener->onException(transport.error().what());
 }
 
 void  cms::amqp::ConnectionImpl::on_connection_open(proton::connection& connection)
 {
+#if _DEBUG
 	trace("connection implementation", fmt::format("{} {}", __func__, connection.error().what()));
+#endif
 	mConnection  = std::make_shared<proton::connection>(connection);
 	mState = ClientState::STARTED;
 	mEXHandler.onResourceInitialized();
@@ -122,12 +132,14 @@ void  cms::amqp::ConnectionImpl::on_connection_open(proton::connection& connecti
 }
 void  cms::amqp::ConnectionImpl::on_connection_close(proton::connection& connection)
 {
+#if _DEBUG
 	trace("connection implementation", fmt::format("{} {}", __func__, connection.error().what()));
+#endif
 }
 
 void  cms::amqp::ConnectionImpl::on_connection_error(proton::connection& connection)
 {
-	trace("connection implementation", fmt::format("{} {}", __func__, connection.error().what()));
+	error("connection implementation", fmt::format("{} {}", __func__, connection.error().what()));
 	if (mExceptionListener)
 		mExceptionListener->onException(connection.error().what());
 }

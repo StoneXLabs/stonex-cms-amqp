@@ -100,7 +100,9 @@ void cms::amqp::SessionImpl::stop()
 
 void cms::amqp::SessionImpl::on_session_open(proton::session& session)
 {
+#if _DEBUG
 	trace("session implementation", fmt::format("{} {}", __func__, session.error().what()));
+#endif
 	mSession = std::make_shared<proton::session>(session);
 	mState = ClientState::STARTED;
 	mEXHandler.onResourceInitialized();
@@ -108,7 +110,9 @@ void cms::amqp::SessionImpl::on_session_open(proton::session& session)
 
 void cms::amqp::SessionImpl::on_session_close(proton::session& session)
 {
+#if _DEBUG
 	trace("session implementation", fmt::format("{} {}", __func__, session.error().what()));
+#endif
 	mState = ClientState::CLOSED;
 	mEXHandler.onResourceInitialized();
 }
@@ -141,6 +145,8 @@ bool cms::amqp::SessionImpl::syncStart(std::shared_ptr<proton::connection>  conn
 
 bool cms::amqp::SessionImpl::syncStop()
 {
+#if _DEBUG
 	trace("session implementation", fmt::format("{} {}", __func__, "method not implemented"));
+#endif
 	return false;
 }

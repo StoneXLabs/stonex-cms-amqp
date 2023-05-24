@@ -167,20 +167,26 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 
 void cms::amqp::MessageProducerImpl::close()
 {
+#if _DEBUG
 	trace("message producer implementation", fmt::format("{}", __func__));
+#endif
 	if(mState == ClientState::STARTED)
 		mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncClose, this));
 }
 
 void cms::amqp::MessageProducerImpl::on_sendable(proton::sender& sender)
 {
+#if _DEBUG
 	trace("message producer implementation", fmt::format("{}", __func__));
+#endif
 	mEXHandler.onResourceInitialized();
 }
 
 void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)
 {
+#if _DEBUG
 	trace("message producer implementation", fmt::format("{} {}", __func__, sender.error().what()));
+#endif
 	mProtonSender = std::make_unique<proton::sender>(sender);
 	if (sender.error().empty())
 	{
@@ -202,7 +208,10 @@ void cms::amqp::MessageProducerImpl::on_sender_error(proton::sender & sender)
 void cms::amqp::MessageProducerImpl::on_sender_close(proton::sender& sender)
 {
 	auto err = sender.error().what();
+
+#if _DEBUG
 	trace("message producer implementation", fmt::format("{} {}", __func__, err));
+#endif
 	mState = ClientState::CLOSED;
 	mEXHandler.onResourceUninitialized(sender.error());
 }

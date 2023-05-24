@@ -129,25 +129,25 @@ cms::QueueBrowser* cms::amqp::CMSSession::createBrowser(const ::cms::Queue* queu
 
 cms::Queue* cms::amqp::CMSSession::createQueue(const std::string& queueName)
 {
-	debug("session", fmt::format("creating queue {}", queueName));
+	info("session", fmt::format("creating queue {}", queueName));
 	return new CMSQueue(queueName);
 }
 
 cms::Topic* cms::amqp::CMSSession::createTopic(const std::string& topicName)
 {
-	debug("session", fmt::format("creating topic {}", topicName));
+	info("session", fmt::format("creating topic {}", topicName));
 	return new CMSTopic(topicName);
 }
 
 cms::TemporaryQueue* cms::amqp::CMSSession::createTemporaryQueue()
 {
-	debug("session", "creating temporary queue");
+	info("session", "creating temporary queue");
 	return new CMSTemporaryQueue();
 }
 
 cms::TemporaryTopic* cms::amqp::CMSSession::createTemporaryTopic()
 {
-	debug("session", "creating temporary topic");
+	info("session", "creating temporary topic");
 	return new CMSTemporaryTopic();
 }
 
@@ -216,13 +216,13 @@ bool cms::amqp::CMSSession::isTransacted() const
 
 void cms::amqp::CMSSession::unsubscribe(const std::string& name)
 {
-	debug("session", fmt::format("unsubscribe {}", name));
+	info("session", fmt::format("unsubscribe {}", name));
 	throw ::cms::CMSException("illegal use - not implemented");
 }
 
 void cms::amqp::CMSSession::setMessageTransformer(::cms::MessageTransformer* transformer)
 {
-	debug("session", fmt::format("set message transformer: {}", (void*)transformer));
+	info("session", fmt::format("set message transformer: {}", (void*)transformer));
 	throw ::cms::CMSException("illegal use - not implemented");
 }
 

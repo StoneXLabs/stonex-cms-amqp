@@ -179,26 +179,34 @@ void cms::amqp::MessageConsumerImpl::setMessageAvailableListener(::cms::MessageA
 
 void cms::amqp::MessageConsumerImpl::start()
 {
+#if _DEBUG
 	trace("message consumer implementation", fmt::format("{}", __func__));
+#endif
 	//ToDo check if allready started!!
 	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncStart, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), mAddress, mRopts, std::make_shared<proton::session>(mProtonReceiver->session()));
 }
 
 void cms::amqp::MessageConsumerImpl::stop()
 {
+#if _DEBUG
 	trace("message consumer implementation", fmt::format("{}", __func__));
+#endif
 	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncStop, this));
 }
 
 void cms::amqp::MessageConsumerImpl::close()
 {
+#if _DEBUG
 	trace("message consumer implementation", fmt::format("{}", __func__));
+#endif
 	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncClose, this));
 }
 
 void cms::amqp::MessageConsumerImpl::on_receiver_open(proton::receiver& receiver)
 {
-	trace("message consumer implementation", fmt::format("{} {}", __func__,receiver.error().what()));
+#if _DEBUG
+	trace("message consumer implementation", fmt::format("{} {}", __func__, receiver.error().what()));
+#endif
 	mProtonReceiver = std::make_unique<proton::receiver>(receiver);
 	if (receiver.error().empty())
 	{
@@ -212,7 +220,9 @@ void cms::amqp::MessageConsumerImpl::on_receiver_open(proton::receiver& receiver
 
 void cms::amqp::MessageConsumerImpl::on_receiver_close(proton::receiver& receiver)
 {
+#if _DEBUG
 	trace("message consumer implementation", fmt::format("{} {}", __func__, receiver.error().what()));
+#endif
 	mEXHandler.onResourceUninitialized(receiver.error());
 
 	mState = ClientState::STOPPED;
@@ -220,7 +230,9 @@ void cms::amqp::MessageConsumerImpl::on_receiver_close(proton::receiver& receive
 
 void cms::amqp::MessageConsumerImpl::on_receiver_detach(proton::receiver& receiver)
 {
+#if _DEBUG
 	trace("message consumer implementation", fmt::format("{} {}", __func__, receiver.error().what()));
+#endif
 	mEXHandler.onResourceInitialized();
 	mState = ClientState::DETATCHED;
 }
@@ -234,12 +246,16 @@ void cms::amqp::MessageConsumerImpl::on_message(proton::delivery& delivery, prot
 {
 	if (message.content_type() == "application/octet-stream")
 	{
-		debug("message consumer implementation", fmt::format("{} {}", __func__, "bytes message"));
+#if _DEBUG
+		trace("message consumer implementation", fmt::format("{} {}", __func__, "bytes message"));
+#endif
 		onMessageCallback(new CMSBytesMessage(&message, &delivery, mProtonReceiver.get()));
 	}
 	else
 	{
-		debug("message consumer implementation", fmt::format("{} {}", __func__, "text message"));
+#if _DEBUG
+		trace("message consumer implementation", fmt::format("{} {}", __func__, "text message"));
+#endif
 		onMessageCallback(new CMSTextMessage(&message, &delivery, mProtonReceiver.get()));
 	}
 	
@@ -252,7 +268,9 @@ const std::string cms::amqp::MessageConsumerImpl::getAddress() const
 
 bool cms::amqp::MessageConsumerImpl::syncClose()
 {
+#if _DEBUG
 	trace("message consumer implementation", fmt::format(" {}", __func__));
+#endif
 
 	if (!mProtonReceiver->closed() /* && mState == STATUS::OPEN*/) {
 		return mProtonReceiver->connection().work_queue().add([=] {mProtonReceiver->close(); });
@@ -263,14 +281,18 @@ bool cms::amqp::MessageConsumerImpl::syncClose()
 
 bool cms::amqp::MessageConsumerImpl::syncStart(const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session>  session)
 {
+#if _DEBUG
 	trace("message consumer implementation", fmt::format(" {} address {}", __func__, address));
+#endif
 
 	return session->connection().work_queue().add([=] {session->open_receiver(address, mRopts); });
 }
 
 bool cms::amqp::MessageConsumerImpl::syncStop()
 {
+#if _DEBUG
 	trace("message consumer implementation", fmt::format("{}", __func__));
+#endif
 
 	return 	mProtonReceiver->connection().work_queue().add([=] {mProtonReceiver->detach(); });
 }

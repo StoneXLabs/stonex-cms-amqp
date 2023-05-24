@@ -139,7 +139,7 @@ long long  cms::amqp::CMSMessageProducer::getTimeToLive() const
 
 void  cms::amqp::CMSMessageProducer::setMessageTransformer(::cms::MessageTransformer* transformer)
 {
-	debug("producer", fmt::format("set message transformer: {}", (void*)transformer));
+	info("producer", fmt::format("set message transformer: {}", (void*)transformer));
 	mPimpl->setMessageTransformer(transformer);
 }
 

@@ -99,19 +99,19 @@ void  cms::amqp::CMSMessageConsumer::setMessageAvailableListener(::cms::MessageA
 
 void  cms::amqp::CMSMessageConsumer::start()
 {
-	debug("consumer", "starting consumer");
+	info("consumer", "starting consumer");
 	mPimpl->start();
 }
 
 void  cms::amqp::CMSMessageConsumer::stop()
 {
-	debug("consumer", "stopping consumer");
+	info("consumer", "stopping consumer");
 	mPimpl->stop();
 }
 
 void  cms::amqp::CMSMessageConsumer::close()
 {
-	debug("consumer", "closing consumer");
+	info("consumer", "closing consumer");
 	mPimpl->close();
 }
 

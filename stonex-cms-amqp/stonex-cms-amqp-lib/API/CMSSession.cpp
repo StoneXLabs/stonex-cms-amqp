@@ -222,7 +222,7 @@ void cms::amqp::CMSSession::unsubscribe(const std::string& name)
 
 void cms::amqp::CMSSession::setMessageTransformer(::cms::MessageTransformer* transformer)
 {
-	debug("session", fmt::format("set message transformer: {#:x}", (void*)transformer));
+	debug("session", fmt::format("set message transformer: {}", (void*)transformer));
 	throw ::cms::CMSException("illegal use - not implemented");
 }
 

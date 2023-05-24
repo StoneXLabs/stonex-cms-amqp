@@ -82,7 +82,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 
 void cms::amqp::CMSConnectionFactory::setExceptionListener(::cms::ExceptionListener* listener)
 {
-	debug("connection factory", fmt::format("set exception listener: {#:x}", (void*)listener));
+	debug("connection factory", fmt::format("set exception listener: {}", (void*)listener));
 	mExceptionListener = listener;
 }
 
@@ -93,7 +93,7 @@ cms::ExceptionListener* cms::amqp::CMSConnectionFactory::getExceptionListener() 
 
 void cms::amqp::CMSConnectionFactory::setMessageTransformer(::cms::MessageTransformer* transformer)
 {
-	debug("connection factory", fmt::format("set message transformer: {#:x}", (void*)transformer));
+	debug("connection factory", fmt::format("set message transformer: {}", (void*)transformer));
 	mMessageTransformer = transformer;
 }
 

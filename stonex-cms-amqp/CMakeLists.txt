@@ -23,13 +23,15 @@ endif()
 if(CMAKE_BUILD_TYPE STREQUAL  "Debug")
 	SET(CMAKE_DEBUG_POSTFIX "d")
 endif()
-
-#set(BUILD_SHARED_LIBS 0)
-
     
 add_subdirectory(stonex-cms-amqp-lib)
-add_subdirectory(examples)
+
 
 if(BUILD_TEST)
 	add_subdirectory(stonex-cms-amqp-unittests)
+endif()
+
+
+if(BUILD_TEST)
+	add_subdirectory(examples)
 endif()

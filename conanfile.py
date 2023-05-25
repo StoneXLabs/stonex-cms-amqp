@@ -35,6 +35,7 @@ class StonexCMSAMQPLib(ConanFile):
         cmake = CMake(self)
         cmake.definitions["CONAN_BUILD"] = "ON"
         cmake.definitions["BUILD_TEST"] = "ON"
+        cmake.definitions["BUILD_EXAMPLES"] = "OFF"
         cmake.verbose = True
         cmake.configure(source_folder="stonex-cms-amqp")
         cmake.build()

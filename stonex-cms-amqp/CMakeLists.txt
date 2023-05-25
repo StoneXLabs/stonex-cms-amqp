@@ -32,6 +32,6 @@ if(BUILD_TEST)
 endif()
 
 
-if(BUILD_TEST)
+if(BUILD_EXAMPLES)
 	add_subdirectory(examples)
 endif()

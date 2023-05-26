@@ -18,7 +18,7 @@ class StonexCMSAMQPLib(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = {"shared": False, "fPIC": True}  
-    requires = ["red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test","jsoncpp/1.9.5@enterprise_messaging/test","gtest/1.10.0","stonex-logger-wrapper/0.0.1@enterprise_messaging/test","fmt/9.1.0@enterprise_messaging/test"]
+    requires = ["red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test","jsoncpp/1.9.5@enterprise_messaging/test","gtest/1.10.0","stonex-logger-wrapper/0.0.2@enterprise_messaging/test","fmt/9.1.0@enterprise_messaging/test"]
     generators = "cmake"
     exports_sources = ["include/activemq-cpp/src/main/*"]
     
@@ -30,7 +30,6 @@ class StonexCMSAMQPLib(ConanFile):
     def source(self):
         pass
         
-
     def build(self):
         cmake = CMake(self)
         cmake.definitions["CONAN_BUILD"] = "ON"

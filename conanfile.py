@@ -12,7 +12,7 @@ class StonexCMSAMQPLib(ConanFile):
     version = get_verion_tag()
     license = "<Put the package license here>"
     author = "Krzysztof Obrebski krzysztof.obrebski@stonex.com"
-    url = "https://bitbucket.gaincapital.com/projects/EM/repos/messaging-cms-client"
+    url = "https://github.com/StoneXLabs/stonex-cms-amqp.git"
     description = "amqp cms messaging library"
     topics = ("messaging", "c++", "cpp","proton","amqp","cms")
     settings = "os", "compiler", "build_type", "arch"

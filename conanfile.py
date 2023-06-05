@@ -35,7 +35,6 @@ class StonexCMSAMQPLib(ConanFile):
     def source(self):
         pass
         
-
     def build(self):
         cmake = CMake(self)
         cmake.definitions["CONAN_BUILD"] = "ON"

@@ -5,8 +5,8 @@ from conans import ConanFile, CMake, tools
 
 class StonexCMSAMQPLibTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False], "fPIC": [True, False]}
-    default_options = {"shared": False, "fPIC": True}  
+    options = {"shared": [True, False], "fPIC": [True, False], "core_tests":[True, False]}
+    default_options = {"shared": False, "fPIC": True, "core_tests": True}  
     generators = "cmake"
 
     def build(self):

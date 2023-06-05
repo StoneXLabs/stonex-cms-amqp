@@ -21,7 +21,6 @@ class StonexCMSAMQPLib(ConanFile):
     generators = "cmake"
     exports_sources = ["include/activemq-cpp/src/main/*"]
 
-
     def requirements(self):
         self.requires("red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test")
         self.requires("jsoncpp/1.9.5@enterprise_messaging/test")

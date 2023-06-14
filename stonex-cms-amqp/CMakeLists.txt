@@ -28,7 +28,6 @@ endif()
 
     
 add_subdirectory(stonex-cms-amqp-lib)
-add_subdirectory(examples)
 
 if(BUILD_TEST)
 	add_subdirectory(stonex-cms-amqp-unittests)

@@ -34,7 +34,7 @@ int main()
 	logger->configure("logger.xml");
 	
 
-	auto factory = cms::amqp::CMSConnectionFactory::createCMSConnectionFactory("localhost:5672?maxReconnectAttempts=1");
+	auto factory = cms::amqp::CMSConnectionFactory::createCMSConnectionFactory("failover:(localhost:5672)?maxReconnectAttempts=30");
 	logger->attach("factory",(cms::amqp::CMSConnectionFactory*)factory);
 
 	MyExceptionListener exl;
@@ -84,11 +84,23 @@ int main()
 
 		auto message = session->createTextMessage("text message");
 
+		std::thread senderThread([&topicProducer, &queueProducer, &message]() {
 
-		topicProducer->send(message);
-		queueProducer->send(message);
+			for (int i = 0; i < 10; i++) {
+				topicProducer->send(message);
+				queueProducer->send(message);
+				std::this_thread::sleep_for(std::chrono::seconds(1));
+			}
+		});
 
-		getchar();
+
+		senderThread.join();
+
+		consumer1->close();
+		consumer2->close();
+		consumer3->close();
+		session->close();
+		connection->close();
 	}
 	catch (const std::exception&)
 	{

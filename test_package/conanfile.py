@@ -9,6 +9,14 @@ class StonexCMSAMQPLibTestConan(ConanFile):
     default_options = {"shared": False, "fPIC": True, "core_tests": True}  
     generators = "cmake"
 
+    
+    def config_options(self):
+        if self.settings.os == "Windows":
+            del self.options.fPIC
+        if self.settings.arch == "x86":
+            self.options["stonex-cms-amqp-test-framework"].use_32_time_t = True
+            self.options["protobuf"].use_32_time_t = True
+
     def build(self):
         cmake = CMake(self)
         # Current dir is "test_package/build/<build_id>" and CMakeLists.txt is
@@ -17,9 +25,9 @@ class StonexCMSAMQPLibTestConan(ConanFile):
         cmake.build()
         
     def requirements(self):
-        self.requires("stonex-cms-amqp-test-cases/1.1.0@enterprise_messaging/test")       
-        self.requires("stonex-cms-amqp-test-framework/1.0.0@enterprise_messaging/test")
-        self.requires("stonex-cms-amqp-test-engine/1.0.0@enterprise_messaging/test")
+        self.requires("stonex-cms-amqp-test-cases/1.0.0@enterprise_messaging/test")       
+        self.requires("stonex-cms-amqp-test-framework/parent-0.0.2@enterprise_messaging/test")
+        self.requires("stonex-cms-amqp-test-engine/1.0.1@enterprise_messaging/test")
         self.requires("protobuf/3.20.1@enterprise_messaging/test")
         self.requires("fmt/9.1.0@enterprise_messaging/test")
         self.requires("boost/1.78.0@enterprise_messaging/stable")

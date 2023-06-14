@@ -113,9 +113,9 @@ void  cms::amqp::ConnectionImpl::on_transport_close(proton::transport& transport
 
 void  cms::amqp::ConnectionImpl::on_transport_error(proton::transport& transport)
 {
-#if _DEBUG
-	trace("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
-#endif
+
+	error("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
+
 	if (mExceptionListener)
 		mExceptionListener->onException(transport.error().what());
 }

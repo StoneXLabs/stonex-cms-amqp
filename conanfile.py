@@ -12,16 +12,21 @@ class StonexCMSAMQPLib(ConanFile):
     version = get_verion_tag()
     license = "<Put the package license here>"
     author = "Krzysztof Obrebski krzysztof.obrebski@stonex.com"
-    url = "https://bitbucket.gaincapital.com/projects/EM/repos/messaging-cms-client"
+    url = "https://github.com/StoneXLabs/stonex-cms-amqp.git"
     description = "amqp cms messaging library"
     topics = ("messaging", "c++", "cpp","proton","amqp","cms")
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = {"shared": False, "fPIC": True}  
-    requires = ["red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test","jsoncpp/1.9.5@enterprise_messaging/test","gtest/1.10.0"]
     generators = "cmake"
     exports_sources = ["include/activemq-cpp/src/main/*"]
-    
+
+    def requirements(self):
+        self.requires("red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test")
+        self.requires("jsoncpp/1.9.5@enterprise_messaging/test")
+
+    def build_requirements(self):
+        self.build_requires("gtest/1.10.0")
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -30,7 +35,6 @@ class StonexCMSAMQPLib(ConanFile):
     def source(self):
         pass
         
-
     def build(self):
         cmake = CMake(self)
         cmake.definitions["CONAN_BUILD"] = "ON"

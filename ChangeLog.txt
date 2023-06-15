@@ -1,5 +1,8 @@
-v 0.2.3
+v 0.2.4
 - add conan test project
+
+v 0.2.3
+- change conan requirements to build requirements
 
 v 0.2.2
 -change conan build requires to conan requires 

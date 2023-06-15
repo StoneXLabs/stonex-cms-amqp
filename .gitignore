@@ -1,13 +1,12 @@
 *
+!*/
 
-!stonex-cms-amqp
-!test_package
+!stonex-cms-amqp/
+!test_package/**
+!test_package/
 !.gitignore
 !conanfile.py
 !README.md
 !NOTICE
 !LICENSE
 !ChangeLog.txt
-
-
-!test_package/*

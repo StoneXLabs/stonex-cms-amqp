@@ -25,7 +25,7 @@ class StonexCMSAMQPLibTestConan(ConanFile):
         cmake.build()
         
     def requirements(self):
-        self.requires("stonex-cms-amqp-test-cases/1.0.0@enterprise_messaging/test")       
+        self.requires("stonex-cms-amqp-test-cases/1.0.1@enterprise_messaging/test")       
         self.requires("stonex-cms-amqp-test-framework/parent-0.0.2@enterprise_messaging/test")
         self.requires("stonex-cms-amqp-test-engine/1.0.1@enterprise_messaging/test")
         self.requires("protobuf/3.20.1@enterprise_messaging/test")

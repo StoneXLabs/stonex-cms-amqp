@@ -24,6 +24,8 @@ class StonexCMSAMQPLib(ConanFile):
     def requirements(self):
         self.requires("red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test")
         self.requires("jsoncpp/1.9.5@enterprise_messaging/test")
+        self.requires("stonex-logger-wrapper/0.0.2@enterprise_messaging/test")
+        self.requires("fmt/9.1.0@enterprise_messaging/test")
 
     def build_requirements(self):
         self.build_requires("gtest/1.10.0")

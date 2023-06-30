@@ -18,9 +18,15 @@ class StonexCMSAMQPLib(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = {"shared": False, "fPIC": True}  
-    requires = ["red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test","jsoncpp/1.9.5@enterprise_messaging/test","gtest/1.10.0","stonex-logger-wrapper/0.0.2@enterprise_messaging/test","fmt/9.1.0@enterprise_messaging/test"]
     generators = "cmake"
     exports_sources = ["include/activemq-cpp/src/main/*"]
+
+    def requirements(self):
+        self.requires("red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test")
+        self.requires("jsoncpp/1.9.5@enterprise_messaging/test")
+
+    def build_requirements(self):
+        self.build_requires("gtest/1.10.0")
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -45,8 +51,8 @@ class StonexCMSAMQPLib(ConanFile):
     def package(self):
         self.copy("API\*.h", dst="include",src="stonex-cms-amqp\stonex-cms-amqp-lib")
         self.copy("activemq-cpp\src\main\cms\*", dst="include",src="stonex-cms-amqp\stonex-cms-amqp-lib",keep_path=True)
-        self.copy("*.lib", dst="lib",src="lib", keep_path=False)
-        self.copy("*.pdb", dst="lib",src="lib", keep_path=False)
+        self.copy("stonex-cms-amqp-lib.lib", dst="lib",src="lib", keep_path=False)
+        self.copy("stonex-cms-amqp-lib.pdb", dst="lib",src="lib", keep_path=False)
         self.copy("*.dll", dst="bin",src="bin", keep_path=False)
 
 

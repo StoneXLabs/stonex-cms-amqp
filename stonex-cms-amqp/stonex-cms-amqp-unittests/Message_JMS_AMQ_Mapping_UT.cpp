@@ -27,10 +27,10 @@
 #include <proton/annotation_key.hpp>
 
 #include "CMSMessage.h"
-#include "..\API\CMSQueue.h"
-#include "..\API\CMSTopic.h"
-#include "..\API\CMSTemporaryQueue.h"
-//#include "..\API\CMSTemporaryTopic.h"
+#include "../API/CMSQueue.h"
+#include "../API/CMSTopic.h"
+#include "../API/CMSTemporaryQueue.h"
+//#include "../API/CMSTemporaryTopic.h"
 #include <AMQPCMSMessageConverter.h>
 
 using namespace cms::amqp;

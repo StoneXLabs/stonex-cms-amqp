@@ -22,8 +22,12 @@ class StonexCMSAMQPLib(ConanFile):
     exports_sources = ["include/activemq-cpp/src/main/*"]
 
     def requirements(self):
-        self.requires("red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test")
-        self.requires("jsoncpp/1.9.5@enterprise_messaging/test")
+        if self.settings.os == "Linux":    
+            self.requires("qpid-proton/2.10.4@_/_")
+            self.requires("jsoncpp/1.9.5@_/_")
+        else:
+            self.requires("red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test")
+            self.requires("jsoncpp/1.9.5@enterprise_messaging/test")
 
     def build_requirements(self):
         self.build_requires("gtest/1.10.0")

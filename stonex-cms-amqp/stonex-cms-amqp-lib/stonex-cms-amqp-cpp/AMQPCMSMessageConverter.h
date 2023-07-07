@@ -26,7 +26,7 @@
 #include <proton/sender.hpp>
 #include <proton/receiver.hpp>
 #include <proton/message.hpp>
-#include "..\API\stonex-cms-amqp-lib-defines.h"
+#include "../API/stonex-cms-amqp-lib-defines.h"
 
 namespace cms::amqp
 {

@@ -19,7 +19,7 @@
 
 #pragma once
 
-
+#include <memory>
 #include <cms/BytesMessage.h>
 #include "stonex-cms-amqp-lib-defines.h"
 

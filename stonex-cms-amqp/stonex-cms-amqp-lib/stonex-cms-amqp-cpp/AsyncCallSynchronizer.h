@@ -20,6 +20,7 @@
 #pragma once
 #include <mutex>
 #include <functional>
+#include <condition_variable>
 
 #include <proton/messaging_handler.hpp>
 #include <proton/error_condition.hpp>

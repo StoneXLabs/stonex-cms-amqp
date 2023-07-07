@@ -43,7 +43,7 @@ namespace cms {
         TransactionRolledBackException(const std::string& message, const std::exception* cause,
                                        const std::vector<std::pair<std::string, int> >& stackTrace);
 
-        virtual ~TransactionRolledBackException() throw();
+        virtual ~TransactionRolledBackException() noexcept;
 
         virtual TransactionRolledBackException* clone();
 

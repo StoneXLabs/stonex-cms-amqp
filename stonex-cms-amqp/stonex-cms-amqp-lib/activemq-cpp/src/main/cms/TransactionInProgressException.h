@@ -44,7 +44,7 @@ namespace cms {
         TransactionInProgressException(const std::string& message, const std::exception* cause,
                                        const std::vector<std::pair<std::string, int> >& stackTrace);
 
-        virtual ~TransactionInProgressException() throw();
+        virtual ~TransactionInProgressException() noexcept;
 
         virtual TransactionInProgressException* clone();
 

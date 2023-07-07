@@ -45,7 +45,7 @@ TransactionRolledBackException::TransactionRolledBackException(const std::string
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-TransactionRolledBackException::~TransactionRolledBackException() throw() {
+TransactionRolledBackException::~TransactionRolledBackException() noexcept {
 }
 
 ////////////////////////////////////////////////////////////////////////////////

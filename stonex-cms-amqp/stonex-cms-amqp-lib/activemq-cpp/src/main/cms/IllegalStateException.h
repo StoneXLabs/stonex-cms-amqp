@@ -45,7 +45,7 @@ namespace cms {
         IllegalStateException(const std::string& message, const std::exception* cause,
                               const std::vector<std::pair<std::string, int> >& stackTrace);
 
-        virtual ~IllegalStateException() throw();
+        virtual ~IllegalStateException() noexcept;
 
         virtual IllegalStateException* clone();
 

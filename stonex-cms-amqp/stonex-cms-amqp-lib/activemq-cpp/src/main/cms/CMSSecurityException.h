@@ -44,7 +44,7 @@ namespace cms {
         CMSSecurityException(const std::string& message, const std::exception* cause,
                              const std::vector<std::pair<std::string, int> >& stackTrace);
 
-        virtual ~CMSSecurityException() throw();
+        virtual ~CMSSecurityException() noexcept;
 
         virtual CMSSecurityException* clone();
 

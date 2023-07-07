@@ -43,7 +43,7 @@ InvalidClientIdException::InvalidClientIdException(const std::string& message, c
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-InvalidClientIdException::~InvalidClientIdException() throw() {
+InvalidClientIdException::~InvalidClientIdException() noexcept {
 }
 
 ////////////////////////////////////////////////////////////////////////////////

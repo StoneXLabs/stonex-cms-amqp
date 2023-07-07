@@ -45,7 +45,7 @@ UnsupportedOperationException::UnsupportedOperationException(const std::string& 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-UnsupportedOperationException::~UnsupportedOperationException() throw() {
+UnsupportedOperationException::~UnsupportedOperationException() noexcept {
 }
 
 ////////////////////////////////////////////////////////////////////////////////

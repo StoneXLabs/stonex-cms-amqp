@@ -43,7 +43,7 @@ InvalidSelectorException::InvalidSelectorException(const std::string& message, c
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-InvalidSelectorException::~InvalidSelectorException() throw() {
+InvalidSelectorException::~InvalidSelectorException() noexcept {
 }
 
 ////////////////////////////////////////////////////////////////////////////////

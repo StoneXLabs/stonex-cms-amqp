@@ -32,12 +32,7 @@ namespace cms {
     public:
 
         std::string message;
-#if _MSVC_LANG == 201402L
-        std::auto_ptr<const std::exception> cause;
-#elif  _MSVC_LANG > 201402L
         std::unique_ptr<const std::exception> cause;
-#endif // __cplusplus 201402L
-
         std::vector<std::pair<std::string, int> > stackTrace;
 
         CMSExceptionData() : message(), cause(), stackTrace() {
@@ -81,7 +76,7 @@ CMSException::CMSException(const std::string& message, const std::exception* cau
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-CMSException::~CMSException() throw() {
+CMSException::~CMSException() noexcept {
     delete this->data;
 }
 
@@ -145,6 +140,6 @@ std::vector<std::pair<std::string, int> > CMSException::getStackTrace() const {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-const char* CMSException::what() const throw() {
+const char* CMSException::what() const noexcept {
     return this->data->message.c_str();
 }

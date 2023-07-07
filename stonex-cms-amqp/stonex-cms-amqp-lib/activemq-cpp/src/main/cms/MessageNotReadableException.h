@@ -42,7 +42,7 @@ namespace cms {
         MessageNotReadableException(const std::string& message, const std::exception* cause,
                                     const std::vector<std::pair<std::string, int> >& stackTrace);
 
-        virtual ~MessageNotReadableException() throw();
+        virtual ~MessageNotReadableException() noexcept;
 
         virtual MessageNotReadableException* clone();
 

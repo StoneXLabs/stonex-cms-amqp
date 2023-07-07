@@ -43,7 +43,7 @@ MessageNotWriteableException::MessageNotWriteableException(const std::string& me
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-MessageNotWriteableException::~MessageNotWriteableException() throw() {
+MessageNotWriteableException::~MessageNotWriteableException() noexcept {
 }
 
 ////////////////////////////////////////////////////////////////////////////////

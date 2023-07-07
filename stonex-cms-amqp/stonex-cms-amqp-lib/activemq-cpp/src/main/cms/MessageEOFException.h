@@ -43,7 +43,7 @@ namespace cms {
         MessageEOFException(const std::string& message, const std::exception* cause,
                             const std::vector<std::pair<std::string, int> >& stackTrace);
 
-        virtual ~MessageEOFException() throw();
+        virtual ~MessageEOFException() noexcept;
 
         virtual MessageEOFException* clone();
 

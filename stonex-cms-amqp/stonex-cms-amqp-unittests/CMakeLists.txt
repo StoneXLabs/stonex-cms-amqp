@@ -9,6 +9,10 @@ file(GLOB headerFiles ${PROJECT_SOURCE_DIR}/*.h ${PROJECT_SOURCE_DIR}/teamcity-c
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${sourceFiles} ${headerFiles})
 
+if (UNIX)
+	link_directories(${CONAN_LIB_DIRS_RED-HAT-AMQ-CLIENTS-C++})
+endif()
+
 add_executable(stonex-cms-amqp-unittests ${sourceFiles} ${headerFiles})
 
 
@@ -20,8 +24,14 @@ endif()
 
 if(CONAN_BUILD)
 	add_dependencies(stonex-cms-amqp-unittests stonex-cms-amqp-lib)
-	target_link_libraries(stonex-cms-amqp-unittests stonex-cms-amqp-lib CONAN_PKG::gtest)
-	target_include_directories(stonex-cms-amqp-unittests BEFORE PRIVATE ${PROJECT_SOURCE_DIR}/../stonex-cms-amqp-lib/API ${PROJECT_SOURCE_DIR}/../stonex-cms-amqp-lib/stonex-cms-amqp-cpp  ${PROJECT_SOURCE_DIR}/../stonex-cms-amqp-lib/activemq-cpp/src/main ${CONAN_INCLUDE_DIRS_QPID_PROTON} ${PROJECT_SOURCE_DIR}/teamcity-cpp/gtest/)
+	if (UNIX)
+		message(WARNING \n\n\ndupa ${CONAN_LIB_DIRS_RED-HAT-AMQ-CLIENTS-C++}\n\n\n) 
+		target_link_libraries(stonex-cms-amqp-unittests stonex-cms-amqp-lib qpid-proton-cpp-static qpid-proton-proactor-static qpid-proton-core-static qpid-proton-static CONAN_PKG::jsoncpp CONAN_PKG::gtest ssl crypto)
+		target_include_directories(stonex-cms-amqp-unittests BEFORE PRIVATE ${PROJECT_SOURCE_DIR}/../stonex-cms-amqp-lib/API ${PROJECT_SOURCE_DIR}/../stonex-cms-amqp-lib/stonex-cms-amqp-cpp  ${PROJECT_SOURCE_DIR}/../stonex-cms-amqp-lib/activemq-cpp/src/main ${CONAN_INCLUDE_DIRS_RED-HAT-AMQ-CLIENTS-C++} ) 	
+	else()
+		target_link_libraries(stonex-cms-amqp-unittests stonex-cms-amqp-lib CONAN_PKG::gtest CONAN_PKG::red-hat-amq-clients-c++)
+	endif ()
+	target_include_directories(stonex-cms-amqp-unittests BEFORE PRIVATE ${PROJECT_SOURCE_DIR}/../stonex-cms-amqp-lib/API ${PROJECT_SOURCE_DIR}/../stonex-cms-amqp-lib/stonex-cms-amqp-cpp  ${PROJECT_SOURCE_DIR}/../stonex-cms-amqp-lib/activemq-cpp/src/main ${PROJECT_SOURCE_DIR}/teamcity-cpp/gtest/)
 else()
 	set_property(TARGET stonex-cms-amqp-unittests PROPERTY  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 	include(FetchContent)

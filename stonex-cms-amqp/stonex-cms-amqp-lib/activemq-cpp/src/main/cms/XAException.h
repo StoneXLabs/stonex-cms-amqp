@@ -187,7 +187,7 @@ namespace cms {
         XAException(const std::string& message, const std::exception* cause,
                     const std::vector<std::pair<std::string, int> >& stackTrace);
 
-        virtual ~XAException() throw();
+        virtual ~XAException() noexcept;
 
         virtual XAException* clone();
 

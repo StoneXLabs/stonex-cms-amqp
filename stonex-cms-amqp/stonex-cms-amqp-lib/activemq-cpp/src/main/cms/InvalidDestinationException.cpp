@@ -43,7 +43,7 @@ InvalidDestinationException::InvalidDestinationException(const std::string& mess
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-InvalidDestinationException::~InvalidDestinationException() throw() {
+InvalidDestinationException::~InvalidDestinationException() noexcept {
 }
 
 ////////////////////////////////////////////////////////////////////////////////

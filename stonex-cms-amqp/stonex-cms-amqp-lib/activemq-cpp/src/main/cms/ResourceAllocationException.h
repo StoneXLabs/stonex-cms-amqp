@@ -44,7 +44,7 @@ namespace cms {
         ResourceAllocationException(const std::string& message, const std::exception* cause,
                                     const std::vector<std::pair<std::string, int> >& stackTrace);
 
-        virtual ~ResourceAllocationException() throw();
+        virtual ~ResourceAllocationException() noexcept;
 
         virtual ResourceAllocationException* clone();
 

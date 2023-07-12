@@ -45,7 +45,7 @@ TransactionInProgressException::TransactionInProgressException(const std::string
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-TransactionInProgressException::~TransactionInProgressException() throw() {
+TransactionInProgressException::~TransactionInProgressException() noexcept {
 }
 
 ////////////////////////////////////////////////////////////////////////////////

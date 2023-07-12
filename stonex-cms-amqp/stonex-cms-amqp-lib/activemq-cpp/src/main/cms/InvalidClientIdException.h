@@ -43,7 +43,7 @@ namespace cms {
         InvalidClientIdException(const std::string& message, const std::exception* cause,
                                  const std::vector<std::pair<std::string, int> >& stackTrace);
 
-        virtual ~InvalidClientIdException() throw();
+        virtual ~InvalidClientIdException() noexcept;
 
         virtual InvalidClientIdException* clone();
 

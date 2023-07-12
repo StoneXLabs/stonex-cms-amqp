@@ -28,13 +28,13 @@
 #include <proton/target_options.hpp>
 #include <proton/work_queue.hpp>
 
-#include "..\API\CMSMessage.h"
-#include "..\API\CMSTextMessage.h"
-#include "..\API\CMSBytesMessage.h"
-#include "..\API\CMSQueue.h"
-#include "..\API\CMSTopic.h"
-#include "..\API\CMSTemporaryQueue.h"
-#include "..\API\CMSTemporaryTopic.h"
+#include "../API/CMSMessage.h"
+#include "../API/CMSTextMessage.h"
+#include "../API/CMSBytesMessage.h"
+#include "../API/CMSQueue.h"
+#include "../API/CMSTopic.h"
+#include "../API/CMSTemporaryQueue.h"
+#include "../API/CMSTemporaryTopic.h"
 #include "AMQPCMSMessageConverter.h"
 #include "AMQPIDGenerator.h"
 

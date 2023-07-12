@@ -45,7 +45,7 @@ ResourceAllocationException::ResourceAllocationException(const std::string& mess
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-ResourceAllocationException::~ResourceAllocationException() throw() {
+ResourceAllocationException::~ResourceAllocationException() noexcept {
 }
 
 ////////////////////////////////////////////////////////////////////////////////

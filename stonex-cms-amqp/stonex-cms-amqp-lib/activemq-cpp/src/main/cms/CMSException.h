@@ -66,7 +66,7 @@ namespace cms {
         CMSException(const std::string& message, const std::exception* cause,
                      const std::vector<std::pair<std::string, int> >& stackTrace);
 
-        virtual ~CMSException() throw();
+        virtual ~CMSException() noexcept;
 
         /**
          * Gets the cause of the error.
@@ -125,7 +125,7 @@ namespace cms {
          *
          * @return const char pointer to error message
          */
-        virtual const char* what() const throw();
+        virtual const char* what() const noexcept;
 
         /**
          * Creates a cloned version of this CMSException instance.

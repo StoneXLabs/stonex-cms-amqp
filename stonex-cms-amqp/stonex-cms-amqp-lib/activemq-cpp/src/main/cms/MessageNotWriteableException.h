@@ -42,7 +42,7 @@ namespace cms {
         MessageNotWriteableException(const std::string& message, const std::exception* cause,
                                      const std::vector<std::pair<std::string, int> >& stackTrace);
 
-        virtual ~MessageNotWriteableException() throw();
+        virtual ~MessageNotWriteableException() noexcept;
 
         virtual MessageNotWriteableException* clone();
 

@@ -21,7 +21,6 @@
 #include <memory>
 #include <cms/Session.h>
 
-
 #include "stonex-cms-amqp-lib-defines.h"
 
 AMQP_DEFINES

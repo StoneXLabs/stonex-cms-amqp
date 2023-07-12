@@ -43,7 +43,7 @@ namespace cms {
         InvalidDestinationException(const std::string& message, const std::exception* cause,
                                     const std::vector<std::pair<std::string, int> >& stackTrace);
 
-        virtual ~InvalidDestinationException() throw();
+        virtual ~InvalidDestinationException() noexcept;
 
         virtual InvalidDestinationException* clone();
 

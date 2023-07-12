@@ -43,7 +43,7 @@ namespace cms {
         InvalidSelectorException(const std::string& message, const std::exception* cause,
                                  const std::vector<std::pair<std::string, int> >& stackTrace);
 
-        virtual ~InvalidSelectorException() throw();
+        virtual ~InvalidSelectorException() noexcept;
 
         virtual InvalidSelectorException* clone();
 

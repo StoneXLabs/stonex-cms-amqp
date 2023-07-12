@@ -523,3 +523,20 @@ std::shared_ptr<proton::message> cms::amqp::CMSBytesMessage::message()
 	mMessage->body(proton::binary(std::cbegin(mMessageBody), std::cend(mMessageBody)));
 	return mMessage;
 }
+
+template<>
+void cms::amqp::CMSBytesMessage::set<std::string>(const std::string s)
+{
+	std::copy(std::cbegin(s), std::cend(s), std::back_inserter(mMessageBody));
+}
+
+template<>
+std::string cms::amqp::CMSBytesMessage::get<std::string>() const
+{
+	if (mMessageBody.size() <= read_position)
+		throw ::cms::MessageEOFException();
+
+	std::string output;
+	std::copy(std::next(std::cbegin(mMessageBody), read_position), std::cend(mMessageBody), std::back_inserter(output));
+	return output;
+}

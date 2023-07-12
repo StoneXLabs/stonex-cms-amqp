@@ -183,22 +183,11 @@ AMQP_DEFINES
 		std::shared_ptr<const ::cms::Destination> mReplyTo{ nullptr };
 	};
 
-        template<>
-        void CMSBytesMessage::set(const std::string s)
-        {
-            std::copy(std::cbegin(s), std::cend(s), std::back_inserter(mMessageBody));
-        }
 
-        template<>
-        std::string CMSBytesMessage::get() const
-        {
-            if (mMessageBody.size() <= read_position)
-                throw ::cms::MessageEOFException();
-
-            std::string output;
-            std::copy(std::next(std::cbegin(mMessageBody), read_position), std::cend(mMessageBody), std::back_inserter(output));
-            return output;
-        }
+	template<>
+	void cms::amqp::CMSBytesMessage::set<std::string>(const std::string s);
+	template<>
+	std::string cms::amqp::CMSBytesMessage::get<std::string>() const;
 
 AMQP_DEFINES_CLOSE
 

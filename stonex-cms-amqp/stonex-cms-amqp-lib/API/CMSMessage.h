@@ -19,8 +19,8 @@
 
 #pragma once
 
+#include <memory>
 #include <cms/Message.h>
-
 #include "stonex-cms-amqp-lib-defines.h"
 
 namespace proton

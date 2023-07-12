@@ -21,6 +21,7 @@
 
 #include <AMQPCMSMessageConverter.h>
 
+#include <stdexcept>
 #include <regex>
 #include <string_view>
 
@@ -421,7 +422,7 @@ int cms::amqp::CMSBytesMessage::readBytes(unsigned char* buffer, int length) con
 void cms::amqp::CMSBytesMessage::writeBytes(const unsigned char* value, int offset, int length)
 {
 	//TO DO offset
-	throw std::exception("not implemented");
+	throw std::runtime_error("not implemented");
 	std::copy_n(value, length, std::back_inserter(mMessageBody));
 }
 

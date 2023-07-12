@@ -62,7 +62,7 @@ bool cms::amqp::CMSTopic::equals(const ::cms::Destination& other) const
 const cms::CMSProperties& cms::amqp::CMSTopic::getCMSProperties() const
 {
     // TODO: insert return statement here
-    return CMSMessagePropertiesImpl();
+    return std::move(CMSMessagePropertiesImpl());
 }
 
 std::string cms::amqp::CMSTopic::getTopicName() const

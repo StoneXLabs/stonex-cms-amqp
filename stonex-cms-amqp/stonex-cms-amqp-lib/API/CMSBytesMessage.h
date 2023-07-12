@@ -19,7 +19,9 @@
 
 #pragma once
 
-
+#include <cstring>
+#include <memory>
+#include <algorithm>
 #include <cms/BytesMessage.h>
 #include "stonex-cms-amqp-lib-defines.h"
 
@@ -170,22 +172,6 @@ AMQP_DEFINES
 			}
 		}
 
-		template<>
-		void set(const std::string s)
-		{
-			std::copy(std::cbegin(s), std::cend(s), std::back_inserter(mMessageBody));
-		}
-
-		template<>
-		std::string get() const
-		{
-			if (mMessageBody.size() <= read_position)
-				throw ::cms::MessageEOFException();
-
-			std::string output;
-			std::copy(std::next(std::cbegin(mMessageBody), read_position), std::cend(mMessageBody), std::back_inserter(output));
-			return output;
-		}
 	protected:
 		std::shared_ptr<proton::message> mMessage;
 		std::vector<uint8_t> mMessageBody;
@@ -196,6 +182,23 @@ AMQP_DEFINES
 		std::shared_ptr<const ::cms::Destination> mDestination{ nullptr };
 		std::shared_ptr<const ::cms::Destination> mReplyTo{ nullptr };
 	};
+
+        template<>
+        void CMSBytesMessage::set(const std::string s)
+        {
+            std::copy(std::cbegin(s), std::cend(s), std::back_inserter(mMessageBody));
+        }
+
+        template<>
+        std::string CMSBytesMessage::get() const
+        {
+            if (mMessageBody.size() <= read_position)
+                throw ::cms::MessageEOFException();
+
+            std::string output;
+            std::copy(std::next(std::cbegin(mMessageBody), read_position), std::cend(mMessageBody), std::back_inserter(output));
+            return output;
+        }
 
 AMQP_DEFINES_CLOSE
 

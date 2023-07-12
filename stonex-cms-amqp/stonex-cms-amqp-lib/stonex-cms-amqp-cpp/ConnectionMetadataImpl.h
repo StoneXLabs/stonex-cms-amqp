@@ -19,7 +19,7 @@
 
 #pragma once
 #include <cms/ConnectionMetaData.h>
-#include "..\API\stonex-cms-amqp-lib-defines.h"
+#include "../API/stonex-cms-amqp-lib-defines.h"
 
 namespace cms::amqp 
 {

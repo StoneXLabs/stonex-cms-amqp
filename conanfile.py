@@ -22,8 +22,8 @@ class StonexCMSAMQPLib(ConanFile):
     exports_sources = ["include/activemq-cpp/src/main/*"]
 
     def requirements(self):
-        if self.settings.os == "Linux":    
-            self.requires("jsoncpp/1.9.5@_/_")
+        if self.settings.os == "Linux":
+           self.requires("jsoncpp/1.9.5@_/_")
         else:
             self.requires("jsoncpp/1.9.5@enterprise_messaging/test")
         self.requires("red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test")
@@ -34,6 +34,10 @@ class StonexCMSAMQPLib(ConanFile):
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
+        if self.options.shared == True:
+            self.options["openssl"].shared = self.options.shared
+        self.options["red-hat-amq-clients-c++"].shared = self.options.shared
+        self.options["gtest"].shared = self.options.shared
 
     def source(self):
         pass
@@ -43,6 +47,8 @@ class StonexCMSAMQPLib(ConanFile):
         cmake.definitions["CONAN_BUILD"] = "ON"
         cmake.definitions["BUILD_TEST"] = "ON"
         cmake.verbose = True
+        if self.options.shared == False:
+            cmake.definitions["BUILD_STATIC_LIBS"]="ON"
         cmake.configure(source_folder="stonex-cms-amqp")
         cmake.build()
 		
@@ -51,10 +57,12 @@ class StonexCMSAMQPLib(ConanFile):
 
 
     def package(self):
-        self.copy("API\*.h", dst="include",src="stonex-cms-amqp\stonex-cms-amqp-lib")
-        self.copy("activemq-cpp\src\main\cms\*", dst="include",src="stonex-cms-amqp\stonex-cms-amqp-lib",keep_path=True)
+        self.copy("API/*.h", dst="include",src="stonex-cms-amqp/stonex-cms-amqp-lib")
+        self.copy("activemq-cpp/src/main/cms/*", dst="include",src="stonex-cms-amqp/stonex-cms-amqp-lib",keep_path=True)
         self.copy("stonex-cms-amqp-lib.lib", dst="lib",src="lib", keep_path=False)
         self.copy("stonex-cms-amqp-lib.pdb", dst="lib",src="lib", keep_path=False)
+        self.copy("*.so", dst="lib",src="lib", keep_path=False)
+        self.copy("*.a", dst="lib",src="lib", keep_path=False)
         self.copy("*.dll", dst="bin",src="bin", keep_path=False)
 
 

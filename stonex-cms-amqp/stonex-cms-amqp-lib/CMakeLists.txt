@@ -12,7 +12,11 @@ file(GLOB headerFiles ${PROJECT_SOURCE_DIR}/activemq-cpp/src/main/cms/*.h ${PROJ
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${sourceFiles} ${headerFiles})
 
-add_library(stonex-cms-amqp-lib STATIC ${sourceFiles} ${headerFiles})
+if(BUILD_STATIC_LIBS)
+	add_library(stonex-cms-amqp-lib STATIC ${sourceFiles} ${headerFiles})
+else()
+	add_library(stonex-cms-amqp-lib SHARED ${sourceFiles} ${headerFiles})
+endif()
  
 target_compile_definitions(stonex-cms-amqp-lib PRIVATE PN_CPP_DECLARE_STATIC)
 

@@ -21,6 +21,10 @@ class StonexCMSAMQPLib(ConanFile):
     generators = "cmake"
     exports_sources = ["include/activemq-cpp/src/main/*"]
 
+    def imports(self):
+        self.copy("*.dll", src="lib", dst="bin")
+        self.copy("*.so*", src="lib", dst="bin")
+
     def requirements(self):
         if self.settings.os == "Linux":
            self.requires("jsoncpp/1.9.5@_/_")
@@ -34,8 +38,8 @@ class StonexCMSAMQPLib(ConanFile):
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
-        if self.options.shared == True:
-            self.options["openssl"].shared = self.options.shared
+        self.options["openssl"].shared = self.options.shared
+        self.options["jsoncpp"].shared = self.options.shared
         self.options["red-hat-amq-clients-c++"].shared = self.options.shared
         self.options["gtest"].shared = self.options.shared
 

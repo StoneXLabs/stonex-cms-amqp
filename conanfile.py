@@ -34,8 +34,6 @@ class StonexCMSAMQPLib(ConanFile):
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
-        if self.options.shared == True:
-            self.options["openssl"].shared = self.options.shared
         self.options["red-hat-amq-clients-c++"].shared = self.options.shared
         self.options["gtest"].shared = self.options.shared
 

@@ -27,6 +27,8 @@
 #include "MessageConsumerImpl.h"
 #include "MessageProducerImpl.h"
 
+#include <fmt/format.h>
+
 class MessageConsumer : public cms::MessageConsumer{};
 class MessageProducer : public cms::MessageProducer {};
 class QueueBrowser : public cms::QueueBrowser {};
@@ -45,11 +47,13 @@ class StreamMessage : public cms::StreamMessage {};
 
 
 
-cms::amqp::SessionImpl::SessionImpl(std::shared_ptr<proton::connection>  connection, ::cms::Session::AcknowledgeMode ack_mode)
-	:mACKMode{ack_mode}
+cms::amqp::SessionImpl::SessionImpl(std::shared_ptr<proton::connection>  connection, ::cms::Session::AcknowledgeMode ack_mode, std::shared_ptr<StonexLogger> logger)
+	:mEXHandler(logger),
+	mACKMode{ack_mode}
 {
-
+	setLogger(logger);
 	mEXHandler.SynchronizeCall(std::bind(&SessionImpl::syncStart, this, std::placeholders::_1), connection);
+	setLogger(nullptr);	
 }
 
 cms::amqp::SessionImpl::~SessionImpl()
@@ -65,22 +69,27 @@ void cms::amqp::SessionImpl::close()
 
 void cms::amqp::SessionImpl::commit()
 {
+	error("session implementation", fmt::format("{} {}", __func__, "method not implemented"));
 }
 
 void cms::amqp::SessionImpl::rollback()
 {
+	error("session implementation", fmt::format("{} {}", __func__, "method not implemented"));
 }
 
 void cms::amqp::SessionImpl::recover()
 {
+	error("session implementation", fmt::format("{} {}", __func__, "method not implemented"));
 }
 
 void cms::amqp::SessionImpl::start()
 {
+	error("session implementation", fmt::format("{} {}", __func__, "method not implemented"));
 }
 
 void cms::amqp::SessionImpl::stop()
 {
+	error("session implementation", fmt::format("{} {}", __func__, "method not implemented"));
 }
 
 ::cms::Session::AcknowledgeMode cms::amqp::SessionImpl::ackMode()
@@ -91,6 +100,9 @@ void cms::amqp::SessionImpl::stop()
 
 void cms::amqp::SessionImpl::on_session_open(proton::session& session)
 {
+#if _DEBUG
+	trace("session implementation", fmt::format("{} {}", __func__, session.error().what()));
+#endif
 	mSession = std::make_shared<proton::session>(session);
 	mState = ClientState::STARTED;
 	mEXHandler.onResourceInitialized();
@@ -98,12 +110,16 @@ void cms::amqp::SessionImpl::on_session_open(proton::session& session)
 
 void cms::amqp::SessionImpl::on_session_close(proton::session& session)
 {
+#if _DEBUG
+	trace("session implementation", fmt::format("{} {}", __func__, session.error().what()));
+#endif
 	mState = ClientState::CLOSED;
 	mEXHandler.onResourceInitialized();
 }
 
 void cms::amqp::SessionImpl::on_session_error(proton::session& session)
 {
+	error("session implementation", fmt::format("{} {}", __func__, session.error().what()));
 	mEXHandler.onResourceUninitialized(session.error()); // move to close??
 
 }
@@ -129,5 +145,8 @@ bool cms::amqp::SessionImpl::syncStart(std::shared_ptr<proton::connection>  conn
 
 bool cms::amqp::SessionImpl::syncStop()
 {
+#if _DEBUG
+	trace("session implementation", fmt::format("{} {}", __func__, "method not implemented"));
+#endif
 	return false;
 }

@@ -25,9 +25,11 @@
 #include <cms/ConnectionMetaData.h>
 #include <cms/ExceptionListener.h>
 
+#include <logger/StonexLogSource.h>
 
 
 #include "stonex-cms-amqp-lib-defines.h"
+
 
 AMQP_DEFINES
 
@@ -36,13 +38,12 @@ AMQP_DEFINES
 	class FactoryContext;
 	class ConnectionContext;
 
-	class CMS_API CMSConnection : public ::cms::Connection
+	class CMS_API CMSConnection : public ::cms::Connection, public StonexLogSource
 	{
 	public:
-		explicit CMSConnection(std::shared_ptr<FactoryContext> context);
-
-		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password);
-		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId);
+		explicit CMSConnection(std::shared_ptr<FactoryContext> context, std::shared_ptr<StonexLogger> logger = nullptr);
+		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, std::shared_ptr<StonexLogger> logger = nullptr);
+		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId, std::shared_ptr<StonexLogger> logger = nullptr);
 
 		~CMSConnection() override = default;
 
@@ -69,6 +70,8 @@ AMQP_DEFINES
 
 		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
 		::cms::MessageTransformer* getMessageTransformer() const override;
+
+		void setLogger(std::shared_ptr<StonexLogger> sink) override;
 
 	protected:
 		std::shared_ptr<ConnectionContext> connectionContext() const;

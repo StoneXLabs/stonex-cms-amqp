@@ -38,14 +38,18 @@
 #include "AMQPCMSMessageConverter.h"
 #include "AMQPIDGenerator.h"
 
+#include <fmt/format.h>
+
 
 constexpr std::string_view QUEUE_CAPABILITY = "queue";
 constexpr std::string_view TOPIC_CAPABILITY = "topic";
 constexpr std::string_view TEMPORARY_QUEUE_CAPABILITY = "temporary-queue";
 constexpr std::string_view TEMPORARY_TOPIC_CAPABILITY = "temporary-topic";
 
-cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session)
+cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, std::shared_ptr<StonexLogger> logger)
+	:mEXHandler(logger)
 {
+	setLogger(logger);
 	proton::sender_options opts;
 	opts.handler(*this);
 	proton::target_options topts{};
@@ -84,14 +88,10 @@ cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* de
 		topts.capabilities(std::vector<proton::symbol> { "queue" });
 	}
 
-	
-
-	
-
-	opts.target(topts);
-	
-
+	opts.target(topts);	
 	mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncStart, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, opts, session);
+	
+	setLogger(nullptr);
 }
 
 cms::amqp::MessageProducerImpl::~MessageProducerImpl()
@@ -153,6 +153,8 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 	mTimestampSetter(message_copy);
 
 	auto mess = mConverter.from_cms_message(message_copy);
+	if(!mess)
+		error("message producer implementation", fmt::format("{} {}", __func__, "could not convert message to any of implemented types"));
 	delete message_copy;
 	if(onComplete) [[unlikely]]
 		mProtonSender->connection().work_queue().add([this, mess, onComplete] {mProtonSender->send(*mess); onComplete->onSuccess(); });
@@ -165,17 +167,26 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 
 void cms::amqp::MessageProducerImpl::close()
 {
+#if _DEBUG
+	trace("message producer implementation", fmt::format("{}", __func__));
+#endif
 	if(mState == ClientState::STARTED)
 		mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncClose, this));
 }
 
 void cms::amqp::MessageProducerImpl::on_sendable(proton::sender& sender)
 {
+#if _DEBUG
+	trace("message producer implementation", fmt::format("{}", __func__));
+#endif
 	mEXHandler.onResourceInitialized();
 }
 
 void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)
 {
+#if _DEBUG
+	trace("message producer implementation", fmt::format("{} {}", __func__, sender.error().what()));
+#endif
 	mProtonSender = std::make_unique<proton::sender>(sender);
 	if (sender.error().empty())
 	{
@@ -191,11 +202,16 @@ void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)
 
 void cms::amqp::MessageProducerImpl::on_sender_error(proton::sender & sender)
 {
+	error("message producer implementation", fmt::format("{} {}", __func__, sender.error().what()));
 }
 
 void cms::amqp::MessageProducerImpl::on_sender_close(proton::sender& sender)
 {
 	auto err = sender.error().what();
+
+#if _DEBUG
+	trace("message producer implementation", fmt::format("{} {}", __func__, err));
+#endif
 	mState = ClientState::CLOSED;
 	mEXHandler.onResourceUninitialized(sender.error());
 }
@@ -236,6 +252,7 @@ void cms::amqp::MessageProducerImpl::setDeliveryMode(int mode)
 		mDeliveryMode = (::cms::DeliveryMode::DELIVERY_MODE)mode;
 		break;
 	default:
+		error("message producer implementation", fmt::format("EXCEPTION {} {}", __func__, "Illegal delivery mode value"));
 		throw ::cms::CMSException("Illegal delivery mode value");
 	}
 	

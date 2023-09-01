@@ -1,7 +1,7 @@
 from conans import ConanFile, CMake, tools
 
 def get_verion_tag():
-    git = tools.Git("messaging-cms-client")
+    git = tools.Git("stonex-cms-amqp")
     try:
         return "%s" % (git.get_tag())
     except Exception as e:
@@ -10,7 +10,7 @@ def get_verion_tag():
 class StonexCMSAMQPLib(ConanFile):
     name = "stonex-cms-amqp-lib"
     version = get_verion_tag()
-    license = "<Put the package license here>"
+    license = "Apache 2.0"
     author = "Krzysztof Obrebski krzysztof.obrebski@stonex.com"
     url = "https://github.com/StoneXLabs/stonex-cms-amqp.git"
     description = "amqp cms messaging library"
@@ -24,6 +24,8 @@ class StonexCMSAMQPLib(ConanFile):
     def requirements(self):
         self.requires("red-hat-amq-clients-c++/2.10.4@enterprise_messaging/test")
         self.requires("jsoncpp/1.9.5@enterprise_messaging/test")
+        self.requires("stonex-logger-wrapper/0.0.2@enterprise_messaging/test")
+        self.requires("fmt/9.1.0@enterprise_messaging/test")
 
     def build_requirements(self):
         self.build_requires("gtest/1.10.0")
@@ -39,6 +41,7 @@ class StonexCMSAMQPLib(ConanFile):
         cmake = CMake(self)
         cmake.definitions["CONAN_BUILD"] = "ON"
         cmake.definitions["BUILD_TEST"] = "ON"
+        cmake.definitions["BUILD_EXAMPLES"] = "ON"
         cmake.verbose = True
         cmake.configure(source_folder="stonex-cms-amqp")
         cmake.build()

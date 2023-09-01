@@ -23,6 +23,7 @@
 #include <cms/MessageConsumer.h>
 #include <cms/MessageAvailableListener.h>
 
+#include <logger/StonexLogSource.h>
 
 #include "stonex-cms-amqp-lib-defines.h"
 
@@ -32,12 +33,12 @@ AMQP_DEFINES
 	class SessionContext;
 	class MessageConsumerImpl;
 
-	class CMS_API CMSMessageConsumer : public ::cms::MessageConsumer
+	class CMS_API CMSMessageConsumer : public ::cms::MessageConsumer, public StonexLogSource
 	{
 	public:
-		CMSMessageConsumer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context);
-		CMSMessageConsumer(const ::cms::Destination* destination, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context);
-		CMSMessageConsumer(const ::cms::Destination* destination, const std::string& name, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context);
+		CMSMessageConsumer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr);
+		CMSMessageConsumer(const ::cms::Destination* destination, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr);
+		CMSMessageConsumer(const ::cms::Destination* destination, const std::string& name, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr);
 
 		~CMSMessageConsumer() override = default;
 
@@ -59,6 +60,8 @@ AMQP_DEFINES
 		void start() override;
 		void stop() override;
 		void close() override;
+
+		void setLogger(std::shared_ptr<StonexLogger> sink) override;
 
 	private:
 

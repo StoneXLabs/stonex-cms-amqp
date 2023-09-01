@@ -23,6 +23,7 @@
 #include "ConnectionContext.h"
 #include "ConnectionFactoryImpl.h"
 #include "ProtonCppLibrary.h"
+#include <fmt/format.h>
 
 cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerURI, const std::string& user, const std::string& password)
 	:mPimpl(std::make_shared<ConnectionFactoryImpl>(brokerURI, user, password)),
@@ -34,12 +35,14 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 {
 	try
 	{
-		return new CMSConnection(mContext);
+		info("connection factory", "creating connection");
+		return new CMSConnection(mContext, mLogSink);
 	}
 	catch (const ::cms::CMSException& ex)
 	{
 		if (mExceptionListener)
 			mExceptionListener->onException(ex);
+		error("connection factory", ex.what());
 		throw;
 	}
 }
@@ -48,12 +51,14 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 {
 	try
 	{
-		return new CMSConnection(mContext, username, password);
+		info("connection factory", fmt::format("creating connection. user: {}",username));
+		return new CMSConnection(mContext, username, password, mLogSink);
 	}
 	catch (const ::cms::CMSException& ex)
 	{
 		if (mExceptionListener)
 			mExceptionListener->onException(ex);
+		error("connection factory", ex.what());
 		throw;
 	}
 }
@@ -62,19 +67,22 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 {
 	try
 	{
+		info("connection factory", fmt::format("create connection. client id: {} user: {}",clientId,username));
 		mContext->updateCotainerId(clientId);
-		return new CMSConnection(mContext, username, password);
+		return new CMSConnection(mContext, username, password, mLogSink);
 	}
 	catch (const ::cms::CMSException& ex)
 	{
 		if (mExceptionListener)
 			mExceptionListener->onException(ex);
+		error("connection factory", ex.what());
 		throw;
 	}
 }
 
 void cms::amqp::CMSConnectionFactory::setExceptionListener(::cms::ExceptionListener* listener)
 {
+	debug("connection factory", fmt::format("set exception listener: {}", (void*)listener));
 	mExceptionListener = listener;
 }
 
@@ -85,6 +93,7 @@ cms::ExceptionListener* cms::amqp::CMSConnectionFactory::getExceptionListener() 
 
 void cms::amqp::CMSConnectionFactory::setMessageTransformer(::cms::MessageTransformer* transformer)
 {
+	debug("connection factory", fmt::format("set message transformer: {}", (void*)transformer));
 	mMessageTransformer = transformer;
 }
 

@@ -22,6 +22,7 @@
 
 #include <cms/Queue.h>
 
+#include <logger/StonexLogSource.h>
 
 #include "stonex-cms-amqp-lib-defines.h"
 
@@ -46,6 +47,8 @@ AMQP_DEFINES
         const ::cms::CMSProperties& getCMSProperties() const override;
 
         std::string getQueueName() const override;
+
+		friend std::ostream& operator << (std::ostream& os, const cms::amqp::CMSQueue& ob);
 
     private:
         const std::string mQueueName;

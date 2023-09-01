@@ -1,6 +1,7 @@
 *
+!*/
 
-!stonex-cms-amqp
+!stonex-cms-amqp/**
 !.gitignore
 !conanfile.py
 !README.md

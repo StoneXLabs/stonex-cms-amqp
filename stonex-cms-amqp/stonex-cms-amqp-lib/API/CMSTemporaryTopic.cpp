@@ -73,3 +73,9 @@ void cms::amqp::CMSTemporaryTopic::destroy()
 {
     throw ::cms::CMSException("illegal use - not implemented");
 }
+
+std::ostream & operator<<(std::ostream & os, const cms::amqp::CMSTemporaryTopic & ob)
+{
+	os << "TEMPORARY TOPIC " << ob.getTopicName();
+	return os;
+}

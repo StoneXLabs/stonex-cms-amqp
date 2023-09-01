@@ -69,3 +69,9 @@ std::string cms::amqp::CMSTopic::getTopicName() const
 {
     return mTopicName;
 }
+
+std::ostream & operator<<(std::ostream & os, const cms::amqp::CMSTopic & ob)
+{
+	os << "TOPIC " << ob.getTopicName();
+	return os;
+}

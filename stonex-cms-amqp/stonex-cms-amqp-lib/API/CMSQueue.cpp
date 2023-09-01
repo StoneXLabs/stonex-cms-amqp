@@ -70,3 +70,9 @@ std::string cms::amqp::CMSQueue::getQueueName() const
 {
     return mQueueName;
 }
+
+std::ostream & operator<<(std::ostream & os, const cms::amqp::CMSQueue & ob)
+{
+	os << "QUEUE " << ob.getQueueName();
+	return os;
+}

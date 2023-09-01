@@ -29,17 +29,29 @@
 
 #include "SessionImpl.h"
 
- cms::amqp::ConnectionImpl::ConnectionImpl(const FactoryContext& context)
-	:mContext{ context }
-{
+#include <fmt/format.h>
+
+ cms::amqp::ConnectionImpl::ConnectionImpl(const FactoryContext& context, std::shared_ptr<StonexLogger> logger)
+	:mContext{ context },
+	 mEXHandler(logger)
+{	
+	setLogger(logger);
+	mContext.setLogger(logger);
 	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
+	mContext.setLogger(nullptr);
+	setLogger(nullptr);
 }
 
- cms::amqp::ConnectionImpl::ConnectionImpl(const std::string& id, const FactoryContext& context)
-	 : mConnectionId{id},
+ cms::amqp::ConnectionImpl::ConnectionImpl(const std::string& id, const FactoryContext& context, std::shared_ptr<StonexLogger> logger)
+	 :mEXHandler(logger),
+	 mConnectionId{id},
 	 mContext{context}
 {
+	setLogger(logger);
+	mContext.setLogger(logger);
 	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
+	mContext.setLogger(nullptr);
+	setLogger(nullptr);
 }
 
 
@@ -59,7 +71,9 @@ void  cms::amqp::ConnectionImpl::close()
 
 void  cms::amqp::ConnectionImpl::start()
 {
-	std::cout << "connection status : " << std::boolalpha << !mConnection->closed() << " starting connection " << &mConnection << std::endl;
+#if _DEBUG
+	trace("connection implementation", fmt::format("{} connection closed: {} starting connection", __func__, !mConnection->closed()));
+#endif
 	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
 
 }
@@ -83,26 +97,33 @@ void  cms::amqp::ConnectionImpl::setClientID(const std::string& clientID)
 
 void  cms::amqp::ConnectionImpl::on_transport_open(proton::transport& transport)
 {
-//	std::cout << __FUNCTION__ << " " << transport.error().what() << std::endl;
+#if _DEBUG
+	trace("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
+#endif
 }
 
 void  cms::amqp::ConnectionImpl::on_transport_close(proton::transport& transport)
 {
+#if _DEBUG
+	trace("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
+#endif
 	mState = ClientState::CLOSED;
-//	std::cout << __FUNCTION__ << " " << transport.error().what() << std::endl;
 	mEXHandler.onResourceUninitialized(transport.error());
 }
 
 void  cms::amqp::ConnectionImpl::on_transport_error(proton::transport& transport)
 {
-//	std::cout << __FUNCTION__<<" "<<transport.error().what() << std::endl;
+
+	error("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
+
 	if (mExceptionListener)
 		mExceptionListener->onException(transport.error().what());
 }
 
 void  cms::amqp::ConnectionImpl::on_connection_open(proton::connection& connection)
 {
-//	std::cout << __FUNCTION__ << " " << connection.error().what() << std::endl;
+
+	info("connection implementation", fmt::format("{} auto reconnected : {} {}", __func__, connection.reconnected(),connection.error().what()));
 
 	mConnection  = std::make_shared<proton::connection>(connection);
 	mState = ClientState::STARTED;
@@ -111,12 +132,13 @@ void  cms::amqp::ConnectionImpl::on_connection_open(proton::connection& connecti
 }
 void  cms::amqp::ConnectionImpl::on_connection_close(proton::connection& connection)
 {
-//	std::cout << __FUNCTION__ << std::endl;
+	info("connection implementation", fmt::format("{} {}", __func__, connection.error().what()));
+
 }
 
 void  cms::amqp::ConnectionImpl::on_connection_error(proton::connection& connection)
 {
-//	std::cout << __FUNCTION__ << std::endl;
+	error("connection implementation", fmt::format("{} {}", __func__, connection.error().what()));
 	if (mExceptionListener)
 		mExceptionListener->onException(connection.error().what());
 }

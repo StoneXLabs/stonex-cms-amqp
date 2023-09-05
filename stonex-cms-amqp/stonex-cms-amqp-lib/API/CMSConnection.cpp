@@ -45,16 +45,19 @@ cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context,
 
 void cms::amqp::CMSConnection::close()
 {
+	info("com.stonex.cms.CMSConnection", "close");
 	mPimpl->close();
 }
 
 void cms::amqp::CMSConnection::start()
 {
+	info("com.stonex.cms.CMSConnection", "start");
 	mPimpl->start();
 }
 
 void cms::amqp::CMSConnection::stop()
 {
+	info("com.stonex.cms.CMSConnection", "stop");
 	mPimpl->stop();
 }
 
@@ -65,12 +68,14 @@ const ::cms::ConnectionMetaData* cms::amqp::CMSConnection::getMetaData() const
 
 cms::Session* cms::amqp::CMSConnection::createSession()
 {
+	info("com.stonex.cms.CMSConnection", "createSession");
 	return new CMSSession(ConnectionContext(mPimpl->connection()), cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE,mLogSink);
 }
 
 cms::Session* cms::amqp::CMSConnection::createSession(::cms::Session::AcknowledgeMode ackMode)
 {
 
+	info("com.stonex.cms.CMSConnection", "close");
 	return new CMSSession(ConnectionContext(mPimpl->connection()), ackMode, mLogSink);
 }
 
@@ -82,6 +87,7 @@ std::string cms::amqp::CMSConnection::getClientID() const
 
 void cms::amqp::CMSConnection::setClientID(const std::string& clientID)
 {
+	info("com.stonex.cms.CMSConnection", "close");
 	mPimpl->setClientID(clientID);
 
 }
@@ -93,6 +99,7 @@ cms::ExceptionListener* cms::amqp::CMSConnection::getExceptionListener() const
 
 void cms::amqp::CMSConnection::setExceptionListener(::cms::ExceptionListener* listener)
 {
+	info("com.stonex.cms.CMSConnection", "close");
 	mPimpl->setExceptionListener(listener);
 }
 
@@ -107,6 +114,7 @@ cms::MessageTransformer* cms::amqp::CMSConnection::getMessageTransformer() const
 
 std::shared_ptr <cms::amqp::ConnectionContext> cms::amqp::CMSConnection::connectionContext() const
 {
+	info("com.stonex.cms.CMSConnection", "close");
 	return std::make_shared<cms::amqp::ConnectionContext>(mPimpl->connection());
 }
 

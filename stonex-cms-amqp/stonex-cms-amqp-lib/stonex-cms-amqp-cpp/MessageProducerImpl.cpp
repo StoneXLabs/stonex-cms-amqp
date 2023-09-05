@@ -154,7 +154,7 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 
 	auto mess = mConverter.from_cms_message(message_copy);
 	if(!mess)
-		error("message producer implementation", fmt::format("{} {}", __func__, "could not convert message to any of implemented types"));
+		error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} {}", __func__, "could not convert message to any of implemented types"));
 	delete message_copy;
 	if(onComplete) [[unlikely]]
 		mProtonSender->connection().work_queue().add([this, mess, onComplete] {mProtonSender->send(*mess); onComplete->onSuccess(); });
@@ -168,7 +168,7 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 void cms::amqp::MessageProducerImpl::close()
 {
 #if _DEBUG
-	trace("message producer implementation", fmt::format("{}", __func__));
+	trace("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{}", __func__));
 #endif
 	if(mState == ClientState::STARTED)
 		mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncClose, this));
@@ -177,7 +177,7 @@ void cms::amqp::MessageProducerImpl::close()
 void cms::amqp::MessageProducerImpl::on_sendable(proton::sender& sender)
 {
 #if _DEBUG
-	trace("message producer implementation", fmt::format("{}", __func__));
+	trace("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{}", __func__));
 #endif
 	mEXHandler.onResourceInitialized();
 }
@@ -185,7 +185,7 @@ void cms::amqp::MessageProducerImpl::on_sendable(proton::sender& sender)
 void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)
 {
 #if _DEBUG
-	trace("message producer implementation", fmt::format("{} {}", __func__, sender.error().what()));
+	trace("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} {}", __func__, sender.error().what()));
 #endif
 	mProtonSender = std::make_unique<proton::sender>(sender);
 	if (sender.error().empty())
@@ -202,7 +202,7 @@ void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)
 
 void cms::amqp::MessageProducerImpl::on_sender_error(proton::sender & sender)
 {
-	error("message producer implementation", fmt::format("{} {}", __func__, sender.error().what()));
+	error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} {}", __func__, sender.error().what()));
 }
 
 void cms::amqp::MessageProducerImpl::on_sender_close(proton::sender& sender)
@@ -210,7 +210,7 @@ void cms::amqp::MessageProducerImpl::on_sender_close(proton::sender& sender)
 	auto err = sender.error().what();
 
 #if _DEBUG
-	trace("message producer implementation", fmt::format("{} {}", __func__, err));
+	trace("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} {}", __func__, err));
 #endif
 	mState = ClientState::CLOSED;
 	mEXHandler.onResourceUninitialized(sender.error());
@@ -252,7 +252,7 @@ void cms::amqp::MessageProducerImpl::setDeliveryMode(int mode)
 		mDeliveryMode = (::cms::DeliveryMode::DELIVERY_MODE)mode;
 		break;
 	default:
-		error("message producer implementation", fmt::format("EXCEPTION {} {}", __func__, "Illegal delivery mode value"));
+		error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("EXCEPTION {} {}", __func__, "Illegal delivery mode value"));
 		throw ::cms::CMSException("Illegal delivery mode value");
 	}
 	

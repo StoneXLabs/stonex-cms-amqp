@@ -55,7 +55,7 @@ cms::amqp::FactoryContext& cms::amqp::FactoryContext::updateUser(const std::stri
 {
 
 #if _DEBUG
-	trace("factory context", fmt::format("set update user: {}", user));
+	trace("com.stonex.cms.FactoryContext", fmt::format("set update user: {}", user));
 #endif
 	mUser = user;
 	return *this;
@@ -64,7 +64,7 @@ cms::amqp::FactoryContext& cms::amqp::FactoryContext::updateUser(const std::stri
 cms::amqp::FactoryContext& cms::amqp::FactoryContext::updatePassword(const std::string& password)
 {
 #if _DEBUG
-	trace("factory context", "set update password");
+	trace("com.stonex.cms.FactoryContext", "set update password");
 #endif
 	mPassword = password;
 	return *this;
@@ -73,7 +73,7 @@ cms::amqp::FactoryContext& cms::amqp::FactoryContext::updatePassword(const std::
 cms::amqp::FactoryContext& cms::amqp::FactoryContext::updateCotainerId(const std::string& connectionId)
 {
 #if _DEBUG
-	trace("factory context", fmt::format("set connection id: {}", connectionId));
+	trace("com.stonex.cms.FactoryContext", fmt::format("set connection id: {}", connectionId));
 #endif
 	mConnectionId = connectionId;
 	return *this;
@@ -109,7 +109,9 @@ void cms::amqp::FactoryContext::requestBrokerConnection(proton::messaging_handle
 	
 	co.reconnect(rco);
 	co.desired_capabilities({ "ANONYMOUS-RELAY" });
-	debug("factory context", fmt::format("request amqp connection: {} failover {}", mBroker, fmt::join(mFailoverAddresses,", ")));
+#if _DEBUG
+	trace("com.stonex.cms.FactoryContext", fmt::format("request amqp connection: {} failover {}", mBroker, fmt::join(mFailoverAddresses,", ")));
+#endif
 	mContainer->connect(mBroker, co);
 
 }

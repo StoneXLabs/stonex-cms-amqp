@@ -106,19 +106,19 @@ void  cms::amqp::CMSMessageConsumer::setMessageAvailableListener(::cms::MessageA
 
 void  cms::amqp::CMSMessageConsumer::start()
 {
-	info("com.stonex.cms.CMSMessageConsumer", "starting consumer");
+	info("com.stonex.cms.CMSMessageConsumer", fmt::format("starting consumer {}", mPimpl->getAddress()));
 	mPimpl->start();
 }
 
 void  cms::amqp::CMSMessageConsumer::stop()
 {
-	info("com.stonex.cms.CMSMessageConsumer", "stopping consumer");
+	info("com.stonex.cms.CMSMessageConsumer", fmt::format("stopping consumer {}", mPimpl->getAddress()));
 	mPimpl->stop();
 }
 
 void  cms::amqp::CMSMessageConsumer::close()
 {
-	info("com.stonex.cms.CMSMessageConsumer", "closing consumer");
+	info("com.stonex.cms.CMSMessageConsumer", fmt::format("closing consumer {}", mPimpl->getAddress()));
 	mPimpl->close();
 }
 

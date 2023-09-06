@@ -184,9 +184,13 @@ void cms::amqp::MessageProducerImpl::on_sendable(proton::sender& sender)
 
 void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)
 {
-#if _DEBUG
-	trace("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} {}", __func__, sender.error().what()));
-#endif
+	auto t1 = sender.target();
+
+	if (auto err = sender.error(); err.empty())
+		info("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
+	else
+		error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} {}", __func__, err.what()));
+
 	mProtonSender = std::make_unique<proton::sender>(sender);
 	if (sender.error().empty())
 	{
@@ -207,11 +211,11 @@ void cms::amqp::MessageProducerImpl::on_sender_error(proton::sender & sender)
 
 void cms::amqp::MessageProducerImpl::on_sender_close(proton::sender& sender)
 {
-	auto err = sender.error().what();
-
-#if _DEBUG
-	trace("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} {}", __func__, err));
-#endif
+	auto t1 = sender.target();
+	if (auto err = sender.error(); err.empty())
+		info("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
+	else
+		error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} address {} anonymous {} dynamic {} durable {}  {}", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode(), err.what()));
 	mState = ClientState::CLOSED;
 	mEXHandler.onResourceUninitialized(sender.error());
 }

@@ -35,14 +35,12 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 {
 	try
 	{
-		info("com.stonex.cms.ConnectionFactory", "creating connection");
 		return new CMSConnection(mContext, mLogSink);
 	}
 	catch (const ::cms::CMSException& ex)
 	{
 		if (mExceptionListener)
 			mExceptionListener->onException(ex);
-		error("com.stonex.cms.ConnectionFactory", ex.what());
 		throw;
 	}
 }
@@ -51,7 +49,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 {
 	try
 	{
-		info("com.stonex.cms.ConnectionFactory", fmt::format("creating connection. user: {}",username));
+		info("com.stonex.cms.ConnectionFactory", fmt::format("creating connection user {}",username));
 		return new CMSConnection(mContext, username, password, mLogSink);
 	}
 	catch (const ::cms::CMSException& ex)
@@ -67,7 +65,8 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 {
 	try
 	{
-		info("com.stonex.cms.ConnectionFactory", fmt::format("create connection. client id: {} user: {}",clientId,username));
+
+		info("com.stonex.cms.ConnectionFactory", fmt::format("creating connection user {} clientId {}", username, clientId));
 		mContext->updateCotainerId(clientId);
 		return new CMSConnection(mContext, username, password, mLogSink);
 	}

@@ -109,9 +109,9 @@ void cms::amqp::FactoryContext::requestBrokerConnection(proton::messaging_handle
 	
 	co.reconnect(rco);
 	co.desired_capabilities({ "ANONYMOUS-RELAY" });
-#if _DEBUG
-	trace("com.stonex.cms.FactoryContext", fmt::format("request amqp connection: {} failover {}", mBroker, fmt::join(mFailoverAddresses,", ")));
-#endif
+
+	info("com.stonex.cms.FactoryContext", fmt::format("request amqp connection: {} failover {} user {} clientId {}", mBroker, fmt::join(mFailoverAddresses,", "), mUser, mConnectionId));
+
 	mContainer->connect(mBroker, co);
 
 }

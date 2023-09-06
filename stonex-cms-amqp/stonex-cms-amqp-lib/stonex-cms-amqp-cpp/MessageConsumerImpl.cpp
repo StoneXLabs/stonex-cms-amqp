@@ -25,6 +25,7 @@
 #include <proton/work_queue.hpp>
 #include <proton/annotation_key.hpp>
 
+
 #include "../API/CMSTextMessage.h"
 #include "../API/CMSBytesMessage.h"
 #include "../API/CMSQueue.h"
@@ -205,7 +206,10 @@ void cms::amqp::MessageConsumerImpl::close()
 void cms::amqp::MessageConsumerImpl::on_receiver_open(proton::receiver& receiver)
 {
 #if _DEBUG
-	trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, receiver.error().what()));
+	if (auto err = receiver.error(); err.empty())
+		trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
+	else
+		error("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, err.what()));
 #endif
 	mProtonReceiver = std::make_unique<proton::receiver>(receiver);
 	if (receiver.error().empty())
@@ -221,7 +225,10 @@ void cms::amqp::MessageConsumerImpl::on_receiver_open(proton::receiver& receiver
 void cms::amqp::MessageConsumerImpl::on_receiver_close(proton::receiver& receiver)
 {
 #if _DEBUG
-	trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, receiver.error().what()));
+	if (auto err = receiver.error(); err.empty())
+		trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
+	else
+		error("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, err.what()));
 #endif
 	mEXHandler.onResourceUninitialized(receiver.error());
 
@@ -231,7 +238,10 @@ void cms::amqp::MessageConsumerImpl::on_receiver_close(proton::receiver& receive
 void cms::amqp::MessageConsumerImpl::on_receiver_detach(proton::receiver& receiver)
 {
 #if _DEBUG
-	trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, receiver.error().what()));
+	if (auto err = receiver.error(); err.empty())
+		trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
+	else
+		error("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, err.what()));
 #endif
 	mEXHandler.onResourceInitialized();
 	mState = ClientState::DETATCHED;

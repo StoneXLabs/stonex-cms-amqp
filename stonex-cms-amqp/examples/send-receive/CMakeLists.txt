@@ -21,7 +21,7 @@ if(WIN32)
 endif()
 
 if(CONAN_BUILD)
-	target_link_libraries(send-receive stonex-cms-amqp-lib)
+	target_link_libraries(send-receive stonex-cms-amqp-lib CONAN_PKG::stonex-logger-wrapper)
 else()
 	set_property(TARGET send-receive PROPERTY  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 	include(FetchContent)		

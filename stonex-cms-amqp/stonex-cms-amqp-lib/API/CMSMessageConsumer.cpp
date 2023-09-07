@@ -40,28 +40,35 @@ cms::amqp::CMSMessageConsumer::CMSMessageConsumer(const::cms::Destination* desti
 
 ::cms::Message*  cms::amqp::CMSMessageConsumer::receive()
 {
-	debug("consumer", "receive");
+#if _DEBUG
+	debug("com.stonex.cms.CMSMessageConsumer", "receive");
+#endif
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
 ::cms::Message*  cms::amqp::CMSMessageConsumer::receive(int milis)
 {
-	debug("consumer", fmt::format("receive. timeout: {} [ms]",milis));
+#if _DEBUG
+	debug("com.stonex.cms.CMSMessageConsumer", fmt::format("receive. timeout: {} [ms]",milis));
+#endif
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
 ::cms::Message*  cms::amqp::CMSMessageConsumer::receiveNoWait()
 {
-	debug("consumer", "receive no wait");
+#if _DEBUG
+	debug("com.stonex.cms.CMSMessageConsumer", "receive no wait");
+#endif
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
 void  cms::amqp::CMSMessageConsumer::setMessageListener(::cms::MessageListener* listener)
 {
-	debug("consumer", fmt::format("set message listener: {}", (void*)listener));
+	
+	debug("com.stonex.cms.CMSMessageConsumer", fmt::format("set message listener: {}", (void*)listener));
 	mPimpl->setMessageListener(listener);
 }
 
@@ -77,7 +84,7 @@ std::string  cms::amqp::CMSMessageConsumer::getMessageSelector() const
 
 void  cms::amqp::CMSMessageConsumer::setMessageTransformer(::cms::MessageTransformer* transformer)
 {
-	debug("consumer", fmt::format("set message transformer: {}", (void*)transformer));
+	debug("com.stonex.cms.CMSMessageConsumer", fmt::format("set message transformer: {}", (void*)transformer));
 	mPimpl->setMessageTransformer(transformer);
 }
 
@@ -88,7 +95,7 @@ void  cms::amqp::CMSMessageConsumer::setMessageTransformer(::cms::MessageTransfo
 
 void  cms::amqp::CMSMessageConsumer::setMessageAvailableListener(::cms::MessageAvailableListener* listener)
 {
-	debug("consumer", fmt::format("set message available listener: {}", (void*)listener));
+	debug("com.stonex.cms.CMSMessageConsumer", fmt::format("set message available listener: {}", (void*)listener));
 	mPimpl->setMessageAvailableListener(listener);
 }
 
@@ -99,19 +106,19 @@ void  cms::amqp::CMSMessageConsumer::setMessageAvailableListener(::cms::MessageA
 
 void  cms::amqp::CMSMessageConsumer::start()
 {
-	info("consumer", "starting consumer");
+	info("com.stonex.cms.CMSMessageConsumer", fmt::format("starting consumer {}", mPimpl->getAddress()));
 	mPimpl->start();
 }
 
 void  cms::amqp::CMSMessageConsumer::stop()
 {
-	info("consumer", "stopping consumer");
+	info("com.stonex.cms.CMSMessageConsumer", fmt::format("stopping consumer {}", mPimpl->getAddress()));
 	mPimpl->stop();
 }
 
 void  cms::amqp::CMSMessageConsumer::close()
 {
-	info("consumer", "closing consumer");
+	info("com.stonex.cms.CMSMessageConsumer", fmt::format("closing consumer {}", mPimpl->getAddress()));
 	mPimpl->close();
 }
 

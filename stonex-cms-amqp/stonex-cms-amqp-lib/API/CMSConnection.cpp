@@ -31,30 +31,42 @@
 cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, std::shared_ptr<StonexLogger> logger)
 	:mPimpl{ std::make_shared<ConnectionImpl>(*context, logger)}
 {
+	setLogger(logger);
+	info("com.stonex.cms.CMSConnection", fmt::format("created connection {}", context->broker()));
+	setLogger(nullptr);
 }
 
 cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, std::shared_ptr<StonexLogger> logger)
 	: mPimpl{ std::make_shared<ConnectionImpl>((*context).updateUser(username).updatePassword(password), logger) }
 {
+	setLogger(logger);
+	info("com.stonex.cms.CMSConnection", fmt::format("created connection {} user {}", context->broker(), username));
+	setLogger(nullptr);
 }
 
 cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId, std::shared_ptr<StonexLogger> logger)
 	: mPimpl{ std::make_shared<ConnectionImpl>(clientId, (*context).updateUser(username).updatePassword(password),logger)}
 {
+	setLogger(logger);
+	info("com.stonex.cms.CMSConnection", fmt::format("created connection {} user {} clientId {}", context->broker(), username, clientId));
+	setLogger(nullptr);
 }
 
 void cms::amqp::CMSConnection::close()
 {
+	info("com.stonex.cms.CMSConnection", "close");
 	mPimpl->close();
 }
 
 void cms::amqp::CMSConnection::start()
 {
+	info("com.stonex.cms.CMSConnection", "start");
 	mPimpl->start();
 }
 
 void cms::amqp::CMSConnection::stop()
 {
+	info("com.stonex.cms.CMSConnection", "stop");
 	mPimpl->stop();
 }
 
@@ -65,12 +77,13 @@ const ::cms::ConnectionMetaData* cms::amqp::CMSConnection::getMetaData() const
 
 cms::Session* cms::amqp::CMSConnection::createSession()
 {
+	info("com.stonex.cms.CMSConnection", fmt::format("createSession ACK_MODE {}", cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE));
 	return new CMSSession(ConnectionContext(mPimpl->connection()), cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE,mLogSink);
 }
 
 cms::Session* cms::amqp::CMSConnection::createSession(::cms::Session::AcknowledgeMode ackMode)
 {
-
+	info("com.stonex.cms.CMSConnection", fmt::format("createSession ACK_MODE {}", ackMode));
 	return new CMSSession(ConnectionContext(mPimpl->connection()), ackMode, mLogSink);
 }
 
@@ -82,6 +95,7 @@ std::string cms::amqp::CMSConnection::getClientID() const
 
 void cms::amqp::CMSConnection::setClientID(const std::string& clientID)
 {
+	info("com.stonex.cms.CMSConnection", fmt::format("set clientId {}", clientID));
 	mPimpl->setClientID(clientID);
 
 }
@@ -93,6 +107,7 @@ cms::ExceptionListener* cms::amqp::CMSConnection::getExceptionListener() const
 
 void cms::amqp::CMSConnection::setExceptionListener(::cms::ExceptionListener* listener)
 {
+	info("com.stonex.cms.CMSConnection", "set Exception Listener");
 	mPimpl->setExceptionListener(listener);
 }
 

@@ -5,107 +5,69 @@
 #include <API/CMSMessageProducer.h>
 
 //#include <StdOutLogger/StdOutLogger.h>
-#include <Log4CxxLogger/Log4CxxLogger.h>
+//#include <Log4CxxLogger/Log4CxxLogger.h>
 
+#include "Test.h"
 //#include <fmt/format.h>
 
-class MyExceptionListener : public cms::ExceptionListener
-{
 
-	void onException(const cms::CMSException& ex) override { std::cout << ex.getCause() << std::endl; };
-};
-
-class MyMessageListener : public cms::MessageListener, public StonexLogSource
-{
-public:
-	
-
-	void onMessage(const cms::Message* message) override {
-		if (auto msg = dynamic_cast<const cms::TextMessage*>(message))
-			info("MyMessageListener", msg->getText());
-	}
-};
 
 int main() 
 {
 
 
-	auto logger = std::make_shared<Log4CxxLogger>();
-	logger->configure("logger.xml");
-	
+	//auto logger = std::make_shared<Log4CxxLogger>();
+	//logger->configure("logger.xml");
+	//
 
-	auto factory = cms::amqp::CMSConnectionFactory::createCMSConnectionFactory("failover:(localhost:5672)?maxReconnectAttempts=30");
-	logger->attach("factory",(cms::amqp::CMSConnectionFactory*)factory);
+	//auto factory = cms::amqp::CMSConnectionFactory::createCMSConnectionFactory("failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=30");
+	//logger->attach("com.stonex.app.factory",(cms::amqp::CMSConnectionFactory*)factory);
 
-	MyExceptionListener exl;
-	try
-	{
-	//	std::cout << fmt::format("{}", (void *)&exl) << std::endl;;
-		factory->setExceptionListener(&exl);
+	//MyExceptionListener exl;
+	//try
+	//{
+	////	std::cout << fmt::format("{}", (void *)exl) << std::endl;;
+	//	factory->setExceptionListener(exl);
 
-	}
-	catch (const std::exception& ex)
-	{
-		std::cout << "EXCEPTION " << ex.what() << std::endl;
-	}
-
-	try
-	{
-		auto connection = factory->createConnection("admin", "admin");
-		logger->attach("connection", (cms::amqp::CMSConnection*)connection);
-
-		auto session = connection->createSession();
-		logger->attach("session", (cms::amqp::CMSSession*)session);
-
-		auto testQueue = session->createQueue("test_queue");
-		auto queueProducer = session->createProducer(testQueue);
-		logger->attach("queueProducer", (cms::amqp::CMSMessageProducer*)queueProducer);
-
-		auto testTopic = session->createTopic("test_topic");
-		auto topicProducer = session->createProducer(testTopic);
-		logger->attach("topicProducer", (cms::amqp::CMSMessageProducer*)topicProducer);
+	//}
+	//catch (const std::exception& ex)
+	//{
+	//	std::cout << "EXCEPTION " << ex.what() << std::endl;
+	//}
 
 
-		MyMessageListener testMessageListener;
-		logger->attach("MessageListener", &testMessageListener);
+	StonexLogSource app;
+	MyExceptionListener* exl = new MyExceptionListener;
 
-		auto consumer1 = session->createConsumer(testQueue);
-		consumer1->setMessageListener(&testMessageListener);
+	createAddress("master_publisher", "master_publisher", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3","STONEX_CMS_TEST_1",&app, exl);
+	createAddress("master_publisher", "master_publisher", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3","STONEX_CMS_TEST_2",&app, exl);
+	exl->setExpect(true);
+	createAddress("master_consumer", "master_consumer", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_3",&app, exl);
+	createAddress("master_sender", "master_sender", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_4",&app, exl);
+	createAddress("sender", "sender", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_5", &app, exl);
+	exl->setExpect(true);
+	createAddress("consumer", "consumer",  "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_6", &app, exl);
 
-		logger->attach("consumer1", (cms::amqp::CMSMessageConsumer*)consumer1);
+	createConsumer("master_publisher", "master_publisher", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_1::STONEX_CMS_TEST_1/TEST", &app, exl);
+	createConsumer("master_publisher", "master_publisher", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_2::STONEX_CMS_TEST_2/TEST", &app, exl);
+	exl->setExpect(true);
+	createConsumer("master_consumer", "master_consumer", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_3::STONEX_CMS_TEST_3/TEST", &app, exl);
+	createConsumer("master_sender", "master_sender", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_4::STONEX_CMS_TEST_4/TEST", &app, exl);
+	createConsumer("sender", "sender", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_5::STONEX_CMS_TEST_5/TEST", &app, exl);
+	exl->setExpect(true);
+	createConsumer("consumer", "consumer", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_6::STONEX_CMS_TEST_6/TEST", &app, exl);
 
-		auto consumer2 = session->createConsumer(testTopic);
-		logger->attach("consumer2", (cms::amqp::CMSMessageConsumer*)consumer2);
-		consumer2->setMessageListener(&testMessageListener);
+	createConsumerWithSelector("master_publisher", "master_publisher", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_1::STONEX_CMS_TEST_1/TEST", &app, exl);
+	createConsumerWithSelector("master_publisher", "master_publisher", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_2::STONEX_CMS_TEST_2/TEST", &app, exl);
+	exl->setExpect(true);
+	createConsumerWithSelector("master_consumer", "master_consumer", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_3::STONEX_CMS_TEST_3/TEST", &app, exl);
+	createConsumerWithSelector("master_sender", "master_sender", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_4::STONEX_CMS_TEST_4/TEST", &app, exl);
+	createConsumerWithSelector("sender", "sender", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_5::STONEX_CMS_TEST_5/TEST", &app, exl);
+	exl->setExpect(true);
+	createConsumerWithSelector("consumer", "consumer", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_6::STONEX_CMS_TEST_6/TEST", &app, exl);
 
-		auto consumer3 = session->createConsumer(testTopic);
-		logger->attach("consumer3", (cms::amqp::CMSMessageConsumer*)consumer3);
-		consumer3->setMessageListener(&testMessageListener);
+	sendAndReceive("master_publisher", "master_publisher","master_consumer","master_consumer", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3","STONEX_CMS_TEST_7", "STONEX_CMS_TEST_7::STONEX_CMS_TEST_7/TEST", cms::Destination::TOPIC, &app, exl);
+	sendAndReceive("master_sender", "master_sender", "master_consumer", "master_consumer", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_8", "STONEX_CMS_TEST_8::STONEX_CMS_TEST_8/TEST", cms::Destination::QUEUE, &app, exl);
 
-		auto message = session->createTextMessage("text message");
-
-		std::thread senderThread([&topicProducer, &queueProducer, &message]() {
-
-			for (int i = 0; i < 10; i++) {
-				topicProducer->send(message);
-				queueProducer->send(message);
-				std::this_thread::sleep_for(std::chrono::seconds(1));
-			}
-		});
-
-
-		senderThread.join();
-
-		consumer1->close();
-		consumer2->close();
-		consumer3->close();
-		session->close();
-		connection->close();
-	}
-	catch (const std::exception&)
-	{
-
-	}
-	
 	return 0;
 }

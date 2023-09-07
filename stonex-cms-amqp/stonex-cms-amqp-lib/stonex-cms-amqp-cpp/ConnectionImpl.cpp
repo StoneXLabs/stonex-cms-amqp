@@ -63,6 +63,7 @@
 
 void  cms::amqp::ConnectionImpl::close()
 {
+	info("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} closing connection: {} ", __func__, mContext.broker()));
 	if(mState == ClientState::STARTED)
 		mEXHandler.SynchronizeCall(std::bind(&ConnectionImpl::syncClose,this));
 
@@ -71,9 +72,7 @@ void  cms::amqp::ConnectionImpl::close()
 
 void  cms::amqp::ConnectionImpl::start()
 {
-#if _DEBUG
-	trace("connection implementation", fmt::format("{} connection closed: {} starting connection", __func__, !mConnection->closed()));
-#endif
+	info("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} connection closed: {} starting connection {}", __func__, !mConnection->closed(), mContext.broker()));
 	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
 
 }
@@ -98,15 +97,20 @@ void  cms::amqp::ConnectionImpl::setClientID(const std::string& clientID)
 void  cms::amqp::ConnectionImpl::on_transport_open(proton::transport& transport)
 {
 #if _DEBUG
-	trace("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
+	if (auto err = transport.error(); err.empty())
+		trace("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{}", __func__));
+	else
+		error("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} {}", __func__, err.what()));
 #endif
 }
 
 void  cms::amqp::ConnectionImpl::on_transport_close(proton::transport& transport)
 {
-#if _DEBUG
-	trace("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
-#endif
+	if (auto err = transport.error(); err.empty())
+		trace("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{}", __func__));
+	else
+		error("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} {}", __func__, err.what()));
+
 	mState = ClientState::CLOSED;
 	mEXHandler.onResourceUninitialized(transport.error());
 }
@@ -114,7 +118,7 @@ void  cms::amqp::ConnectionImpl::on_transport_close(proton::transport& transport
 void  cms::amqp::ConnectionImpl::on_transport_error(proton::transport& transport)
 {
 
-	error("connection implementation", fmt::format("{} {}", __func__, transport.error().what()));
+	error("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} {}", __func__, transport.error().what()));
 
 	if (mExceptionListener)
 		mExceptionListener->onException(transport.error().what());
@@ -122,8 +126,10 @@ void  cms::amqp::ConnectionImpl::on_transport_error(proton::transport& transport
 
 void  cms::amqp::ConnectionImpl::on_connection_open(proton::connection& connection)
 {
-
-	info("connection implementation", fmt::format("{} auto reconnected : {} {}", __func__, connection.reconnected(),connection.error().what()));
+	if (auto err = connection.error(); err.empty())
+		info("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} auto reconnected : {}", __func__, connection.reconnected()));
+	else
+		error("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} auto reconnected : {} {}", __func__, connection.reconnected(), err.what()));
 
 	mConnection  = std::make_shared<proton::connection>(connection);
 	mState = ClientState::STARTED;
@@ -132,13 +138,16 @@ void  cms::amqp::ConnectionImpl::on_connection_open(proton::connection& connecti
 }
 void  cms::amqp::ConnectionImpl::on_connection_close(proton::connection& connection)
 {
-	info("connection implementation", fmt::format("{} {}", __func__, connection.error().what()));
+	if(auto err = connection.error(); err.empty())
+		info("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{}", __func__));
+	else
+		error("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} {}", __func__, err.what()));
 
 }
 
 void  cms::amqp::ConnectionImpl::on_connection_error(proton::connection& connection)
 {
-	error("connection implementation", fmt::format("{} {}", __func__, connection.error().what()));
+	error("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} {}", __func__, connection.error().what()));
 	if (mExceptionListener)
 		mExceptionListener->onException(connection.error().what());
 }

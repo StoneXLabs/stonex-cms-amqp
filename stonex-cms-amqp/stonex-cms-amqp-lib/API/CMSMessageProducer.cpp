@@ -34,49 +34,65 @@
 
 void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes)
 {
-	debug("producer", "sending message");
+#if _DEBUG
+	debug("com.stonex.cms.CMSMessageProducer", "sending message");
+#endif
 	mPimpl->send(mes);
 }
 
 void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, ::cms::AsyncCallback* callback)
 {
-	debug("producer", "sending message with callback");
+#if _DEBUG
+	debug("com.stonex.cms.CMSMessageProducer", "sending message with callback");
+#endif
 	mPimpl->send(mes, callback);
 }
 
 void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive)
 {
-	debug("producer", "sending message");
+#if _DEBUG
+	debug("com.stonex.cms.CMSMessageProducer", "sending message");
+#endif
 	mPimpl->send(mes, deliveryMode, priority,timeToLive);
 }
 
 void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback)
 {
-	debug("producer", "sending message with callback");
+#if _DEBUG
+	debug("com.stonex.cms.CMSMessageProducer", "sending message with callback");
+#endif
 	mPimpl->send(mes, deliveryMode, priority, timeToLive, callback);
 }
 
 void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive)
 {
-	debug("producer", "sending message");
+#if _DEBUG
+	debug("com.stonex.cms.CMSMessageProducer", "sending message");
+#endif
 	mPimpl->send(destination, mes, deliveryMode, priority, timeToLive);
 }
 
 void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback)
 {
-	debug("producer", "sending message with callback");
+#if _DEBUG
+	debug("com.stonex.cms.CMSMessageProducer", "sending message with callback");
+#endif
 	mPimpl->send(destination, mes, deliveryMode, priority, timeToLive, callback);
 }
 
 void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes, ::cms::AsyncCallback* callback)
 {
-	debug("producer", "sending message");
+#if _DEBUG
+	debug("com.stonex.cms.CMSMessageProducer", "sending message");
+#endif
 	mPimpl->send(destination, mes, callback);
 }
 
 void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes)
 {
-	debug("producer", "sending message");
+#if _DEBUG
+	debug("com.stonex.cms.CMSMessageProducer", "sending message");
+#endif
 	mPimpl->send(destination, mes);
 }
 
@@ -84,7 +100,7 @@ void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination,
 
 void  cms::amqp::CMSMessageProducer::setDeliveryMode(int mode)
 {
-	info("producer", fmt::format("set delivery mode {}",mode));
+	info("com.stonex.cms.CMSMessageProducer", fmt::format("set delivery mode {}",mode));
 	mPimpl->setDeliveryMode(mode);
 }
 
@@ -95,7 +111,7 @@ int  cms::amqp::CMSMessageProducer::getDeliveryMode() const
 
 void  cms::amqp::CMSMessageProducer::setDisableMessageID(bool value)
 {
-	info("producer", fmt::format("disable message id {}", value));
+	info("com.stonex.cms.CMSMessageProducer", fmt::format("disable message id {}", value));
 	mPimpl->setDisableMessageID(value);
 }
 
@@ -106,7 +122,7 @@ bool  cms::amqp::CMSMessageProducer::getDisableMessageID() const
 
 void  cms::amqp::CMSMessageProducer::setDisableMessageTimeStamp(bool value)
 {
-	info("producer", fmt::format("disable message timestamp id {}", value));
+	info("com.stonex.cms.CMSMessageProducer", fmt::format("disable message timestamp {}", value));
 	mPimpl->setDisableMessageTimeStamp(value);
 }
 
@@ -117,7 +133,7 @@ bool  cms::amqp::CMSMessageProducer::getDisableMessageTimeStamp() const
 
 void  cms::amqp::CMSMessageProducer::setPriority(int priority)
 {
-	info("producer", fmt::format("set priority {}", priority));
+	info("com.stonex.cms.CMSMessageProducer", fmt::format("set priority {}", priority));
 	mPimpl->setPriority(priority);
 }
 
@@ -128,7 +144,7 @@ int  cms::amqp::CMSMessageProducer::getPriority() const
 
 void  cms::amqp::CMSMessageProducer::setTimeToLive(long long time)
 {
-	info("producer", fmt::format("set TTL {} [ms]", time));
+	info("com.stonex.cms.CMSMessageProducer", fmt::format("set TTL {} [ms]", time));
 	mPimpl->setTimeToLive(time);
 }
 
@@ -139,7 +155,7 @@ long long  cms::amqp::CMSMessageProducer::getTimeToLive() const
 
 void  cms::amqp::CMSMessageProducer::setMessageTransformer(::cms::MessageTransformer* transformer)
 {
-	info("producer", fmt::format("set message transformer: {}", (void*)transformer));
+	info("com.stonex.cms.CMSMessageProducer", fmt::format("set message transformer: {}", (void*)transformer));
 	mPimpl->setMessageTransformer(transformer);
 }
 
@@ -150,7 +166,7 @@ void  cms::amqp::CMSMessageProducer::setMessageTransformer(::cms::MessageTransfo
 
 void cms::amqp::CMSMessageProducer::close()
 {
-	info("producer", "closing");
+	info("com.stonex.cms.CMSMessageProducer", "closing");
 	mPimpl->close();
 }
 

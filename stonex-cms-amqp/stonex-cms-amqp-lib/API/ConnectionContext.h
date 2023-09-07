@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <logger/StonexLogSource.h>
 
 #include "URIParser.h"
 
@@ -56,7 +57,7 @@ AMQP_DEFINES
 		};
 	};
 
-	class FactoryContext
+	class FactoryContext : public StonexLogSource
 	{
 	public:
 		FactoryContext(const std::string& url, const std::string& user, const std::string& password, const std::vector<std::string>& failover_urls, int reconnect_attempts, std::shared_ptr<proton::container> container);

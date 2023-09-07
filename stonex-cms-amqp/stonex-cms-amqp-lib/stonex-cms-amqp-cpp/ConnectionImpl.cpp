@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -29,17 +29,29 @@
 
 #include "SessionImpl.h"
 
- cms::amqp::ConnectionImpl::ConnectionImpl(const FactoryContext& context)
-	:mContext{ context }
-{
+#include <fmt/format.h>
+
+ cms::amqp::ConnectionImpl::ConnectionImpl(const FactoryContext& context, std::shared_ptr<StonexLogger> logger)
+	:mContext{ context },
+	 mEXHandler(logger)
+{	
+	setLogger(logger);
+	mContext.setLogger(logger);
 	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
+	mContext.setLogger(nullptr);
+	setLogger(nullptr);
 }
 
- cms::amqp::ConnectionImpl::ConnectionImpl(const std::string& id, const FactoryContext& context)
-	 : mConnectionId{id},
+ cms::amqp::ConnectionImpl::ConnectionImpl(const std::string& id, const FactoryContext& context, std::shared_ptr<StonexLogger> logger)
+	 :mEXHandler(logger),
+	 mConnectionId{id},
 	 mContext{context}
 {
+	setLogger(logger);
+	mContext.setLogger(logger);
 	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
+	mContext.setLogger(nullptr);
+	setLogger(nullptr);
 }
 
 
@@ -51,6 +63,7 @@
 
 void  cms::amqp::ConnectionImpl::close()
 {
+	info("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} closing connection: {} ", __func__, mContext.broker()));
 	if(mState == ClientState::STARTED)
 		mEXHandler.SynchronizeCall(std::bind(&ConnectionImpl::syncClose,this));
 
@@ -59,7 +72,7 @@ void  cms::amqp::ConnectionImpl::close()
 
 void  cms::amqp::ConnectionImpl::start()
 {
-	std::cout << "connection status : " << std::boolalpha << !mConnection->closed() << " starting connection " << &mConnection << std::endl;
+	info("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} connection closed: {} starting connection {}", __func__, !mConnection->closed(), mContext.broker()));
 	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
 
 }
@@ -83,26 +96,40 @@ void  cms::amqp::ConnectionImpl::setClientID(const std::string& clientID)
 
 void  cms::amqp::ConnectionImpl::on_transport_open(proton::transport& transport)
 {
-//	std::cout << __FUNCTION__ << " " << transport.error().what() << std::endl;
+#if _DEBUG
+	if (auto err = transport.error(); err.empty())
+		trace("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{}", __func__));
+	else
+		error("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} {}", __func__, err.what()));
+#endif
 }
 
 void  cms::amqp::ConnectionImpl::on_transport_close(proton::transport& transport)
 {
+	if (auto err = transport.error(); err.empty())
+		trace("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{}", __func__));
+	else
+		error("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} {}", __func__, err.what()));
+
 	mState = ClientState::CLOSED;
-//	std::cout << __FUNCTION__ << " " << transport.error().what() << std::endl;
 	mEXHandler.onResourceUninitialized(transport.error());
 }
 
 void  cms::amqp::ConnectionImpl::on_transport_error(proton::transport& transport)
 {
-//	std::cout << __FUNCTION__<<" "<<transport.error().what() << std::endl;
+
+	error("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} {}", __func__, transport.error().what()));
+
 	if (mExceptionListener)
 		mExceptionListener->onException(transport.error().what());
 }
 
 void  cms::amqp::ConnectionImpl::on_connection_open(proton::connection& connection)
 {
-//	std::cout << __FUNCTION__ << " " << connection.error().what() << std::endl;
+	if (auto err = connection.error(); err.empty())
+		info("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} auto reconnected : {}", __func__, connection.reconnected()));
+	else
+		error("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} auto reconnected : {} {}", __func__, connection.reconnected(), err.what()));
 
 	mConnection  = std::make_shared<proton::connection>(connection);
 	mState = ClientState::STARTED;
@@ -111,12 +138,16 @@ void  cms::amqp::ConnectionImpl::on_connection_open(proton::connection& connecti
 }
 void  cms::amqp::ConnectionImpl::on_connection_close(proton::connection& connection)
 {
-//	std::cout << __FUNCTION__ << std::endl;
+	if(auto err = connection.error(); err.empty())
+		info("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{}", __func__));
+	else
+		error("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} {}", __func__, err.what()));
+
 }
 
 void  cms::amqp::ConnectionImpl::on_connection_error(proton::connection& connection)
 {
-//	std::cout << __FUNCTION__ << std::endl;
+	error("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} {}", __func__, connection.error().what()));
 	if (mExceptionListener)
 		mExceptionListener->onException(connection.error().what());
 }

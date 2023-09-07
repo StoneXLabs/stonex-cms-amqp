@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -27,6 +27,8 @@
 #include "MessageConsumerImpl.h"
 #include "MessageProducerImpl.h"
 
+#include <fmt/format.h>
+
 class MessageConsumer : public cms::MessageConsumer{};
 class MessageProducer : public cms::MessageProducer {};
 class QueueBrowser : public cms::QueueBrowser {};
@@ -45,11 +47,13 @@ class StreamMessage : public cms::StreamMessage {};
 
 
 
-cms::amqp::SessionImpl::SessionImpl(std::shared_ptr<proton::connection>  connection, ::cms::Session::AcknowledgeMode ack_mode)
-	:mACKMode{ack_mode}
+cms::amqp::SessionImpl::SessionImpl(std::shared_ptr<proton::connection>  connection, ::cms::Session::AcknowledgeMode ack_mode, std::shared_ptr<StonexLogger> logger)
+	:mEXHandler(logger),
+	mACKMode{ack_mode}
 {
-
+	setLogger(logger);
 	mEXHandler.SynchronizeCall(std::bind(&SessionImpl::syncStart, this, std::placeholders::_1), connection);
+	setLogger(nullptr);	
 }
 
 cms::amqp::SessionImpl::~SessionImpl()
@@ -65,22 +69,27 @@ void cms::amqp::SessionImpl::close()
 
 void cms::amqp::SessionImpl::commit()
 {
+	error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
 }
 
 void cms::amqp::SessionImpl::rollback()
 {
+	error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
 }
 
 void cms::amqp::SessionImpl::recover()
 {
+	error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
 }
 
 void cms::amqp::SessionImpl::start()
 {
+	error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
 }
 
 void cms::amqp::SessionImpl::stop()
 {
+	error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
 }
 
 ::cms::Session::AcknowledgeMode cms::amqp::SessionImpl::ackMode()
@@ -91,6 +100,11 @@ void cms::amqp::SessionImpl::stop()
 
 void cms::amqp::SessionImpl::on_session_open(proton::session& session)
 {
+	if (auto err = session.error(); err.empty())
+		info("com.stonex.cms.amqp.SessionImpl", fmt::format("{}", __func__));
+	else
+		error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, err.what()));
+
 	mSession = std::make_shared<proton::session>(session);
 	mState = ClientState::STARTED;
 	mEXHandler.onResourceInitialized();
@@ -98,12 +112,18 @@ void cms::amqp::SessionImpl::on_session_open(proton::session& session)
 
 void cms::amqp::SessionImpl::on_session_close(proton::session& session)
 {
+	if (auto err = session.error(); err.empty())
+		info("com.stonex.cms.amqp.SessionImpl", fmt::format("{}", __func__));
+	else
+		error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, err.what()));
+
 	mState = ClientState::CLOSED;
 	mEXHandler.onResourceInitialized();
 }
 
 void cms::amqp::SessionImpl::on_session_error(proton::session& session)
 {
+	error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, session.error().what()));
 	mEXHandler.onResourceUninitialized(session.error()); // move to close??
 
 }
@@ -129,5 +149,7 @@ bool cms::amqp::SessionImpl::syncStart(std::shared_ptr<proton::connection>  conn
 
 bool cms::amqp::SessionImpl::syncStop()
 {
+	trace("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
+
 	return false;
 }

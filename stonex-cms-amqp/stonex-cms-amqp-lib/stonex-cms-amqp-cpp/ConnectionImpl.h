@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -26,9 +26,13 @@
 
 #include <cms/Connection.h>
 
+#include <logger/StonexLogSource.h>
+
 #include "../API/ConnectionContext.h"
 #include "AsyncCallSynchronizer.h"
 #include "ClientState.h"
+
+#include <memory>
 
 namespace cms::amqp
 {
@@ -39,12 +43,12 @@ namespace cms::amqp
 	* Proton connection is responsible for creating sessions for this connection by implementing proton::message_handler methods
 	* Allow Metrics <TO DO>
 	*/
-	class ConnectionImpl : public proton::messaging_handler {
+	class ConnectionImpl : public proton::messaging_handler, public StonexLogSource {
 
 	public:
-		ConnectionImpl(const FactoryContext& context);
+		ConnectionImpl(const FactoryContext& context, std::shared_ptr<StonexLogger> logger = nullptr);
 
-		ConnectionImpl(const std::string& id, const FactoryContext& context);
+		ConnectionImpl(const std::string& id, const FactoryContext& context, std::shared_ptr<StonexLogger> logger = nullptr);
 
 		//!Constructor
 		/*!Create instance of CMS connection

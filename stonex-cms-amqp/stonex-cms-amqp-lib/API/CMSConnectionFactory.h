@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -23,17 +23,16 @@
 #include "CMSConnection.h"
 
 #include "cms/ConnectionFactory.h"
-//#include "cms/Connection.h"
-
 
 #include "stonex-cms-amqp-lib-defines.h"
+#include <logger/StonexLogSource.h>
 
 AMQP_DEFINES
 
 
 	class ConnectionFactoryImpl;
 
-	class CMS_API CMSConnectionFactory : public ::cms::ConnectionFactory
+	class CMS_API CMSConnectionFactory : public ::cms::ConnectionFactory, public StonexLogSource
 	{
 	public:
 

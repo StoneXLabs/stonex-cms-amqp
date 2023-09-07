@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -35,9 +35,11 @@
 #include <regex>
 #include "ClientState.h"
 
+#include <logger/StonexLogSource.h>
+
 namespace cms::amqp
 {
-	class MessageConsumerImpl : public proton::messaging_handler 
+	class MessageConsumerImpl : public proton::messaging_handler, public StonexLogSource
 	{
 		enum class STATUS 
 		{
@@ -67,8 +69,8 @@ namespace cms::amqp
 			const std::regex FQQN_regex{ "^VirtualTopic\\.[a-zA-Z0-9_-]+::Consumer(\\.[a-zA-Z0-9_-]+)+" };
 		};
 	public:
-		explicit MessageConsumerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, const std::string& selector = "");
-		explicit MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable = false,  bool shared = false, bool autoAck = true, const std::string& selector = "");
+		explicit MessageConsumerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, const std::string& selector = "", std::shared_ptr<StonexLogger> logger = nullptr);
+		explicit MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable = false,  bool shared = false, bool autoAck = true, const std::string& selector = "", std::shared_ptr<StonexLogger> logger = nullptr);
 
 
 		~MessageConsumerImpl();

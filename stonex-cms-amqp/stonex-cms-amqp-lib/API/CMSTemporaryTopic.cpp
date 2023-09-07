@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -72,4 +72,10 @@ std::string cms::amqp::CMSTemporaryTopic::getTopicName() const
 void cms::amqp::CMSTemporaryTopic::destroy()
 {
     throw ::cms::CMSException("illegal use - not implemented");
+}
+
+std::ostream & operator<<(std::ostream & os, const cms::amqp::CMSTemporaryTopic & ob)
+{
+	os << "TEMPORARY TOPIC " << ob.getTopicName();
+	return os;
 }

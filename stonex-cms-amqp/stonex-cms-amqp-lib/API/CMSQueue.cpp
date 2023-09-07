@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -69,4 +69,10 @@ const ::cms::CMSProperties& cms::amqp::CMSQueue::getCMSProperties() const
 std::string cms::amqp::CMSQueue::getQueueName() const
 {
     return mQueueName;
+}
+
+std::ostream & operator<<(std::ostream & os, const cms::amqp::CMSQueue & ob)
+{
+	os << "QUEUE " << ob.getQueueName();
+	return os;
 }

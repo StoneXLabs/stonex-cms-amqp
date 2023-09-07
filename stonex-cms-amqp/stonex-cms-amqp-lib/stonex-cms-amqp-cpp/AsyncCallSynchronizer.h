@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -28,12 +28,16 @@
 
 #include <cms/CMSException.h>
 
+#include <logger/StonexLogSource.h>
+
 
 namespace cms::internal 
 {
-	class AsyncCallSynchronizer
+	class AsyncCallSynchronizer : public StonexLogSource
 	{
 	public:
+		explicit AsyncCallSynchronizer(std::shared_ptr<StonexLogger> logger = nullptr);
+
 		void SynchronizeCall(std::function<void(proton::messaging_handler* handler)> asyncCall, proton::messaging_handler& parameter);
 
 		void SynchronizeCall(std::function<bool()> asyncCall);

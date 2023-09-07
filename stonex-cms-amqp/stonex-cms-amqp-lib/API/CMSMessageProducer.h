@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -25,6 +25,7 @@
 #include <cms/Destination.h>
 #include <cms/MessageProducer.h>
 
+#include <logger/StonexLogSource.h>
 
 
 #include "stonex-cms-amqp-lib-defines.h"
@@ -35,18 +36,16 @@ AMQP_DEFINES
 	class SessionContext;
 	class MessageProducerImpl;
 
-	class CMS_API CMSMessageProducer : public ::cms::MessageProducer
+	class CMS_API CMSMessageProducer : public ::cms::MessageProducer, public StonexLogSource
 	{
 	public:
-		CMSMessageProducer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context);
+		CMSMessageProducer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr);
 		~CMSMessageProducer() override = default;
 
 		void send(::cms::Message* mes) override;
 		void send(::cms::Message* mes, ::cms::AsyncCallback* callback) override;
 		void send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive) override;
 		void send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback) override;
-
-		/////////
 
 		void send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive) override;
 														 
@@ -77,8 +76,9 @@ AMQP_DEFINES
 		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
 		::cms::MessageTransformer* getMessageTransformer() const override;
 
-		//////////
 		void close() override;
+
+		void setLogger(std::shared_ptr<StonexLogger> sink) override;
 
 	private:
 		std::shared_ptr<MessageProducerImpl> mPimpl;

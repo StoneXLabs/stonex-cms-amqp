@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -27,6 +27,8 @@
 
 #include <cms/CMSException.h>
 
+#include <fmt/format.h>
+
 #include <sstream>
 
 cms::amqp::FactoryContext::FactoryContext(const std::string& url, const std::string& user, const std::string& password, const std::vector<std::string>& failover_urls, int reconnect_attempts, std::shared_ptr<proton::container> container)
@@ -51,18 +53,28 @@ cms::amqp::FactoryContext::FactoryContext(const std::string& url, const std::str
 
 cms::amqp::FactoryContext& cms::amqp::FactoryContext::updateUser(const std::string& user)
 {
+
+#if _DEBUG
+	trace("com.stonex.cms.FactoryContext", fmt::format("set update user: {}", user));
+#endif
 	mUser = user;
 	return *this;
 }
 
 cms::amqp::FactoryContext& cms::amqp::FactoryContext::updatePassword(const std::string& password)
 {
+#if _DEBUG
+	trace("com.stonex.cms.FactoryContext", "set update password");
+#endif
 	mPassword = password;
 	return *this;
 }
 
 cms::amqp::FactoryContext& cms::amqp::FactoryContext::updateCotainerId(const std::string& connectionId)
 {
+#if _DEBUG
+	trace("com.stonex.cms.FactoryContext", fmt::format("set connection id: {}", connectionId));
+#endif
 	mConnectionId = connectionId;
 	return *this;
 }
@@ -97,6 +109,9 @@ void cms::amqp::FactoryContext::requestBrokerConnection(proton::messaging_handle
 	
 	co.reconnect(rco);
 	co.desired_capabilities({ "ANONYMOUS-RELAY" });
+
+	info("com.stonex.cms.FactoryContext", fmt::format("request amqp connection: {} failover {} user {} clientId {}", mBroker, fmt::join(mFailoverAddresses,", "), mUser, mConnectionId));
+
 	mContainer->connect(mBroker, co);
 
 }

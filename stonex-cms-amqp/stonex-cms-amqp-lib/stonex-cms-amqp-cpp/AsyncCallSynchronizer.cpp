@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,27 +18,54 @@
  */
 
 #include "AsyncCallSynchronizer.h"
+#include <fmt/format.h>
+
+cms::internal::AsyncCallSynchronizer::AsyncCallSynchronizer(std::shared_ptr<StonexLogger> logger)
+{
+	setLogger(logger);
+}
 
 void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<void(proton::messaging_handler* handler)> asyncCall, proton::messaging_handler& parameter)
 {
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquire mutex", __func__));
+#endif
+
 	std::unique_lock lk(mMutex);
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquired mutex", __func__));
+#endif
+
 	mIdle = false;
 	mSuccess = false;
 	asyncCall(&parameter);
 	mCV.wait(lk, [this] {return mIdle; });
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} done status {}", __func__, mSuccess));
+#endif
 	if (!mSuccess)
 		throw cms::CMSException(mLastError.what());
 }
 
 void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool()> asyncCall)
 {
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquire mutex", __func__));
+#endif
+
 	std::unique_lock lk(mMutex);
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquired mutex", __func__));
+#endif
 
 	if (asyncCall())
 	{
 		mIdle = false;
 		mSuccess = false;
 		mCV.wait(lk, [this] {return mIdle; });
+#if _DEBUG
+		trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} done status {}", __func__, mSuccess));
+#endif
 		if (!mSuccess)
 			throw cms::CMSException(mLastError.what());
 	}
@@ -47,13 +74,23 @@ void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool()>
 
 void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool(std::shared_ptr<proton::connection> connection)> asyncCall, std::shared_ptr<proton::connection> param)
 {
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquire mutex", __func__));
+#endif
+
 	std::unique_lock lk(mMutex);
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquired mutex", __func__));
+#endif
 
 	if (asyncCall(param))
 	{
 		mIdle = false;
 		mSuccess = false;
 		mCV.wait(lk, [this] {return mIdle; });
+#if _DEBUG
+		trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} done status {}", __func__, mSuccess));
+#endif
 		if (!mSuccess)
 			throw cms::CMSException(mLastError.what());
 	}
@@ -61,13 +98,23 @@ void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool(st
 
 void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool(const std::string&, const proton::receiver_options&, std::shared_ptr<proton::session>)> asyncCall, const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session> param)
 {
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquire mutex", __func__));
+#endif
+
 	std::unique_lock lk(mMutex);
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquired mutex", __func__));
+#endif
 
 	if (asyncCall(address,options,param))
 	{
 		mIdle = false;
 		mSuccess = false;
 		mCV.wait(lk, [this] {return mIdle; });
+#if _DEBUG
+		trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} done status {}", __func__, mSuccess));
+#endif
 		if (!mSuccess)
 			throw cms::CMSException(mLastError.what());
 	}
@@ -75,13 +122,23 @@ void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool(co
 
 void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool(const std::string&, const proton::sender_options&, std::shared_ptr<proton::session>)> asyncCall, const std::string& address, const proton::sender_options& options, std::shared_ptr<proton::session> param)
 {
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquire mutex", __func__));
+#endif
+
 	std::unique_lock lk(mMutex);
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquired mutex", __func__));
+#endif
 
 	if (asyncCall(address, options, param))
 	{
 		mIdle = false;
 		mSuccess = false;
 		mCV.wait(lk, [this] {return mIdle; });
+#if _DEBUG
+		trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} done status {}", __func__, mSuccess));
+#endif
 		if (!mSuccess)
 			throw cms::CMSException(mLastError.what());
 	}
@@ -89,7 +146,15 @@ void cms::internal::AsyncCallSynchronizer::SynchronizeCall(std::function<bool(co
 
 void cms::internal::AsyncCallSynchronizer::onResourceInitialized()
 {
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquire mutex", __func__));
+#endif
+
 	std::unique_lock lk(mMutex);
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} notify one", __func__));
+#endif
+
 	mIdle = true;
 	mSuccess = true;
 	lk.unlock();
@@ -98,7 +163,15 @@ void cms::internal::AsyncCallSynchronizer::onResourceInitialized()
 
 void cms::internal::AsyncCallSynchronizer::onResourceUninitialized(const proton::error_condition& error)
 {
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquire mutex", __func__));
+#endif
+
 	std::unique_lock lk(mMutex);
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} notify all", __func__));
+#endif
+
 	mIdle = true;
 	mSuccess = error.empty();
 	if (!mSuccess)
@@ -109,7 +182,18 @@ void cms::internal::AsyncCallSynchronizer::onResourceUninitialized(const proton:
 
 void cms::internal::AsyncCallSynchronizer::waitForResource()
 {
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquire mutex", __func__));
+#endif
+
 	std::unique_lock lk(mMutex);
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} acquired mutex", __func__));
+#endif
+
 	mCV.wait(lk, [this] {return mIdle; });
+#if _DEBUG
+	trace("com.stonex.cms.amqp.AsyncCallSynchronizer", fmt::format("{} done status {}", __func__, mSuccess));
+#endif
 	mIdle = false;
 }

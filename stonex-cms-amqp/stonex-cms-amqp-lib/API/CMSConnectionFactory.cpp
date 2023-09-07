@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -23,6 +23,7 @@
 #include "ConnectionContext.h"
 #include "ConnectionFactoryImpl.h"
 #include "ProtonCppLibrary.h"
+#include <fmt/format.h>
 
 cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerURI, const std::string& user, const std::string& password)
 	:mPimpl(std::make_shared<ConnectionFactoryImpl>(brokerURI, user, password)),
@@ -34,7 +35,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 {
 	try
 	{
-		return new CMSConnection(mContext);
+		return new CMSConnection(mContext, mLogSink);
 	}
 	catch (const ::cms::CMSException& ex)
 	{
@@ -48,12 +49,14 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 {
 	try
 	{
-		return new CMSConnection(mContext, username, password);
+		info("com.stonex.cms.ConnectionFactory", fmt::format("creating connection user {}",username));
+		return new CMSConnection(mContext, username, password, mLogSink);
 	}
 	catch (const ::cms::CMSException& ex)
 	{
 		if (mExceptionListener)
 			mExceptionListener->onException(ex);
+		error("com.stonex.cms.ConnectionFactory", ex.what());
 		throw;
 	}
 }
@@ -62,19 +65,23 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 {
 	try
 	{
+
+		info("com.stonex.cms.ConnectionFactory", fmt::format("creating connection user {} clientId {}", username, clientId));
 		mContext->updateCotainerId(clientId);
-		return new CMSConnection(mContext, username, password);
+		return new CMSConnection(mContext, username, password, mLogSink);
 	}
 	catch (const ::cms::CMSException& ex)
 	{
 		if (mExceptionListener)
 			mExceptionListener->onException(ex);
+		error("com.stonex.cms.ConnectionFactory", ex.what());
 		throw;
 	}
 }
 
 void cms::amqp::CMSConnectionFactory::setExceptionListener(::cms::ExceptionListener* listener)
 {
+	debug("com.stonex.cms.ConnectionFactory", fmt::format("set exception listener: {}", (void*)listener));
 	mExceptionListener = listener;
 }
 
@@ -85,6 +92,7 @@ cms::ExceptionListener* cms::amqp::CMSConnectionFactory::getExceptionListener() 
 
 void cms::amqp::CMSConnectionFactory::setMessageTransformer(::cms::MessageTransformer* transformer)
 {
+	debug("com.stonex.cms.ConnectionFactory", fmt::format("set message transformer: {}", (void*)transformer));
 	mMessageTransformer = transformer;
 }
 

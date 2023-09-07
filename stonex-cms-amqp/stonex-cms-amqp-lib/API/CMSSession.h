@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 StoneX Financial Ltd.
+ * Copyright 2022 - 2023 StoneX Financial Ltd.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -21,6 +21,7 @@
 #include <memory>
 #include <cms/Session.h>
 
+#include <logger/StonexLogSource.h>
 
 #include "stonex-cms-amqp-lib-defines.h"
 
@@ -31,12 +32,12 @@ AMQP_DEFINES
 	class SessionImpl;
 	class SessionContext;
 
-	class CMS_API CMSSession : public ::cms::Session
+	class CMS_API CMSSession : public ::cms::Session, public StonexLogSource
 	{
 
 	public:
-		explicit CMSSession(const cms::amqp::ConnectionContext& cntx);
-		explicit CMSSession(const cms::amqp::ConnectionContext& cntx, const ::cms::Session::AcknowledgeMode ackMode);
+		explicit CMSSession(const cms::amqp::ConnectionContext& cntx, std::shared_ptr<StonexLogger> logger = nullptr);
+		explicit CMSSession(const cms::amqp::ConnectionContext& cntx, const ::cms::Session::AcknowledgeMode ackMode, std::shared_ptr<StonexLogger> logger = nullptr);
 
 		void close() override;
 		void commit() override;
@@ -82,6 +83,9 @@ AMQP_DEFINES
 		void unsubscribe(const std::string& name) override;
 		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
 		::cms::MessageTransformer* getMessageTransformer() const override;
+
+		void setLogger(std::shared_ptr<StonexLogger> sink) override;
+
 
 	protected:
 		std::shared_ptr<SessionContext> createSessionContext(bool durable, bool shared, bool auto_ack) const;

@@ -153,47 +153,61 @@ cms::TemporaryTopic* cms::amqp::CMSSession::createTemporaryTopic()
 
 cms::Message* cms::amqp::CMSSession::createMessage()
 {
+#if _DEBUG
 	debug("com.stonex.cms.CMSSession", "creating cms message");
+#endif
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
 cms::BytesMessage* cms::amqp::CMSSession::createBytesMessage()
 {
+#if _DEBUG
 	debug("com.stonex.cms.CMSSession", "creating bytes message");
+#endif
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
 cms::BytesMessage* cms::amqp::CMSSession::createBytesMessage(const unsigned char* bytes, int bytesSize)
 {
+#if _DEBUG
 	debug("com.stonex.cms.CMSSession", fmt::format("creating bytes message. byte size {}",bytesSize));
+#endif
 	return new CMSBytesMessage(bytes, bytesSize);
 }
 
 cms::StreamMessage* cms::amqp::CMSSession::createStreamMessage()
 {
+#if _DEBUG
 	debug("com.stonex.cms.CMSSession", "creating stream message");
+#endif
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
 cms::TextMessage* cms::amqp::CMSSession::createTextMessage()
 {
+#if _DEBUG
 	debug("com.stonex.cms.CMSSession", "creating text message");
+#endif
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
 cms::TextMessage* cms::amqp::CMSSession::createTextMessage(const std::string& text)
 {
+#if _DEBUG
 	debug("com.stonex.cms.CMSSession", "creating text message");
+#endif
 	return new cms::amqp::CMSTextMessage(text);
 }
 
 cms::MapMessage* cms::amqp::CMSSession::createMapMessage()
 {
+#if _DEBUG
 	debug("com.stonex.cms.CMSSession", "creating map message");
+#endif
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }

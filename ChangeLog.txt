@@ -1,0 +1,125 @@
+v 0.3.1
+-added conan test package
+
+v 0.3.0
+-added log messages
+
+v 0.2.4
+- add conan test project
+
+v 0.2.3
+- change conan requirements to build requirements
+
+v 0.2.2
+-change conan build requires to conan requires 
+
+v 0.2.1
+- moved to GitHub
+
+v 0.2.0
+- fix message annotations type that were not compatible with jms types
+
+v 0.1.0
+- add copyright notice
+
+v 0.0.9
+- add CMSXGroupID
+- add CMSXGroupSeq
+
+v 0.0.8
+- parse parameters passed with URL
+
+v 0.0.7
+
+v 0.0.6
+- fix memory leak on assigning sender default destination
+- fix synchronization with qpid proton thread
+- fix memory leak when consumer has no listener set
+
+
+v 0.0.5
+- added stonex-cms-amqp-lib-defines.h with namespace definition depending on language standard
+
+v 0.0.4
+- implemented container naming (ClientID)
+- fixed hanging destructor for detatched consumer
+- durable subscription added
+
+
+v < 0.0.4
+
+- connection factory full implementation
+
+- connection partially implemented
+    missing:
+        getClientId
+        Message transformer
+
+- Session partially implemented
+    missing:
+        session stop [detatch]
+        create Consumer witn noLocal flag 
+            *activemq-cpp api refere 
+            noLocal	if true, and the destination is a topic, inhibits the delivery of messages published by its own connection. The behavior for NoLocal is not specified if the destination is a queue
+        
+        create Browser
+        create Temporary Topic
+        create empty messages
+            cms::Message
+            TextMessage
+            BytesMessage
+            Stream Message
+            
+        Transactions
+        Message Transformer
+
+- implemented destinations
+    Queue - partially implemented
+        missing:
+            queue copy
+            
+    Topic - partially implemented
+        missing:
+            topic copy
+            
+    Temporary Queue - partially implemented
+        missing:
+            queue copy
+            queue destroy
+            
+    Temporary Topic - not implemented
+    
+- Consumer partially implemented
+    implemented:
+        receive message
+        Message Listener
+        Selectors
+        
+        
+    missing:
+        blocking receive single mesage on demand receive()
+        receive single mesage on demand with timeout receive(int millis)
+        instant single mesage on demand receiveNoWait()
+        Message Transformer
+        Message Available Listener
+        Shared Subscruiption
+        
+        
+- Producer partially implemented
+    implemented:
+        sync send
+        sync send with callback
+        anonymous producer
+        send with parameters:
+            Destination
+            TTL
+            priority
+            delivery mode
+        parameters set to producer
+            Delivery mode
+            Disable Mesage ID
+            Disable Message Timestamp
+            Priority
+            TTL
+    missing:
+        Message Transformer

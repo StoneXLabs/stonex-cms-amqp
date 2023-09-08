@@ -1,0 +1,31 @@
+<addresses xmlns="urn:activemq:core">
+	<address name="DLQ">
+		<anycast>
+			<queue name="DLQ" />
+		</anycast>
+	</address>
+	<address name="ExpiryQueue">
+		<anycast>
+			<queue name="ExpiryQueue" />
+		</anycast>
+	</address>
+	<address name="CMS_TEST_CORE_MULTICAST">
+		<multicast>
+			<queue name="CMSClientMulticastTest/SimpleSubscriber" purge-on-no-consumers="true"/>
+			<queue name="CMSClientMulticastTest/PublishSubscribeTest" purge-on-no-consumers="true"/>
+			<queue name="PublishSubscribeTest_REGION_UK" purge-on-no-consumers="true"/>
+			<queue name="PublishSubscribeTest_REGION_US" purge-on-no-consumers="true"/>
+			<queue name="PublishSubscribeTest_REGION_US_UK" purge-on-no-consumers="true"/>
+			<queue name="PublishSubscribeTest_REGION_MOON" purge-on-no-consumers="true">
+				<filter string="REGION='MOON'"/>
+			</queue>
+		</multicast>
+	</address>
+	<address name="CMS_TEST_CORE_ANYCAST">
+		<anycast>
+			<queue name="CMSClientAnycastTest/SimpleConsumer"  purge-on-no-consumers="true"/>
+			<queue name="CMSClientAnycastTest/ProduceConsumeTest"  purge-on-no-consumers="true"/>
+			<queue name="CMSClientAnycastTest/MessagePropertyTest"  purge-on-no-consumers="true"/>
+		</anycast>
+	</address>
+</addresses>

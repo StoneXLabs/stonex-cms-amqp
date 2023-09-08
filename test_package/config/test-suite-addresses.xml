@@ -1,0 +1,22 @@
+<addresses xmlns="urn:activemq:core">
+   <address name="DLQ">
+      <anycast>
+         <queue name="DLQ" />
+      </anycast>
+   </address>
+   <address name="ExpiryQueue">
+      <anycast>
+         <queue name="ExpiryQueue" />
+      </anycast>
+   </address>
+   <address name="CMSClientMulticastTest">
+      <multicast>
+         <queue name="CMSClientTest/TestPerformer" />
+      </multicast>
+   </address>
+   <address name="CMSClientAnycastTest">
+      <anycast>
+         <queue name="CMSClientAnycastTest/TestPerformer" />
+      </anycast>
+   </address>
+</addresses>

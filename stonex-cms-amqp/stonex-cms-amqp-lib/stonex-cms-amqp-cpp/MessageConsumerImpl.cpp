@@ -180,37 +180,36 @@ void cms::amqp::MessageConsumerImpl::setMessageAvailableListener(::cms::MessageA
 
 void cms::amqp::MessageConsumerImpl::start()
 {
-#if _DEBUG
-	trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
-#endif
+
+	info("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
+
 	//ToDo check if allready started!!
 	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncStart, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), mAddress, mRopts, std::make_shared<proton::session>(mProtonReceiver->session()));
 }
 
 void cms::amqp::MessageConsumerImpl::stop()
 {
-#if _DEBUG
-	trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
-#endif
+	info("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
+
 	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncStop, this));
 }
 
 void cms::amqp::MessageConsumerImpl::close()
 {
-#if _DEBUG
-	trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
-#endif
+	info("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
+
 	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncClose, this));
 }
 
 void cms::amqp::MessageConsumerImpl::on_receiver_open(proton::receiver& receiver)
 {
-#if _DEBUG
+	auto t1 = receiver.source();
+
 	if (auto err = receiver.error(); err.empty())
-		trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
+		info("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
 	else
 		error("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, err.what()));
-#endif
+
 	mProtonReceiver = std::make_unique<proton::receiver>(receiver);
 	if (receiver.error().empty())
 	{

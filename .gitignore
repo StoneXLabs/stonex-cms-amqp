@@ -2,9 +2,10 @@
 !*/
 
 !stonex-cms-amqp/**
+!test_package/**
 !.gitignore
 !conanfile.py
 !README.md
 !NOTICE
 !LICENSE
-ChangeLog.txt
+!ChangeLog.txt

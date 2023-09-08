@@ -16,6 +16,9 @@
 			<queue name="PublishSubscribeTest_REGION_UK" purge-on-no-consumers="true"/>
 			<queue name="PublishSubscribeTest_REGION_US" purge-on-no-consumers="true"/>
 			<queue name="PublishSubscribeTest_REGION_US_UK" purge-on-no-consumers="true"/>
+			<queue name="PublishSubscribeTest_REGION_MOON" purge-on-no-consumers="true">
+				<filter string="REGION='MOON'"/>
+			</queue>
 		</multicast>
 	</address>
 	<address name="CMS_TEST_CORE_ANYCAST">

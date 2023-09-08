@@ -17,8 +17,6 @@
  * limitations under the License.
  */
 
-
-
 #include <TestSuite/TestRunner.h>
 #include <TestSuite/TestFunctionRegister.h>
 #include <TestSuite/TestCasePerformer.h>
@@ -30,13 +28,16 @@
 
 #include <MessageSender/TestMessageSenderFactory.h>
 
-#include <MessageReceiver/MessageReceiverFactory.h>
+#include <MessageReceiver/TestMessageReceiverFactory.h>
 
 #include <Log4CxxLogger/Log4CxxLogger.h>
 #include <Notifier/StdOutTestObserver.h>
 
 //temporary
 
+#include <API/CMSConnectionFactory.h>
+#include <API/CMSSession.h>
+#include <API/CMSMessageConsumer.h>
 
 int main(int argc, char** argv)
 {	
@@ -64,11 +65,11 @@ int main(int argc, char** argv)
 	StdOutTestObserver testResultObserver;
 
 	stonex::messaging::test::TestSenderFactory _senderFactory;
-	MessageReceiverFactory _receiverFactory;
+	stonex::messaging::test::TestMessageReceiverFactory _receiverFactory;
 
 	
 	std::shared_ptr<StonexLogger> logger = std::make_shared<Log4CxxLogger>();
-	logger->configure("logger.properties");
+	logger->configure("logger.xml");
 
 	TestRunner tr(parser, testFunctionRegister, _receiverFactory, _senderFactory, &testResultObserver, logger);
 

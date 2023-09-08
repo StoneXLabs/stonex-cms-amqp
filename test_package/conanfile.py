@@ -27,10 +27,9 @@ class StonexCMSAMQPLibTestConan(ConanFile):
     def requirements(self):
         self.requires("stonex-cms-amqp-test-cases/1.1.0@enterprise_messaging/test")       
         self.requires("stonex-cms-amqp-test-framework/1.2.0@enterprise_messaging/test")
-        self.requires("stonex-cms-amqp-test-engine/2.0.0@enterprise_messaging/test")
+        self.requires("stonex-cms-amqp-test-engine/2.0.1@enterprise_messaging/test")
         self.requires("protobuf/3.20.1@enterprise_messaging/test")
         self.requires("boost/1.78.0@enterprise_messaging/stable")
- #       self.requires("stonex-logger-wrapper/0.0.2@enterprise_messaging/test")
 
     def imports(self):
         self.copy("*.dll", dst="bin", src="bin")

@@ -9,6 +9,135 @@
 
 #include <cassert>
 
+
+void createConnection(const std::string& user, const std::string& password, const std::string& broker, StonexLogSource* log_src, cms::ExceptionListener* exListener)
+{
+//	try
+//	{
+
+		auto logger = std::make_shared<Log4CxxLogger>();
+		logger->configure("logger.xml");
+
+		if (log_src) {
+			logger->attach("com.stonex.app", log_src);
+			log_src->info("com.stonex.app", "test started");
+		}
+
+
+		if (log_src) {
+			log_src->info("com.stonex.app", "creating connection");
+		}
+
+		cms::ConnectionFactory* factory = cms::amqp::CMSConnectionFactory::createCMSConnectionFactory(broker);
+
+		logger->attach("com.stonex.app.factory", (cms::amqp::CMSConnectionFactory*)factory);
+
+
+		if (exListener)
+			factory->setExceptionListener(exListener);
+
+		cms::Connection* connection(factory->createConnection(user, password));
+		if (log_src) {
+			log_src->info("com.stonex.app", "connection established");
+		}
+
+	//	connection->close();
+		std::getchar();
+		log_src->info("com.stonex.app", "waiting on close");
+		connection->close();
+		std::getchar();
+		log_src->info("com.stonex.app", "waiting on delete");
+		delete connection;
+		connection = NULL;
+/* }
+	catch (const std::exception& ex)
+	{
+
+		if (log_src) {
+			log_src->info("com.stonex.app", ex.what());
+		}
+		std::cout << "EXCEPTION " << ex.what() << std::endl;
+	}*/
+
+}
+
+void createConnection2(const std::string& user, const std::string& password, const std::string& broker, const std::string& address, StonexLogSource* log_src, cms::ExceptionListener* exListener)
+{
+	try
+	{
+
+		auto logger = std::make_shared<Log4CxxLogger>();
+		logger->configure("logger.xml");
+
+		if (log_src) {
+			logger->attach("com.stonex.app", log_src);
+			log_src->info("com.stonex.app", "test started");
+		}
+
+
+		if (log_src) {
+			log_src->info("com.stonex.app", "creating connection");
+		}
+
+		cms::ConnectionFactory* factory = cms::amqp::CMSConnectionFactory::createCMSConnectionFactory(broker);
+
+		logger->attach("com.stonex.app.factory", (cms::amqp::CMSConnectionFactory*)factory);
+
+
+		if (exListener)
+			factory->setExceptionListener(exListener);
+
+		cms::Connection* connection = factory->createConnection(user, password);
+		if (log_src) {
+			log_src->info("com.stonex.app", "connection established");
+		}
+
+		logger->attach("com.stonex.app.connection", (cms::amqp::CMSConnection*)connection);
+		if (exListener)
+			connection->setExceptionListener(exListener);
+
+		std::shared_ptr<cms::Session> session(connection->createSession());
+		logger->attach("com.stonex.app.session", (cms::amqp::CMSSession*)session.get());
+
+		if (log_src) {
+			log_src->info("com.stonex.app", "session established");
+		}
+
+
+		cms::Destination*  testTopic = session->createTopic(address);
+		cms::MessageProducer* topicProducer = session->createProducer(testTopic);
+
+
+		if (log_src) {
+			log_src->info("com.stonex.app", "producer created");
+		}
+
+		logger->attach("com.stonex.app.topicProducer", (cms::amqp::CMSMessageProducer*)topicProducer);
+
+//		topicProducer->close();
+//		session->close();
+		std::getchar();
+		log_src->info("com.stonex.app", "waiting on close");
+		connection->close();
+		std::getchar();
+		log_src->info("com.stonex.app", "waiting on delete");
+		delete connection;
+		connection = NULL;
+
+		if (log_src) {
+			log_src->info("com.stonex.app", "test done\n\n");
+		}
+	}
+	catch (const std::exception& ex)
+	{
+
+		if (log_src) {
+			log_src->info("com.stonex.app", ex.what());
+		}
+		std::cout << "EXCEPTION " << ex.what() << std::endl;
+	}
+}
+
 void createAddress(const std::string& user, const std::string& password, const std::string& broker, const std::string& address, StonexLogSource* log_src, cms::ExceptionListener* exListener)
 {	
 	try

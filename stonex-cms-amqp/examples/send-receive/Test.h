@@ -46,21 +46,14 @@ public:
 	}
 };
 
+void createConnection(const std::string& user, const std::string& password, const std::string& broker, StonexLogSource* log_src = nullptr, cms::ExceptionListener* exListener = nullptr);
+void createConnection2(const std::string& user, const std::string& password, const std::string& broker, const std::string& address, StonexLogSource* log_src = nullptr, cms::ExceptionListener* exListener = nullptr);
 
-/*
-	create producer on non existing address STONEX_CMS_TEST_1
-	
-*/
+
 void createAddress(const std::string& user, const std::string& password, const std::string& broker, const std::string& address, StonexLogSource* log_src = nullptr, cms::ExceptionListener* exListener = nullptr);
 
-/*
-	create producer on non existing address STONEX_CMS_TEST_1
-	send 10 messages on address STONEX_CMS_TEST_1
-*/
 void createConsumer(const std::string& user, const std::string& password, const std::string& broker, const std::string& address, StonexLogSource* log_src = nullptr, cms::ExceptionListener* exListener = nullptr);
 
-
 void createConsumerWithSelector(const std::string& user, const std::string& password, const std::string& broker, const std::string& address, StonexLogSource* log_src = nullptr, cms::ExceptionListener* exListener = nullptr);
-
 
 void sendAndReceive(const std::string& producer_user, const std::string& producer_password, const std::string& consumer_user, const std::string& consumer_password, const std::string& broker, const std::string& prodcer_address, const std::string& consumer_address, cms::Destination::DestinationType destType = cms::Destination::QUEUE, StonexLogSource* log_src = nullptr, cms::ExceptionListener* exListener = nullptr);

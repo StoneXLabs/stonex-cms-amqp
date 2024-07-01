@@ -38,6 +38,8 @@ int main()
 
 	StonexLogSource app;
 	MyExceptionListener* exl = new MyExceptionListener;
+	createConnection("CMSTEST", "CMSTEST", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3");
+	createConnection2("CMSTEST", "CMSTEST", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3", "STONEX_CMS_TEST_1", &app, exl);
 
 	createAddress("master_publisher", "master_publisher", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3","STONEX_CMS_TEST_1",&app, exl);
 	createAddress("master_publisher", "master_publisher", "failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3","STONEX_CMS_TEST_2",&app, exl);

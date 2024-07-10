@@ -11,39 +11,15 @@
 
     <!-- Also output log messages to the log file. -->
 	 <appender name="test_app" class="org.apache.log4j.FileAppender">
-        <param name="file" value="c:\logs\AppLogs.log" />
+        <param name="file" value="c:\logs\${LOGS_ROOT}\AppLogs.log" />
         <param name="append" value="true" />
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%d %-5p %c{1}  - %m%n" />
         </layout>	
     </appender>
 	
-	 <appender name="producer1" class="org.apache.log4j.FileAppender">
-        <param name="file" value="c:\logs\Prducer1.log" />
-        <param name="append" value="true" />
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d %-5p %c{1}  - %m%n" />
-        </layout>	
-    </appender>
-	
-	 <appender name="producer2" class="org.apache.log4j.FileAppender">
-        <param name="file" value="c:\logs\Prducer2.log" />
-        <param name="append" value="true" />
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d %-5p %c{1}  - %m%n" />
-        </layout>	
-    </appender>
-	
-	 <appender name="consumer1" class="org.apache.log4j.FileAppender">
-        <param name="file" value="c:\logs\Consumer1.log" />
-        <param name="append" value="true" />
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d %-5p %c{1}  - %m%n" />
-        </layout>	
-    </appender>
-	
-	 <appender name="consumer2" class="org.apache.log4j.FileAppender">
-        <param name="file" value="c:\logs\Consumer2.log" />
+	 <appender name="consumer" class="org.apache.log4j.FileAppender">
+        <param name="file" value="c:\logs\${LOGS_ROOT}\Consumer.log" />
         <param name="append" value="true" />
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%d %-5p %c{1}  - %m%n" />
@@ -51,7 +27,7 @@
     </appender>
 	
 	 <appender name="cms_appender" class="org.apache.log4j.FileAppender">
-        <param name="file" value="c:\logs\CMSLogs.log" />
+        <param name="file" value="c:\logs\${LOGS_ROOT}\CMSLogs.log" />
         <param name="append" value="true" />
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%d %-5p %c{1}  - %m%n" />
@@ -59,7 +35,7 @@
     </appender>
 	
     <appender name="amqp_appender" class="org.apache.log4j.FileAppender">
-        <param name="file" value="c:\logs\ProtonLogs.log" />
+        <param name="file" value="c:\logs\${LOGS_ROOT}\ProtonLogs.log" />
         <param name="append" value="true" />
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%d %-5p %c{1}  - %m%n" />
@@ -80,24 +56,9 @@
 		<appender-ref ref="test_app"/>	
 	</logger>
 	
-	<logger name = "com.stonex.app.producer1">
+	<logger name = "com.stonex.app.consumer">
         <priority value="TRACE" />
-		<appender-ref ref="producer1"/>	
-	</logger>
-	
-	<logger name = "com.stonex.app.producer2">
-        <priority value="TRACE" />
-		<appender-ref ref="producer2"/>	
-	</logger>
-	
-	<logger name = "com.stonex.app.consumer1">
-        <priority value="TRACE" />
-		<appender-ref ref="consumer1"/>	
-	</logger>
-	
-	<logger name = "com.stonex.app.consumer2">
-        <priority value="TRACE" />
-		<appender-ref ref="consumer2"/>	
+		<appender-ref ref="consumer"/>	
 	</logger>
 	
 	<logger name = "com.stonex.cms">

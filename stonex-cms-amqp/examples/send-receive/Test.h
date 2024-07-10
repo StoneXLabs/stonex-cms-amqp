@@ -39,11 +39,18 @@ private:
 class MyMessageListener : public cms::MessageListener, public StonexLogSource
 {
 public:
+	explicit MyMessageListener(const std::string& logger)
+	{
+		mLoggerName = "com.stonex.app." + logger;
+	}
 
 	void onMessage(const cms::Message* message) override {
 		if (auto msg = dynamic_cast<const cms::TextMessage*>(message))
-			info("com.stonex.app.MyMessageListener", msg->getText());
+			info(mLoggerName.c_str(), msg->getText());
 	}
+
+private:
+	std::string mLoggerName;
 };
 
 void createConnection(const std::string& user, const std::string& password, const std::string& broker, StonexLogSource* log_src = nullptr, cms::ExceptionListener* exListener = nullptr);

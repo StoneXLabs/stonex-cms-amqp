@@ -118,7 +118,7 @@ namespace cms::amqp
 		bool syncStart();
 		bool syncStop();
 	private:
-		ClientState mState;
+		ClientState mState = ClientState::UNNINITIALIZED;
 		cms::internal::AsyncCallSynchronizer mEXHandler;
 		const std::string mConnectionId;
 		std::string mBrokerUrl;

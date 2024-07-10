@@ -64,7 +64,7 @@
 void  cms::amqp::ConnectionImpl::close()
 {
 	info("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} closing connection: {} ", __func__, mContext.broker()));
-	if(mState == ClientState::STARTED)
+	if(mState == ClientState::STARTED || mState == ClientState::STOPPED)
 		mEXHandler.SynchronizeCall(std::bind(&ConnectionImpl::syncClose,this));
 
 }
@@ -73,12 +73,24 @@ void  cms::amqp::ConnectionImpl::close()
 void  cms::amqp::ConnectionImpl::start()
 {
 	info("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} connection closed: {} starting connection {}", __func__, !mConnection->closed(), mContext.broker()));
-	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
-
+//	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
+	auto receivers = mConnection->receivers();
+	for (auto item : receivers)
+	{
+		item.add_credit(10);
+	}
 }
 
 void  cms::amqp::ConnectionImpl::stop()
 {
+	auto receivers = mConnection->receivers();
+	auto empty = receivers.empty();
+	for (auto item : receivers)
+	{
+		if (!item.draining())
+			item.drain();
+	}
+
 	//mEXHandler.SynchronizeCall(std::bind(&ConnectionContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
 }
 
@@ -132,7 +144,12 @@ void  cms::amqp::ConnectionImpl::on_connection_open(proton::connection& connecti
 		error("com.stonex.cms.amqp.ConnectionImpl", fmt::format("{} auto reconnected : {} {}", __func__, connection.reconnected(), err.what()));
 
 	mConnection  = std::make_shared<proton::connection>(connection);
-	mState = ClientState::STARTED;
+
+	if (mState == ClientState::UNNINITIALIZED)
+		mState = ClientState::STOPPED;
+	else
+		mState = ClientState::STARTED;
+
 	mEXHandler.onResourceInitialized();
 
 }

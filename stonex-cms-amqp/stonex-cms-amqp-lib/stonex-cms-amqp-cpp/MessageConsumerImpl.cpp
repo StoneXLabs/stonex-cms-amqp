@@ -24,6 +24,7 @@
 #include <proton/connection.hpp>
 #include <proton/work_queue.hpp>
 #include <proton/annotation_key.hpp>
+#include <proton/delivery.hpp>
 
 
 #include "../API/CMSTextMessage.h"
@@ -123,6 +124,7 @@ cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* de
 	
 	mRopts.auto_accept(autoAck);
 	mRopts.source(sopts);
+	mRopts.credit_window(0);
 
 
 	//waiting until all relevant resources is initialized
@@ -253,17 +255,20 @@ void cms::amqp::MessageConsumerImpl::on_receiver_error(proton::receiver& receive
 
 void cms::amqp::MessageConsumerImpl::on_message(proton::delivery& delivery, proton::message& message)
 {
+	if (!delivery.receiver().draining())
+	  delivery.receiver().add_credit(1);
+
 	if (message.content_type() == "application/octet-stream")
 	{
 #if _DEBUG
-		trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, "bytes message"));
+		info("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {} credit {} draining {}", __func__, "bytes message", delivery.receiver().credit(), delivery.receiver().draining()));
 #endif
 		onMessageCallback(new CMSBytesMessage(&message, &delivery, mProtonReceiver.get()));
 	}
 	else
 	{
 #if _DEBUG
-		trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, "text message"));
+		info("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {} credit {}, draining {}", __func__, "text message", delivery.receiver().credit(), delivery.receiver().draining()));
 #endif
 		onMessageCallback(new CMSTextMessage(&message, &delivery, mProtonReceiver.get()));
 	}

@@ -20,8 +20,6 @@
 #pragma once
 #include "cms/TemporaryTopic.h"
 
-#include <logger/StonexLogSource.h>
-
 #include "stonex-cms-amqp-lib-defines.h"
 
 AMQP_DEFINES

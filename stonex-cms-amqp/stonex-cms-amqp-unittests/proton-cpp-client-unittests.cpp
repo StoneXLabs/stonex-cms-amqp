@@ -19,10 +19,14 @@
 #include <gtest/gtest.h>
 #include <teamcity_gtest.h>
 #include <teamcity_messages.h>
+#include <LoggerFactory/LoggerFactory.h>
 
 int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);
+
+
+    stonex::logger::initialize(LoggerFactory::LoggerType::LOG4CXX);
 
 
     if (jetbrains::teamcity::underTeamcity()) {

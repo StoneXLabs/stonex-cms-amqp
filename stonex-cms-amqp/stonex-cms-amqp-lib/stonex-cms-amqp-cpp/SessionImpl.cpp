@@ -23,11 +23,14 @@
 #include <proton/session.hpp>
 #include <proton/session_options.hpp>
 
+
 #include "../API/CMSTextMessage.h"
 #include "MessageConsumerImpl.h"
 #include "MessageProducerImpl.h"
 
 #include <fmt/format.h>
+
+#include <LoggerFactory/LoggerFactory.h>
 
 class MessageConsumer : public cms::MessageConsumer{};
 class MessageProducer : public cms::MessageProducer {};
@@ -47,13 +50,12 @@ class StreamMessage : public cms::StreamMessage {};
 
 
 
-cms::amqp::SessionImpl::SessionImpl(std::shared_ptr<proton::connection>  connection, ::cms::Session::AcknowledgeMode ack_mode, std::shared_ptr<StonexLogger> logger)
-	:mEXHandler(logger),
+cms::amqp::SessionImpl::SessionImpl(std::shared_ptr<proton::connection>  connection, ::cms::Session::AcknowledgeMode ack_mode)
+	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.SessionImpl")),
+	mEXHandler(mLogger),
 	mACKMode{ack_mode}
 {
-	setLogger(logger);
 	mEXHandler.SynchronizeCall(std::bind(&SessionImpl::syncStart, this, std::placeholders::_1), connection);
-	setLogger(nullptr);	
 }
 
 cms::amqp::SessionImpl::~SessionImpl()
@@ -63,33 +65,23 @@ cms::amqp::SessionImpl::~SessionImpl()
 
 void cms::amqp::SessionImpl::close()
 {
-	if(mState == ClientState::STARTED)
+	if(getState() == ClientState::STARTED)
 		mEXHandler.SynchronizeCall(std::bind(&SessionImpl::syncClose, this));
 }
 
 void cms::amqp::SessionImpl::commit()
 {
-	error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
+	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "method not implemented"));
 }
 
 void cms::amqp::SessionImpl::rollback()
 {
-	error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
+	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "method not implemented"));
 }
 
 void cms::amqp::SessionImpl::recover()
 {
-	error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
-}
-
-void cms::amqp::SessionImpl::start()
-{
-	error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
-}
-
-void cms::amqp::SessionImpl::stop()
-{
-	error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
+	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "method not implemented"));
 }
 
 ::cms::Session::AcknowledgeMode cms::amqp::SessionImpl::ackMode()
@@ -101,29 +93,34 @@ void cms::amqp::SessionImpl::stop()
 void cms::amqp::SessionImpl::on_session_open(proton::session& session)
 {
 	if (auto err = session.error(); err.empty())
-		info("com.stonex.cms.amqp.SessionImpl", fmt::format("{}", __func__));
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} {}", __func__, err.what()));
+	//info("com.stonex.cms.amqp.SessionImpl", fmt::format("{}", __func__));
 	else
-		error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, err.what()));
+		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
+	//error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, err.what()));
 
 	mSession = std::make_shared<proton::session>(session);
-	mState = ClientState::STARTED;
+	setState(ClientState::STARTED);
 	mEXHandler.onResourceInitialized();
 }
 
 void cms::amqp::SessionImpl::on_session_close(proton::session& session)
 {
 	if (auto err = session.error(); err.empty())
-		info("com.stonex.cms.amqp.SessionImpl", fmt::format("{}", __func__));
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} {}", __func__, err.what()));
+	//info("com.stonex.cms.amqp.SessionImpl", fmt::format("{}", __func__));
 	else
-		error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, err.what()));
+		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
+	//error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, err.what()));
 
-	mState = ClientState::CLOSED;
+	setState(ClientState::CLOSED);
 	mEXHandler.onResourceInitialized();
 }
 
 void cms::amqp::SessionImpl::on_session_error(proton::session& session)
 {
-	error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, session.error().what()));
+	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, session.error().what()));
+	//error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, session.error().what()));
 	mEXHandler.onResourceUninitialized(session.error()); // move to close??
 
 }
@@ -131,6 +128,18 @@ void cms::amqp::SessionImpl::on_session_error(proton::session& session)
 std::shared_ptr<proton::session> cms::amqp::SessionImpl::session()
 {
 	return mSession;
+}
+
+cms::amqp::ClientState cms::amqp::SessionImpl::getState()
+{
+	return mState;
+}
+
+void cms::amqp::SessionImpl::setState(ClientState state)
+{
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} last state {} current state {}", __func__, mState, state));
+	//info("com.stonex.cms.amqp.SessionImpl", fmt::format("{} last state {} current state {}", __func__, mState, state));
+	mState = state;
 }
 
 bool cms::amqp::SessionImpl::syncClose()
@@ -149,7 +158,8 @@ bool cms::amqp::SessionImpl::syncStart(std::shared_ptr<proton::connection>  conn
 
 bool cms::amqp::SessionImpl::syncStop()
 {
-	trace("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
+	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{} {}", __func__, "method not implemented"));
+	//trace("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
 
 	return false;
 }

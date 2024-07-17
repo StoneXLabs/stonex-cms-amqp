@@ -22,6 +22,7 @@
 #include <cms/ConnectionFactory.h>
 
 #include "../API/ConnectionContext.h"
+#include <logger/StoneXLogger.h>
 
 namespace cms::amqp
 {
@@ -31,6 +32,8 @@ namespace cms::amqp
 		explicit ConnectionFactoryImpl(const std::string& brokerURI, const std::string& user = "", const std::string& password = "");
 		~ConnectionFactoryImpl() = default;
 	
+	private:
+		StonexLoggerPtr mLogger;
 	};
 };
 

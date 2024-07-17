@@ -19,20 +19,20 @@
 
 #pragma once
 #include <string>
+#include <LoggerFactory/LoggerFactory.h>
 
 #include "CMSConnection.h"
 
 #include "cms/ConnectionFactory.h"
 
 #include "stonex-cms-amqp-lib-defines.h"
-#include <logger/StonexLogSource.h>
 
 AMQP_DEFINES
 
 
 	class ConnectionFactoryImpl;
 
-	class CMS_API CMSConnectionFactory : public ::cms::ConnectionFactory, public StonexLogSource
+	class CMS_API CMSConnectionFactory : public ::cms::ConnectionFactory
 	{
 	public:
 
@@ -61,6 +61,7 @@ AMQP_DEFINES
 		std::shared_ptr<FactoryContext> context() const;
 
 	private:
+		StonexLoggerPtr mLogger;
 		std::shared_ptr<FactoryContext> mContext;
 		std::shared_ptr<ConnectionFactoryImpl> mPimpl;
 		::cms::ExceptionListener* mExceptionListener{ nullptr };

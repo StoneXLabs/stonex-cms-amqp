@@ -28,15 +28,15 @@
 
 #include <cms/CMSException.h>
 
-#include <logger/StonexLogSource.h>
+#include <logger/StoneXLogger.h>
 
 
 namespace cms::internal 
 {
-	class AsyncCallSynchronizer : public StonexLogSource
+	class AsyncCallSynchronizer
 	{
 	public:
-		explicit AsyncCallSynchronizer(std::shared_ptr<StonexLogger> logger = nullptr);
+		explicit AsyncCallSynchronizer(StonexLoggerPtr logger = nullptr);
 
 		void SynchronizeCall(std::function<void(proton::messaging_handler* handler)> asyncCall, proton::messaging_handler& parameter);
 
@@ -54,6 +54,7 @@ namespace cms::internal
 		void waitForResource();
 
 	private:
+		StonexLoggerPtr mLogger;
 		std::mutex mMutex;
 		std::condition_variable mCV;
 		bool mIdle = true;

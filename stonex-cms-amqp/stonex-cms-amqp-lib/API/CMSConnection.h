@@ -25,7 +25,10 @@
 #include <cms/ConnectionMetaData.h>
 #include <cms/ExceptionListener.h>
 
-#include <logger/StonexLogSource.h>
+
+#include <LoggerFactory/LoggerFactory.h>
+
+#include "ClientState.h"
 
 
 #include "stonex-cms-amqp-lib-defines.h"
@@ -37,20 +40,21 @@ AMQP_DEFINES
 	class ConnectionImpl;
 	class FactoryContext;
 	class ConnectionContext;
+	class CMSSession;
 
-	class CMS_API CMSConnection : public ::cms::Connection, public StonexLogSource
+	class CMS_API CMSConnection : public ::cms::Connection
 	{
 	public:
-		explicit CMSConnection(std::shared_ptr<FactoryContext> context, std::shared_ptr<StonexLogger> logger = nullptr);
-		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, std::shared_ptr<StonexLogger> logger = nullptr);
-		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId, std::shared_ptr<StonexLogger> logger = nullptr);
+		explicit CMSConnection(std::shared_ptr<FactoryContext> context);
+		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password);
+		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId);
 
 		~CMSConnection() override = default;
 
 		void close() override;
 		void start() override;
 		void stop() override;
-
+		void removeChild(CMSSession& child);
 		const ::cms::ConnectionMetaData* getMetaData() const override;
 
 
@@ -71,13 +75,16 @@ AMQP_DEFINES
 		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
 		::cms::MessageTransformer* getMessageTransformer() const override;
 
-		void setLogger(std::shared_ptr<StonexLogger> sink) override;
+		ClientState getState();
+		void setState(ClientState state);
 
 	protected:
 		std::shared_ptr<ConnectionContext> connectionContext() const;
 
 	private:
+		StonexLoggerPtr mLogger;
 		std::shared_ptr<ConnectionImpl> mPimpl;
+		std::vector<CMSSession*> mSessions;
 
 	};
 

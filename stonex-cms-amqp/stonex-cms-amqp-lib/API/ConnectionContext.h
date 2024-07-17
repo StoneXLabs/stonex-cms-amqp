@@ -21,7 +21,6 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <logger/StonexLogSource.h>
 
 #include "URIParser.h"
 
@@ -57,7 +56,7 @@ AMQP_DEFINES
 		};
 	};
 
-	class FactoryContext : public StonexLogSource
+	class FactoryContext
 	{
 	public:
 		FactoryContext(const std::string& url, const std::string& user, const std::string& password, const std::vector<std::string>& failover_urls, int reconnect_attempts, std::shared_ptr<proton::container> container);

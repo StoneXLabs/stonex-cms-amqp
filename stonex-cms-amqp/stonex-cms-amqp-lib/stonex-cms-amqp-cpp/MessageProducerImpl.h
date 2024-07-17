@@ -32,14 +32,13 @@
 #include "../API/CMSMessage.h"
 #include "AsyncCallSynchronizer.h"
 #include "AMQPIDGenerator.h"
-#include "ClientState.h"
-
-#include <logger/StonexLogSource.h>
+#include "../API/ClientState.h"
+#include <logger/StoneXLogger.h>
 
 namespace cms::amqp
 {
 
-	class MessageProducerImpl : public proton::messaging_handler, public StonexLogSource
+	class MessageProducerImpl : public proton::messaging_handler
 	{
 	private:
 		class MessageConverter 
@@ -48,7 +47,7 @@ namespace cms::amqp
 			std::shared_ptr <proton::message> from_cms_message(::cms::Message* message);
 		};
 	public:
-		MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, std::shared_ptr<StonexLogger> logger = nullptr);
+		MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session);
 		~MessageProducerImpl();
 		void send(::cms::Message* message);
 		void send(::cms::Message* message, ::cms::AsyncCallback* onComplete);
@@ -88,10 +87,10 @@ namespace cms::amqp
 
 	private:
 		bool syncClose();
-		bool syncStart(const std::string& address, const proton::sender_options& options, std::shared_ptr<proton::session>  session);
-		bool syncStop();
+		bool syncCreate(const std::string& address, const proton::sender_options& options, std::shared_ptr<proton::session>  session);
 
 	private:
+		StonexLoggerPtr mLogger;
 		ClientState mState;
 		std::unique_ptr<proton::sender> mProtonSender;
 		cms::internal::AsyncCallSynchronizer mEXHandler;

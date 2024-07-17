@@ -26,13 +26,12 @@
 
 #include <cms/Connection.h>
 
-#include <logger/StonexLogSource.h>
-
 #include "../API/ConnectionContext.h"
 #include "AsyncCallSynchronizer.h"
-#include "ClientState.h"
+#include "../API/ClientState.h"
 
 #include <memory>
+#include <logger/StoneXLogger.h>
 
 namespace cms::amqp
 {
@@ -43,12 +42,12 @@ namespace cms::amqp
 	* Proton connection is responsible for creating sessions for this connection by implementing proton::message_handler methods
 	* Allow Metrics <TO DO>
 	*/
-	class ConnectionImpl : public proton::messaging_handler, public StonexLogSource {
-
+	class ConnectionImpl : public proton::messaging_handler
+	{
 	public:
-		ConnectionImpl(const FactoryContext& context, std::shared_ptr<StonexLogger> logger = nullptr);
+		ConnectionImpl(const FactoryContext& context);
 
-		ConnectionImpl(const std::string& id, const FactoryContext& context, std::shared_ptr<StonexLogger> logger = nullptr);
+		ConnectionImpl(const std::string& id, const FactoryContext& context);
 
 		//!Constructor
 		/*!Create instance of CMS connection
@@ -80,8 +79,6 @@ namespace cms::amqp
 		~ConnectionImpl() override;
 
 		void close();
-		void start();
-		void stop();
 
 		//	const ConnectionMetaData* getMetaData() const;
 
@@ -103,6 +100,8 @@ namespace cms::amqp
 		void setMessageTransformer(::cms::MessageTransformer* transformer);
 		::cms::MessageTransformer* getMessageTransformer() const;
 
+		ClientState getState() const;
+		void setState(ClientState state);
 
 		void on_transport_open(proton::transport& transport) override;
 		void on_transport_close(proton::transport& transport) override;
@@ -115,9 +114,8 @@ namespace cms::amqp
 
 	private:
 		bool syncClose();
-		bool syncStart();
-		bool syncStop();
 	private:
+		StonexLoggerPtr mLogger;
 		ClientState mState = ClientState::UNNINITIALIZED;
 		cms::internal::AsyncCallSynchronizer mEXHandler;
 		const std::string mConnectionId;

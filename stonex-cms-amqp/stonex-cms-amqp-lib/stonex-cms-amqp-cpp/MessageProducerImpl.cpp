@@ -40,16 +40,18 @@
 
 #include <fmt/format.h>
 
+#include <LoggerFactory/LoggerFactory.h>
+
 
 constexpr std::string_view QUEUE_CAPABILITY = "queue";
 constexpr std::string_view TOPIC_CAPABILITY = "topic";
 constexpr std::string_view TEMPORARY_QUEUE_CAPABILITY = "temporary-queue";
 constexpr std::string_view TEMPORARY_TOPIC_CAPABILITY = "temporary-topic";
 
-cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, std::shared_ptr<StonexLogger> logger)
-	:mEXHandler(logger)
+cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session)
+	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.MessageProducerImpl")),
+	mEXHandler(mLogger)
 {
-	setLogger(logger);
 	proton::sender_options opts;
 	opts.handler(*this);
 	proton::target_options topts{};
@@ -89,9 +91,7 @@ cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* de
 	}
 
 	opts.target(topts);	
-	mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncStart, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, opts, session);
-	
-	setLogger(nullptr);
+	mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncCreate, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, opts, session);
 }
 
 cms::amqp::MessageProducerImpl::~MessageProducerImpl()
@@ -154,7 +154,7 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 
 	auto mess = mConverter.from_cms_message(message_copy);
 	if(!mess)
-		error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} {}", __func__, "could not convert message to any of implemented types"));
+		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "could not convert message to any of implemented types"));
 	delete message_copy;
 	if(onComplete) [[unlikely]]
 		mProtonSender->connection().work_queue().add([this, mess, onComplete] {mProtonSender->send(*mess); onComplete->onSuccess(); });
@@ -168,7 +168,7 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 void cms::amqp::MessageProducerImpl::close()
 {
 #if _DEBUG
-	trace("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{}", __func__));
+	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
 #endif
 	if(mState == ClientState::STARTED)
 		mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncClose, this));
@@ -177,7 +177,7 @@ void cms::amqp::MessageProducerImpl::close()
 void cms::amqp::MessageProducerImpl::on_sendable(proton::sender& sender)
 {
 #if _DEBUG
-	trace("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{}", __func__));
+	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
 #endif
 	mEXHandler.onResourceInitialized();
 }
@@ -187,9 +187,9 @@ void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)
 	auto t1 = sender.target();
 
 	if (auto err = sender.error(); err.empty())
-		info("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
 	else
-		error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} {}", __func__, err.what()));
+		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
 
 	mProtonSender = std::make_unique<proton::sender>(sender);
 	if (sender.error().empty())
@@ -206,16 +206,16 @@ void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)
 
 void cms::amqp::MessageProducerImpl::on_sender_error(proton::sender & sender)
 {
-	error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} {}", __func__, sender.error().what()));
+	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, sender.error().what()));
 }
 
 void cms::amqp::MessageProducerImpl::on_sender_close(proton::sender& sender)
 {
 	auto t1 = sender.target();
 	if (auto err = sender.error(); err.empty())
-		info("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
 	else
-		error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} address {} anonymous {} dynamic {} durable {}  {}", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode(), err.what()));
+		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} address {} anonymous {} dynamic {} durable {}  {}", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode(), err.what()));
 	mState = ClientState::CLOSED;
 	mEXHandler.onResourceUninitialized(sender.error());
 }
@@ -228,18 +228,13 @@ bool cms::amqp::MessageProducerImpl::syncClose()
 		return true;
 }
 
-bool cms::amqp::MessageProducerImpl::syncStart(const std::string& address, const proton::sender_options& options, std::shared_ptr<proton::session> session)
+bool cms::amqp::MessageProducerImpl::syncCreate(const std::string& address, const proton::sender_options& options, std::shared_ptr<proton::session> session)
 {
 	if (mState != ClientState::STARTED)
 		return  session->connection().work_queue().add([session, address, options] {session->open_sender(address, options); });
 	else
 		return true;
 	
-}
-
-bool cms::amqp::MessageProducerImpl::syncStop()
-{
-	return false;
 }
 
 void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, ::cms::Message* message)
@@ -256,7 +251,7 @@ void cms::amqp::MessageProducerImpl::setDeliveryMode(int mode)
 		mDeliveryMode = (::cms::DeliveryMode::DELIVERY_MODE)mode;
 		break;
 	default:
-		error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("EXCEPTION {} {}", __func__, "Illegal delivery mode value"));
+		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("EXCEPTION {} {}", __func__, "Illegal delivery mode value"));
 		throw ::cms::CMSException("Illegal delivery mode value");
 	}
 	

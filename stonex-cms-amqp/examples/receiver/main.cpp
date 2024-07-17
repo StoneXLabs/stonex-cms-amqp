@@ -35,49 +35,54 @@ public:
 };
 
 
-class MyExceptionListener : public cms::ExceptionListener, public StonexLogSource
+class MyExceptionListener : public cms::ExceptionListener
 {
 public:
-	MyExceptionListener(bool expected = false)
-		:mExpect(expected)
+	explicit MyExceptionListener(bool expected = false)
+		:mExpect(expected),
+		mLogger(LoggerFactory::getInstance().create("com.stonex.app"))
 	{
 	}
 
 	~MyExceptionListener() {
-		info("com.stonex.app", __FUNCTION__);
+		mLogger->log(SEVERITY::LOG_INFO, __FUNCTION__);
 
 	}
 
 	void onException(const cms::CMSException& ex) override {
 		if (mExpect)
-			info("com.stonex.app", "got expected exception test done\n\n");
+			mLogger->log(SEVERITY::LOG_INFO, "got expected exception test done\n\n");
 		else
-			error("com.stonex.app", "got unexpected exception test done\n\n");
+			mLogger->log(SEVERITY::LOG_ERROR, "got unexpected exception test done\n\n");
 	};
 
 	void setExpect(bool expect) {
 		mExpect = expect;
 	}
 
+
 private:
 	bool mExpect;
+	std::shared_ptr<StonexLogger> mLogger;
 };
 
-class MyMessageListener : public cms::MessageListener, public StonexLogSource
+class MyMessageListener : public cms::MessageListener
 {
 public:
 	explicit MyMessageListener(const std::string& logger)
+		:mLogger(LoggerFactory::getInstance().create("com.stonex.app" + logger))
+
 	{
-		mLoggerName = "com.stonex.app." + logger;
 	}
 
 	void onMessage(const cms::Message* message) override {
 		if (auto msg = dynamic_cast<const cms::TextMessage*>(message))
-			info(mLoggerName.c_str(), msg->getText());
+			mLogger->log(SEVERITY::LOG_INFO, msg->getText());
 	}
 
 private:
 	std::string mLoggerName;
+	std::shared_ptr<StonexLogger> mLogger;
 };
 
 std::string_view param_broker_url = "url";
@@ -94,40 +99,40 @@ int main(int argc, char* argv[])
 {
 	auto params = ParameterParser::parse(argc, argv);
 
+	stonex::logger::initialize(LoggerFactory::LoggerType::LOG4CXX);
+	log4cxx::xml::DOMConfigurator::configure(params.at(config_logger.data()));
+
 	MyMessageListener ml("consumer");
 
 	log4cxx::xml::DOMConfigurator::configure(params.at(config_logger.data()));
 
-	StonexLogSource log_src;
 	MyExceptionListener* exl = new MyExceptionListener;
 
-	auto logger = std::make_shared<Log4CxxLogger>();
-	logger->attach("com.stonex.app", &log_src);
+	auto logger = LoggerFactory::getInstance().create("com.stonex.app");
 
-	log_src.info("com.stonex.app", "example receiver started");
-    log_src.info("com.stonex.app", "creating connection");
+	logger->log(SEVERITY::LOG_INFO, "example receiver started");
+    logger->log(SEVERITY::LOG_INFO, "creating connection");
 
 	std::shared_ptr<cms::ConnectionFactory> factory(cms::amqp::CMSConnectionFactory::createCMSConnectionFactory(params.at(param_broker_url.data())));
 
-	log_src.info("com.stonex.app", fmt::format("created connection factory {}", params.at(param_broker_url.data())));
+	logger->log(SEVERITY::LOG_INFO, fmt::format("created connection factory {}", params.at(param_broker_url.data())));
 
-	logger->attach("com.stonex.app", (cms::amqp::CMSConnectionFactory*)factory.get());
 
 
 	factory->setExceptionListener(exl);
 
 	///consumer
 
-	std::shared_ptr<cms::Connection> consumer_connection(factory->createConnection(params.at(param_user.data()), params.at(param_password.data())));
-	log_src.info("com.stonex.app.consumer", fmt::format("created consumer connection {} {}", params.at(param_user.data()), params.at(param_password.data())));
+	auto consumer_logger = LoggerFactory::getInstance().create("com.stonex.app.consumer");
 
-	logger->attach("com.stonex.app", (cms::amqp::CMSConnection*)consumer_connection.get());
+	std::shared_ptr<cms::Connection> consumer_connection(factory->createConnection(params.at(param_user.data()), params.at(param_password.data())));
+	consumer_logger->log(SEVERITY::LOG_INFO, fmt::format("created consumer connection {} {}", params.at(param_user.data()), params.at(param_password.data())));
+
 	consumer_connection->setExceptionListener(exl);
 
 	std::shared_ptr<cms::Session> consumer_session(consumer_connection->createSession());
-	logger->attach("com.stonex.app", (cms::amqp::CMSSession*)consumer_session.get());
 
-	log_src.info("com.stonex.app.consumer", "consumer session established");
+	consumer_logger->log(SEVERITY::LOG_INFO, "consumer session established");
 
 	cms::Destination* testAddress = consumer_session->createTopic(params.at(param_destination.data()));
 
@@ -136,27 +141,64 @@ int main(int argc, char* argv[])
 	consumer->setMessageListener(&ml);
 
 
-	logger->attach("com.stonex.app", (cms::amqp::CMSMessageConsumer*)consumer.get());
+	logger->log(SEVERITY::LOG_INFO, "consumer created");
 
-	log_src.info("com.stonex.app", "consumer created");
-
-	while (1)
+	bool run = true;
+	while (run)
 	{
 		for (int ch; (ch = getchar()) && ch != '\n';)
 		{
-			if (ch == 's')
+			if (ch == 'c')
 			{
-				log_src.info("com.stonex.app.consumer", "consumer connection stop");
+				consumer_logger->log(SEVERITY::LOG_INFO, "consumer connection stop");
 				consumer_connection->stop();
+			}
+			else if (ch == 'v')
+			{
+				consumer_logger->log(SEVERITY::LOG_INFO, "consumer connection start");
+				consumer_connection->start();
+			}
+			else if (ch == 'b')
+			{
+				consumer_logger->log(SEVERITY::LOG_INFO, "consumer connection close");
+				consumer_connection->close();
+
+			}
+			else if (ch == 'd')
+			{
+				consumer_logger->log(SEVERITY::LOG_INFO, "consumer session stop");
+				consumer_session->stop();
+			}
+			else if (ch == 'f')
+			{
+				consumer_logger->log(SEVERITY::LOG_INFO, "consumer session start");
+				consumer_session->start();
+			}
+			else if (ch == 'g')
+			{
+				consumer_logger->log(SEVERITY::LOG_INFO, "consumer session close");
+				consumer_session->close();
+
+			}
+			else if (ch == 'e')
+			{
+				consumer_logger->log(SEVERITY::LOG_INFO, "consumer stop");
+				consumer->stop();
 			}
 			else if (ch == 'r')
 			{
-				log_src.info("com.stonex.app.consumer", "consumer connection start");
-				consumer_connection->start();
+				consumer_logger->log(SEVERITY::LOG_INFO, "consumer start");
+				consumer->start();
+			}
+			else if (ch == 't')
+			{
+				consumer_logger->log(SEVERITY::LOG_INFO, "consumer close");
+				consumer->close();
+
 			}
 			else if (ch == 'x')
 			{
-				break;
+				run = false;
 			}
 		}
 	}

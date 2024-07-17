@@ -21,7 +21,9 @@
 #include <memory>
 #include <cms/Session.h>
 
-#include <logger/StonexLogSource.h>
+#include <LoggerFactory/LoggerFactory.h>
+
+#include "ClientState.h"
 
 #include "stonex-cms-amqp-lib-defines.h"
 
@@ -31,13 +33,17 @@ AMQP_DEFINES
 	class ConnectionContext;
 	class SessionImpl;
 	class SessionContext;
+	class CMSConnection;
+	class CMSMessageConsumer;
+	class CMSMessageProducer;
 
-	class CMS_API CMSSession : public ::cms::Session, public StonexLogSource
+	class CMS_API CMSSession : public ::cms::Session
 	{
 
 	public:
-		explicit CMSSession(const cms::amqp::ConnectionContext& cntx, std::shared_ptr<StonexLogger> logger = nullptr);
-		explicit CMSSession(const cms::amqp::ConnectionContext& cntx, const ::cms::Session::AcknowledgeMode ackMode, std::shared_ptr<StonexLogger> logger = nullptr);
+		explicit CMSSession(CMSConnection& parent, const cms::amqp::ConnectionContext& cntx);
+		explicit CMSSession(CMSConnection& parent, const cms::amqp::ConnectionContext& cntx, const ::cms::Session::AcknowledgeMode ackMode);
+		virtual ~CMSSession();
 
 		void close() override;
 		void commit() override;
@@ -46,6 +52,7 @@ AMQP_DEFINES
 
 		void start() override;
 		void stop() override;
+		void removeChild(CMSMessageConsumer& child);
 
 
 		::cms::MessageConsumer* createConsumer(const ::cms::Destination* destination) override;
@@ -84,14 +91,19 @@ AMQP_DEFINES
 		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
 		::cms::MessageTransformer* getMessageTransformer() const override;
 
-		void setLogger(std::shared_ptr<StonexLogger> sink) override;
+		ClientState getState();
+		void setState(ClientState state);
 
 
 	protected:
 		std::shared_ptr<SessionContext> createSessionContext(bool durable, bool shared, bool auto_ack) const;
 
 	private:
+		StonexLoggerPtr mLogger;
 		std::shared_ptr<SessionImpl> mPimpl;
+		cms::amqp::CMSConnection* mParent;
+		std::vector<CMSMessageConsumer*> mConsumers;
+		std::vector<CMSMessageProducer*> mProducers;
 	};
 
 

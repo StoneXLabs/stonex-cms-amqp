@@ -22,7 +22,7 @@
 #include "CMSSession.h"
 
 #include "ConnectionContext.h"
-
+#include <API/CMSConnection.h>
 #include "SessionImpl.h"
 
 #include "CMSQueue.h"
@@ -36,125 +36,159 @@
 #include "CMSTextMessage.h"
 #include "CMSBytesMessage.h"
 
-cms::amqp::CMSSession::CMSSession(const ConnectionContext& cntx, std::shared_ptr<StonexLogger> logger)
-	:mPimpl{ std::make_shared<SessionImpl>(cntx.connection(), cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE,logger) }
+cms::amqp::CMSSession::CMSSession(cms::amqp::CMSConnection& parent, const ConnectionContext& cntx)
+	:CMSSession(parent, cntx, cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE)
 {
+	if (mParent->getState() == ClientState::STOPPED)
+	{
+		stop();
+	}
 }
 
-cms::amqp::CMSSession::CMSSession(const ConnectionContext& cntx, const ::cms::Session::AcknowledgeMode ackMode, std::shared_ptr<StonexLogger> logger)
-	: mPimpl{ std::make_shared<SessionImpl>(cntx.connection(),ackMode, logger) }
+cms::amqp::CMSSession::CMSSession(cms::amqp::CMSConnection& parent, const ConnectionContext& cntx, const ::cms::Session::AcknowledgeMode ackMode)
+	: mPimpl(std::make_shared<SessionImpl>(cntx.connection(),ackMode)),
+	mParent(&parent),
+	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSSession"))
 {
+	if (mParent->getState() == ClientState::STOPPED)
+	{
+		stop();
+	}
+}
+
+cms::amqp::CMSSession::~CMSSession()
+{
+	mParent->removeChild(*this);
 }
 
 void cms::amqp::CMSSession::close()
 {
-	info("com.stonex.cms.CMSSession", "closing session");
+	mLogger->log(SEVERITY::LOG_INFO, "closing session");
 	mPimpl->close();
 }
 
 void cms::amqp::CMSSession::commit()
 {
-	info("com.stonex.cms.CMSSession", "commit");
+	mLogger->log(SEVERITY::LOG_INFO, "commit");
 	mPimpl->commit();
 }
 
 void cms::amqp::CMSSession::rollback()
 {
-	info("com.stonex.cms.CMSSession", "rollback");
+	mLogger->log(SEVERITY::LOG_INFO, "rollback");
 	mPimpl->rollback();
 }
 
 void cms::amqp::CMSSession::recover()
 {
-	info("com.stonex.cms.CMSSession", "recover");
+	mLogger->log(SEVERITY::LOG_INFO, "recover");
 	mPimpl->recover();
 }
 
 void cms::amqp::CMSSession::start()
 {
-	info("com.stonex.cms.CMSSession", "starting session");
-	mPimpl->start();
+	mLogger->log(SEVERITY::LOG_INFO, "starting session");
+	for (auto consumer : mConsumers)
+	{
+		consumer->start();
+	}
+	setState(ClientState::STARTED);
+
+	//for (auto producer : mProducers)
+	//{
+	//	producer->start();
+	//}
 }
 
 void cms::amqp::CMSSession::stop()
 {
-	info("com.stonex.cms.CMSSession", "stopping session");
-	throw ::cms::CMSException("illegal use - not implemented");
+	mLogger->log(SEVERITY::LOG_INFO, "stopping session");
+	for (auto consumer : mConsumers)
+	{
+		consumer->stop();
+	}
+	setState(ClientState::STOPPED);
+}
+
+void cms::amqp::CMSSession::removeChild(cms::amqp::CMSMessageConsumer& child)
+{
+	mConsumers.erase(std::remove_if(std::begin(mConsumers), std::end(mConsumers), [&child](cms::amqp::CMSMessageConsumer* item) {return (item == &child); }));
 }
 
 cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destination* destination)
 {
-	info("com.stonex.cms.CMSSession", fmt::format("creating consumer. destination: {}",destination->getDestinationType()));
-	return new CMSMessageConsumer(destination, std::make_shared<SessionContext>(mPimpl->session(), false, false, true), mLogSink);
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating consumer. destination: {}",destination->getDestinationType()));
+	return mConsumers.emplace_back(new CMSMessageConsumer(*this, destination, std::make_shared<SessionContext>(mPimpl->session(), false, false, true)));
+
 }
 
 cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destination* destination, const std::string& selector)
 {
-	info("com.stonex.cms.CMSSession", fmt::format("creating consumer. destination: {} selector: {}", destination->getDestinationType(), selector));
-	return new CMSMessageConsumer(destination, selector, std::make_shared<SessionContext>(mPimpl->session(), false, false, mPimpl->ackMode() == ::cms::Session::AUTO_ACKNOWLEDGE), mLogSink);
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating consumer. destination: {} selector: {}", destination->getDestinationType(), selector));
+	return mConsumers.emplace_back(new CMSMessageConsumer(*this, destination, selector, std::make_shared<SessionContext>(mPimpl->session(), false, false, mPimpl->ackMode() == ::cms::Session::AUTO_ACKNOWLEDGE)));
 }
 
 cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destination* destination, const std::string& selector, bool noLocal)
 {
-	info("com.stonex.cms.CMSSession", fmt::format("creating consumer. destination: {} selector: {} noLocal: {}", destination->getDestinationType(), selector, noLocal));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating consumer. destination: {} selector: {} noLocal: {}", destination->getDestinationType(), selector, noLocal));
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
 cms::MessageConsumer* cms::amqp::CMSSession::createDurableConsumer(const ::cms::Topic* destination, const std::string& name, const std::string& selector, bool noLocal)
 {
-	info("com.stonex.cms.CMSSession", fmt::format("creating durable consumer. destination: {} selector: {} noLocal: {}", destination->getDestinationType(), selector, noLocal));
-	return new CMSMessageConsumer(destination, name, selector, std::make_shared<SessionContext>(mPimpl->session(), true, false, mPimpl->ackMode() == ::cms::Session::AUTO_ACKNOWLEDGE), mLogSink);
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating durable consumer. destination: {} selector: {} noLocal: {}", destination->getDestinationType(), selector, noLocal));
+	return mConsumers.emplace_back(new CMSMessageConsumer(*this, destination, name, selector, std::make_shared<SessionContext>(mPimpl->session(), true, false, mPimpl->ackMode() == ::cms::Session::AUTO_ACKNOWLEDGE)));
 }
 
 cms::MessageProducer* cms::amqp::CMSSession::createProducer(const ::cms::Destination* destination)
 {
-	info("com.stonex.cms.CMSSession", fmt::format("creating producer. destination: {}", destination->getDestinationType()));
-	return new CMSMessageProducer(destination, std::make_shared<SessionContext>(mPimpl->session(), false, false, true), mLogSink);
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating producer. destination: {}", destination->getDestinationType()));
+	return new CMSMessageProducer(destination, std::make_shared<SessionContext>(mPimpl->session(), false, false, true));
 }
 
 cms::QueueBrowser* cms::amqp::CMSSession::createBrowser(const ::cms::Queue* queue)
 {
-	info("com.stonex.cms.CMSSession", fmt::format("creating browser. queue: {}", queue->getQueueName()));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating browser. queue: {}", queue->getQueueName()));
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
 cms::QueueBrowser* cms::amqp::CMSSession::createBrowser(const ::cms::Queue* queue, const std::string& selector)
 {
-	info("com.stonex.cms.CMSSession", fmt::format("creating browser. queue: {} selector: {}", queue->getQueueName(), selector));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating browser. queue: {} selector: {}", queue->getQueueName(), selector));
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
 cms::Queue* cms::amqp::CMSSession::createQueue(const std::string& queueName)
 {
-	info("com.stonex.cms.CMSSession", fmt::format("creating queue {}", queueName));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating queue {}", queueName));
 	return new CMSQueue(queueName);
 }
 
 cms::Topic* cms::amqp::CMSSession::createTopic(const std::string& topicName)
 {
-	info("com.stonex.cms.CMSSession", fmt::format("creating topic {}", topicName));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating topic {}", topicName));
 	return new CMSTopic(topicName);
 }
 
 cms::TemporaryQueue* cms::amqp::CMSSession::createTemporaryQueue()
 {
-	info("com.stonex.cms.CMSSession", "creating temporary queue");
+	mLogger->log(SEVERITY::LOG_INFO, "creating temporary queue");
 	return new CMSTemporaryQueue();
 }
 
 cms::TemporaryTopic* cms::amqp::CMSSession::createTemporaryTopic()
 {
-	info("com.stonex.cms.CMSSession", "creating temporary topic");
+	mLogger->log(SEVERITY::LOG_INFO, "creating temporary topic");
 	return new CMSTemporaryTopic();
 }
 
 cms::Message* cms::amqp::CMSSession::createMessage()
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSSession", "creating cms message");
+	mLogger->log(SEVERITY::LOG_DEBUG, "creating cms message");
 #endif
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
@@ -163,7 +197,7 @@ cms::Message* cms::amqp::CMSSession::createMessage()
 cms::BytesMessage* cms::amqp::CMSSession::createBytesMessage()
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSSession", "creating bytes message");
+	mLogger->log(SEVERITY::LOG_DEBUG, "creating bytes message");
 #endif
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
@@ -172,7 +206,7 @@ cms::BytesMessage* cms::amqp::CMSSession::createBytesMessage()
 cms::BytesMessage* cms::amqp::CMSSession::createBytesMessage(const unsigned char* bytes, int bytesSize)
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSSession", fmt::format("creating bytes message. byte size {}",bytesSize));
+	mLogger->log(SEVERITY::LOG_DEBUG, fmt::format("creating bytes message. byte size {}",bytesSize));
 #endif
 	return new CMSBytesMessage(bytes, bytesSize);
 }
@@ -180,7 +214,7 @@ cms::BytesMessage* cms::amqp::CMSSession::createBytesMessage(const unsigned char
 cms::StreamMessage* cms::amqp::CMSSession::createStreamMessage()
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSSession", "creating stream message");
+	mLogger->log(SEVERITY::LOG_DEBUG, "creating stream message");
 #endif
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
@@ -189,7 +223,7 @@ cms::StreamMessage* cms::amqp::CMSSession::createStreamMessage()
 cms::TextMessage* cms::amqp::CMSSession::createTextMessage()
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSSession", "creating text message");
+	mLogger->log(SEVERITY::LOG_DEBUG, "creating text message");
 #endif
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
@@ -198,7 +232,7 @@ cms::TextMessage* cms::amqp::CMSSession::createTextMessage()
 cms::TextMessage* cms::amqp::CMSSession::createTextMessage(const std::string& text)
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSSession", "creating text message");
+	mLogger->log(SEVERITY::LOG_DEBUG, "creating text message");
 #endif
 	return new cms::amqp::CMSTextMessage(text);
 }
@@ -206,7 +240,7 @@ cms::TextMessage* cms::amqp::CMSSession::createTextMessage(const std::string& te
 cms::MapMessage* cms::amqp::CMSSession::createMapMessage()
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSSession", "creating map message");
+	mLogger->log(SEVERITY::LOG_DEBUG, "creating map message");
 #endif
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
@@ -230,13 +264,13 @@ bool cms::amqp::CMSSession::isTransacted() const
 
 void cms::amqp::CMSSession::unsubscribe(const std::string& name)
 {
-	info("com.stonex.cms.CMSSession", fmt::format("unsubscribe {}", name));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("unsubscribe {}", name));
 	throw ::cms::CMSException("illegal use - not implemented");
 }
 
 void cms::amqp::CMSSession::setMessageTransformer(::cms::MessageTransformer* transformer)
 {
-	info("com.stonex.cms.CMSSession", fmt::format("set message transformer: {}", (void*)transformer));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("set message transformer: {}", (void*)transformer));
 	throw ::cms::CMSException("illegal use - not implemented");
 }
 
@@ -249,12 +283,17 @@ cms::MessageTransformer* cms::amqp::CMSSession::getMessageTransformer() const
 
 std::shared_ptr<cms::amqp::SessionContext> cms::amqp::CMSSession::createSessionContext(bool durable, bool shared, bool auto_ack) const
 {
-	debug("com.stonex.cms.CMSSession", fmt::format("create session context: durable: {} shared: {} auto_ack: {}", durable, shared, auto_ack));
+	mLogger->log(SEVERITY::LOG_DEBUG, fmt::format("create session context: durable: {} shared: {} auto_ack: {}", durable, shared, auto_ack));
 	return std::make_shared<cms::amqp::SessionContext>(mPimpl->session(), durable, shared, auto_ack);
 }
 
-void cms::amqp::CMSSession::setLogger(std::shared_ptr<StonexLogger> sink)
+
+void cms::amqp::CMSSession::setState(ClientState state)
 {
-	StonexLogSource::setLogger(sink);
-	mPimpl->setLogger(sink);
+	mPimpl->setState(state);
+}
+
+cms::amqp::ClientState cms::amqp::CMSSession::getState()
+{
+	return mPimpl->getState();
 };

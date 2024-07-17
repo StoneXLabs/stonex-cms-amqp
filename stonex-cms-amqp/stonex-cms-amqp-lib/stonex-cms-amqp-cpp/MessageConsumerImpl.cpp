@@ -39,16 +39,18 @@
 
 #include <fmt/format.h>
 
-cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, const std::string& selector, std::shared_ptr<StonexLogger> logger)
-	:MessageConsumerImpl(destination, {}, session,false,false,true,selector,logger)
+#include <LoggerFactory/LoggerFactory.h>
+
+cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, const std::string& selector)
+	:MessageConsumerImpl(destination, {}, session,false,false,true,selector)
 {
 
 }
 
-cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable, bool shared, bool autoAck, const std::string& selector, std::shared_ptr<StonexLogger> logger)
-	:mEXHandler(logger)
+cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable, bool shared, bool autoAck, const std::string& selector)
+	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.MessageConsumerImpl")),
+	mEXHandler(mLogger)
 {
-	setLogger(logger);
 	mRopts.handler(*this);
 	proton::source_options sopts{};
 	std::string address;
@@ -80,14 +82,7 @@ cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* de
 		sopts.dynamic(true); //taret or source options
 		sopts.expiry_policy(proton::terminus::expiry_policy::LINK_CLOSE);
 		break;
-
 	}
-
-	
-
-
-	
-
 
 	if (!name.empty()) 
 		mRopts.name(name);
@@ -98,10 +93,6 @@ cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* de
 		sopts.durability_mode(proton::source::UNSETTLED_STATE);
 		sopts.expiry_policy(proton::source::NEVER);
 	}
-
-
-
-
 
 	if (!selector.empty())
 	{
@@ -118,41 +109,36 @@ cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* de
 		_filters.put(filter_key, filter_value);
 		sopts.filters(_filters);
 	}
-
-
-//	sopts.address(mAddress);
 	
 	mRopts.auto_accept(autoAck);
 	mRopts.source(sopts);
 	mRopts.credit_window(0);
 
-
 	//waiting until all relevant resources is initialized
-	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncStart, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, mRopts, session);
-	setLogger(nullptr);
+	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncCreate, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, mRopts, session);
 }
 
 cms::amqp::MessageConsumerImpl::~MessageConsumerImpl()
 {
-	if(mState == ClientState::STARTED)
+	if(getState() == ClientState::STARTED)
 		close();
 }
 
 ::cms::Message* cms::amqp::MessageConsumerImpl::receive()
 {
-	error("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, "internal method not implemented"));
+	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "internal method not implemented"));
 	return nullptr;
 }
 
 ::cms::Message* cms::amqp::MessageConsumerImpl::receive(int milis)
 {
-	error("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, "internal method not implemented"));
+	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "internal method not implemented"));
 	return nullptr;
 }
 
 ::cms::Message* cms::amqp::MessageConsumerImpl::receiveNoWait()
 {
-	error("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, "internal method not implemented"));
+	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "internal method not implemented"));
 	return nullptr;
 }
 
@@ -183,40 +169,40 @@ void cms::amqp::MessageConsumerImpl::setMessageAvailableListener(::cms::MessageA
 void cms::amqp::MessageConsumerImpl::start()
 {
 
-	info("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{}", __func__));
+	mProtonReceiver->add_credit(10);
+	setState(ClientState::STARTED);
 
-	//ToDo check if allready started!!
-	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncStart, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), mAddress, mRopts, std::make_shared<proton::session>(mProtonReceiver->session()));
 }
 
 void cms::amqp::MessageConsumerImpl::stop()
 {
-	info("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{}", __func__));
 
 	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncStop, this));
 }
 
 void cms::amqp::MessageConsumerImpl::close()
 {
-	info("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{}", __func__));
 
 	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncClose, this));
 }
 
 void cms::amqp::MessageConsumerImpl::on_receiver_open(proton::receiver& receiver)
 {
-	auto t1 = receiver.source();
+	auto proton_source = receiver.source();
 
 	if (auto err = receiver.error(); err.empty())
-		info("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, proton_source.address(), proton_source.anonymous(), proton_source.dynamic(), proton_source.durability_mode()));
 	else
-		error("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, err.what()));
+		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
 
 	mProtonReceiver = std::make_unique<proton::receiver>(receiver);
 	if (receiver.error().empty())
 	{
 		mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(mProtonReceiver.get()));
-		mState = ClientState::STARTED;
+		setState(ClientState::STARTED);
 		mEXHandler.onResourceInitialized();
 	}
 
@@ -227,31 +213,39 @@ void cms::amqp::MessageConsumerImpl::on_receiver_close(proton::receiver& receive
 {
 #if _DEBUG
 	if (auto err = receiver.error(); err.empty())
-		trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
+		mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
 	else
-		error("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, err.what()));
+		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
 #endif
 	mEXHandler.onResourceUninitialized(receiver.error());
 
-	mState = ClientState::STOPPED;
+	setState(ClientState::STOPPED);
 }
 
 void cms::amqp::MessageConsumerImpl::on_receiver_detach(proton::receiver& receiver)
 {
 #if _DEBUG
 	if (auto err = receiver.error(); err.empty())
-		trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
+		mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
 	else
-		error("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, err.what()));
+		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
 #endif
 	mEXHandler.onResourceInitialized();
-	mState = ClientState::DETATCHED;
+	setState(ClientState::DETATCHED);
 }
 
 void cms::amqp::MessageConsumerImpl::on_receiver_error(proton::receiver& receiver)
 {
-	error("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {}", __func__, receiver.error().what()));
+	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, receiver.error().what()));
 }
+
+void cms::amqp::MessageConsumerImpl::on_receiver_drain_finish(proton::receiver& receiver)
+{
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} draining done", __func__));
+	setState(ClientState::STOPPED);
+	mEXHandler.onResourceInitialized();
+}
+
 
 void cms::amqp::MessageConsumerImpl::on_message(proton::delivery& delivery, proton::message& message)
 {
@@ -261,14 +255,14 @@ void cms::amqp::MessageConsumerImpl::on_message(proton::delivery& delivery, prot
 	if (message.content_type() == "application/octet-stream")
 	{
 #if _DEBUG
-		info("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {} credit {} draining {}", __func__, "bytes message", delivery.receiver().credit(), delivery.receiver().draining()));
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} {} credit {} draining {}", __func__, "bytes message", delivery.receiver().credit(), delivery.receiver().draining()));
 #endif
 		onMessageCallback(new CMSBytesMessage(&message, &delivery, mProtonReceiver.get()));
 	}
 	else
 	{
 #if _DEBUG
-		info("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{} {} credit {}, draining {}", __func__, "text message", delivery.receiver().credit(), delivery.receiver().draining()));
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} {} credit {}, draining {}", __func__, "text message", delivery.receiver().credit(), delivery.receiver().draining()));
 #endif
 		onMessageCallback(new CMSTextMessage(&message, &delivery, mProtonReceiver.get()));
 	}
@@ -280,10 +274,30 @@ const std::string cms::amqp::MessageConsumerImpl::getAddress() const
 	return mProtonReceiver->source().address();
 }
 
+cms::amqp::ClientState cms::amqp::MessageConsumerImpl::getState()
+{
+	return mState;
+}
+
+void cms::amqp::MessageConsumerImpl::setState(ClientState state)
+{
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} last state {} current state {}", __func__, mState, state));
+	mState = state;
+}
+
+bool cms::amqp::MessageConsumerImpl::syncCreate(const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session> session)
+{
+#if _DEBUG
+	mLogger->log(SEVERITY::LOG_TRACE, fmt::format(" {} address {}", __func__, address));
+#endif
+
+	return session->connection().work_queue().add([=] {session->open_receiver(address, mRopts); });
+}
+
 bool cms::amqp::MessageConsumerImpl::syncClose()
 {
 #if _DEBUG
-	trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format(" {}", __func__));
+	mLogger->log(SEVERITY::LOG_TRACE, fmt::format(" {}", __func__));
 #endif
 
 	if (!mProtonReceiver->closed() /* && mState == STATUS::OPEN*/) {
@@ -293,20 +307,15 @@ bool cms::amqp::MessageConsumerImpl::syncClose()
 		return false;
 }
 
-bool cms::amqp::MessageConsumerImpl::syncStart(const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session>  session)
-{
-#if _DEBUG
-	trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format(" {} address {}", __func__, address));
-#endif
-
-	return session->connection().work_queue().add([=] {session->open_receiver(address, mRopts); });
-}
-
 bool cms::amqp::MessageConsumerImpl::syncStop()
 {
 #if _DEBUG
-	trace("com.stonex.cms.amqp.MessageConsumerImpl", fmt::format("{}", __func__));
+	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
 #endif
 
-	return 	mProtonReceiver->connection().work_queue().add([=] {mProtonReceiver->detach(); });
+	return 	mProtonReceiver->work_queue().add([=] {
+		if(!mProtonReceiver->draining())
+		  mProtonReceiver->drain();
+	});
+//	return 	mProtonReceiver->connection().work_queue().add([=] {mProtonReceiver->detach(); });
 }

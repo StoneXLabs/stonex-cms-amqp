@@ -28,27 +28,23 @@
 #include <mutex>
 
 #include "AsyncCallSynchronizer.h"
-#include "ClientState.h"
+#include "../API/ClientState.h"
 
-#include <logger/StonexLogSource.h>
+#include <logger/StoneXLogger.h>
 
 namespace cms::amqp
 {
 
-	class SessionImpl : public proton::messaging_handler, public StonexLogSource
+	class SessionImpl : public proton::messaging_handler
 	{
 	public:
-		explicit SessionImpl(std::shared_ptr<proton::connection>  connection, ::cms::Session::AcknowledgeMode ack_mode = ::cms::Session::AUTO_ACKNOWLEDGE, std::shared_ptr<StonexLogger> logger = nullptr);
+		explicit SessionImpl(std::shared_ptr<proton::connection>  connection, ::cms::Session::AcknowledgeMode ack_mode = ::cms::Session::AUTO_ACKNOWLEDGE);
 		~SessionImpl();
-	
 
 		void close();
 		void commit();
 		void rollback();
 		void recover();
-
-		void start();
-		void stop();
 
 		::cms::Session::AcknowledgeMode ackMode();
 
@@ -58,12 +54,16 @@ namespace cms::amqp
 
 		std::shared_ptr<proton::session> session();
 
+		ClientState getState();
+		void setState(ClientState state);
+
 	private:
 		bool syncClose();
 		bool syncStart(std::shared_ptr<proton::connection>  connection);
 		bool syncStop();
 
 	private:
+		StonexLoggerPtr mLogger;
 		ClientState mState;
 		std::shared_ptr<proton::session> mSession;
 		cms::internal::AsyncCallSynchronizer mEXHandler;

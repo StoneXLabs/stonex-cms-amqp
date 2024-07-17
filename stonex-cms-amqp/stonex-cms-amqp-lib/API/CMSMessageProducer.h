@@ -25,8 +25,7 @@
 #include <cms/Destination.h>
 #include <cms/MessageProducer.h>
 
-#include <logger/StonexLogSource.h>
-
+#include <LoggerFactory/LoggerFactory.h>
 
 #include "stonex-cms-amqp-lib-defines.h"
 
@@ -36,10 +35,10 @@ AMQP_DEFINES
 	class SessionContext;
 	class MessageProducerImpl;
 
-	class CMS_API CMSMessageProducer : public ::cms::MessageProducer, public StonexLogSource
+	class CMS_API CMSMessageProducer : public ::cms::MessageProducer
 	{
 	public:
-		CMSMessageProducer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr);
+		CMSMessageProducer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context);
 		~CMSMessageProducer() override = default;
 
 		void send(::cms::Message* mes) override;
@@ -78,9 +77,8 @@ AMQP_DEFINES
 
 		void close() override;
 
-		void setLogger(std::shared_ptr<StonexLogger> sink) override;
-
 	private:
+		StonexLoggerPtr mLogger;
 		std::shared_ptr<MessageProducerImpl> mPimpl;
 	};
 

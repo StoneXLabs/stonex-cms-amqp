@@ -34,32 +34,54 @@ public:
 	}
 };
 
-class MyExceptionListener : public cms::ExceptionListener, public StonexLogSource
+class MyExceptionListener : public cms::ExceptionListener
 {
 public:
-	MyExceptionListener(bool expected = false)
-		:mExpect(expected)
+	explicit MyExceptionListener(bool expected = false)
+		:mExpect(expected),
+		mLogger(LoggerFactory::getInstance().create("com.stonex.app"))
 	{
 	}
 
 	~MyExceptionListener() {
-		info("com.stonex.app", __FUNCTION__);
+		mLogger->log(SEVERITY::LOG_INFO, __FUNCTION__);
 
 	}
 
 	void onException(const cms::CMSException& ex) override {
 		if (mExpect)
-			info("com.stonex.app", "got expected exception test done\n\n");
+			mLogger->log(SEVERITY::LOG_INFO, "got expected exception test done\n\n");
 		else
-			error("com.stonex.app", "got unexpected exception test done\n\n");
+			mLogger->log(SEVERITY::LOG_ERROR, "got unexpected exception test done\n\n");
 	};
 
 	void setExpect(bool expect) {
 		mExpect = expect;
 	}
 
+
 private:
 	bool mExpect;
+	std::shared_ptr<StonexLogger> mLogger;
+};
+
+class MyMessageListener : public cms::MessageListener
+{
+public:
+	explicit MyMessageListener(const std::string& logger)
+		:mLogger(LoggerFactory::getInstance().create("com.stonex.app" + logger))
+
+	{
+	}
+
+	void onMessage(const cms::Message* message) override {
+		if (auto msg = dynamic_cast<const cms::TextMessage*>(message))
+			mLogger->log(SEVERITY::LOG_INFO, msg->getText());
+	}
+
+private:
+	std::string mLoggerName;
+	std::shared_ptr<StonexLogger> mLogger;
 };
 
 
@@ -79,51 +101,46 @@ int main(int argc, char* argv[])
 
 	auto params = ParameterParser::parse(argc, argv);
 
+	stonex::logger::initialize(LoggerFactory::LoggerType::LOG4CXX);
 	log4cxx::xml::DOMConfigurator::configure(params.at(config_logger.data()));
 
-	StonexLogSource log_src;
 	MyExceptionListener* exl = new MyExceptionListener;
 
-	auto logger = std::make_shared<Log4CxxLogger>();
-	logger->attach("com.stonex.app", &log_src);
+	auto logger = LoggerFactory::getInstance().create("com.stonex.app.sender");
 
-	log_src.info("com.stonex.app.sender", "example sender started");
+	logger->log(SEVERITY::LOG_INFO, "example sender started");
 
-	log_src.info("com.stonex.app.sender", "creating connection");
+	logger->log(SEVERITY::LOG_INFO, "creating connection");
 
 	std::shared_ptr<cms::ConnectionFactory> factory(cms::amqp::CMSConnectionFactory::createCMSConnectionFactory(params.at(param_broker_url.data())));
 
-	log_src.info("com.stonex.app.sender", fmt::format("created connection factory {}", params.at(param_broker_url.data())));
+	logger->log(SEVERITY::LOG_INFO, fmt::format("created connection factory {}", params.at(param_broker_url.data())));
 
-	logger->attach("com.stonex.app", (cms::amqp::CMSConnectionFactory*)factory.get());
 
 
 	factory->setExceptionListener(exl);
 
 	///producer
+	auto producer_logger = LoggerFactory::getInstance().create("com.stonex.app.producer");
 
 	std::shared_ptr<cms::Connection> producer_connection(factory->createConnection(params.at(param_user.data()), params.at(param_password.data())));
-		log_src.info("com.stonex.app.sender.producer", fmt::format("created producer connection {} {}", params.at(param_user.data()), params.at(param_password.data())));
+	producer_logger->log(SEVERITY::LOG_INFO, fmt::format("created producer connection {} {}", params.at(param_user.data()), params.at(param_password.data())));
 
-	logger->attach("com.stonex.app", (cms::amqp::CMSConnection*)producer_connection.get());
 	producer_connection->setExceptionListener(exl);
 
 	std::shared_ptr<cms::Session> producer_session(producer_connection->createSession());
-	logger->attach("com.stonex.app", (cms::amqp::CMSSession*)producer_session.get());
 
-	log_src.info("com.stonex.app.sender.producer", "producer session established");
+	producer_logger->log(SEVERITY::LOG_INFO, "producer session established");
 
 	cms::Destination* testAddress = producer_session->createTopic(params.at(param_destination.data()));
 
 
 	std::shared_ptr<cms::MessageProducer> producer(producer_session->createProducer(testAddress));
 
-
-	logger->attach("com.stonex.app", (cms::amqp::CMSMessageProducer*)producer.get());
-    log_src.info("com.stonex.app.producer", "producer created");
+    producer_logger->log(SEVERITY::LOG_INFO, "producer created");
 
 
-	std::thread t1([producer, producer_session, &params, &log_src]() {
+	std::thread t1([producer, producer_session, &params, &producer_logger]() {
 		for (int i = 0; i < std::stoi(params.at(param_message_count.data())); i++)
 		{
 			std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -132,7 +149,7 @@ int main(int argc, char* argv[])
 			mes->setStringProperty("REGION", "UE");
 			mes->setStringProperty("ENV", "TEST");
 
-			log_src.info("com.stonex.app.producer", fmt::format("sending message {}",mes->getText()));
+			producer_logger->log(SEVERITY::LOG_INFO, fmt::format("sending message {}",mes->getText()));
 			producer->send(mes);
 			delete mes;
 		}

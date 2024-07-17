@@ -25,14 +25,22 @@
 #include <proton/reconnect_options.hpp>
 #include <proton/connection.hpp>
 
+#include <LoggerFactory/LoggerFactory.h>
+
+
 #include "ConnectionImpl.h"
 #include "ProtonCppLibrary.h"
 
-
-
+#include <Log4CxxLogger/Log4CxxLogger.h>
+#include <STDOutLogger/STDOutLogger.h>
+#include <SPDLogLogger/SpdLogLogger.h>
 
 cms::amqp::ConnectionFactoryImpl::ConnectionFactoryImpl(const std::string& brokerURI, const std::string& user, const std::string& password)
+	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.ConnectionFactoryImpl"))
 {
 	if(brokerURI.empty())
 		throw ::cms::CMSException("Connection factory creation with EMPTY broker URL is forbidden");
+	
+	
+
 }

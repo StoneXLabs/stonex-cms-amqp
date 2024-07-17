@@ -33,22 +33,14 @@
 
 #include "../API/CMSMessage.h"
 #include <regex>
-#include "ClientState.h"
-
-#include <logger/StonexLogSource.h>
+#include "../API/ClientState.h"
+#include <logger/StoneXLogger.h>
 
 namespace cms::amqp
 {
-	class MessageConsumerImpl : public proton::messaging_handler, public StonexLogSource
+	class MessageConsumerImpl : public proton::messaging_handler
 	{
-		enum class STATUS 
-		{
-			UNINITIALIZED,
-			OPEN,
-			CLOSED,
-			DETATCHED
-		};
-
+	
 		class DestinationParser
 		{
 		public:
@@ -69,8 +61,8 @@ namespace cms::amqp
 			const std::regex FQQN_regex{ "^VirtualTopic\\.[a-zA-Z0-9_-]+::Consumer(\\.[a-zA-Z0-9_-]+)+" };
 		};
 	public:
-		explicit MessageConsumerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, const std::string& selector = "", std::shared_ptr<StonexLogger> logger = nullptr);
-		explicit MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable = false,  bool shared = false, bool autoAck = true, const std::string& selector = "", std::shared_ptr<StonexLogger> logger = nullptr);
+		explicit MessageConsumerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, const std::string& selector = "");
+		explicit MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable = false,  bool shared = false, bool autoAck = true, const std::string& selector = "");
 
 
 		~MessageConsumerImpl();
@@ -90,26 +82,31 @@ namespace cms::amqp
 		::cms::MessageAvailableListener* getMessageAvailableListener() const { return nullptr; };
 
 		void start();
-		void stop() ;
-		void close() ;
+		void stop();
+		void close();
 
 		void on_receiver_open(proton::receiver& receiver) override;
 		void on_receiver_close(proton::receiver& receiver) override;
 		void on_receiver_detach(proton::receiver& receiver) override;
 		void on_receiver_error(proton::receiver& receiver) override;
+		void on_receiver_drain_finish(proton::receiver& receiver) override;
 
 		void on_message(proton::delivery& delivery, proton::message& message) override;
 
 		const std::string getAddress() const;
+
+		ClientState getState();
+		void setState(ClientState state);
 	private:
+		bool syncCreate(const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session>  session);
 		bool syncClose();
-		bool syncStart(const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session>  session);
 		bool syncStop();
 		// refctor - duplicate from Producer
 		//::cms::Destination* initializeDestination();
 		//::cms::Destination::DestinationType capabilityToDestinationType(const  std::vector<proton::symbol>& capabilities) const;
 
 	private:
+		StonexLoggerPtr mLogger;
 		ClientState mState;
 		std::unique_ptr<proton::receiver> mProtonReceiver;
 		cms::internal::AsyncCallSynchronizer mEXHandler;

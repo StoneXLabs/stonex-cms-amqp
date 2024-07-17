@@ -27,15 +27,16 @@
 
 #include "ConnectionContext.h"
 
- cms::amqp::CMSMessageProducer::CMSMessageProducer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger)
-	:mPimpl(std::make_shared<MessageProducerImpl>(destination,context->connection(), logger))
+ cms::amqp::CMSMessageProducer::CMSMessageProducer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context)
+	:mPimpl(std::make_shared<MessageProducerImpl>(destination,context->connection())),
+	 mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSMessageProducer"))
 {
 }
 
 void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes)
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSMessageProducer", "sending message");
+	mLogger->log(SEVERITY::LOG_DEBUG, "sending message");
 #endif
 	mPimpl->send(mes);
 }
@@ -43,7 +44,7 @@ void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes)
 void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, ::cms::AsyncCallback* callback)
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSMessageProducer", "sending message with callback");
+	mLogger->log(SEVERITY::LOG_DEBUG, "sending message with callback");
 #endif
 	mPimpl->send(mes, callback);
 }
@@ -51,7 +52,7 @@ void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, ::cms::AsyncCallb
 void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive)
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSMessageProducer", "sending message");
+	mLogger->log(SEVERITY::LOG_DEBUG, "sending message");
 #endif
 	mPimpl->send(mes, deliveryMode, priority,timeToLive);
 }
@@ -59,7 +60,7 @@ void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, int deliveryMode,
 void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback)
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSMessageProducer", "sending message with callback");
+	mLogger->log(SEVERITY::LOG_DEBUG, "sending message with callback");
 #endif
 	mPimpl->send(mes, deliveryMode, priority, timeToLive, callback);
 }
@@ -67,7 +68,7 @@ void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, int deliveryMode,
 void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive)
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSMessageProducer", "sending message");
+	mLogger->log(SEVERITY::LOG_DEBUG, "sending message");
 #endif
 	mPimpl->send(destination, mes, deliveryMode, priority, timeToLive);
 }
@@ -75,7 +76,7 @@ void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination,
 void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback)
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSMessageProducer", "sending message with callback");
+	mLogger->log(SEVERITY::LOG_DEBUG, "sending message with callback");
 #endif
 	mPimpl->send(destination, mes, deliveryMode, priority, timeToLive, callback);
 }
@@ -83,7 +84,7 @@ void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination,
 void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes, ::cms::AsyncCallback* callback)
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSMessageProducer", "sending message");
+	mLogger->log(SEVERITY::LOG_DEBUG, "sending message");
 #endif
 	mPimpl->send(destination, mes, callback);
 }
@@ -91,7 +92,7 @@ void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination,
 void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes)
 {
 #if _DEBUG
-	debug("com.stonex.cms.CMSMessageProducer", "sending message");
+	mLogger->log(SEVERITY::LOG_DEBUG, "sending message");
 #endif
 	mPimpl->send(destination, mes);
 }
@@ -100,7 +101,7 @@ void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination,
 
 void  cms::amqp::CMSMessageProducer::setDeliveryMode(int mode)
 {
-	info("com.stonex.cms.CMSMessageProducer", fmt::format("set delivery mode {}",mode));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("set delivery mode {}",mode));
 	mPimpl->setDeliveryMode(mode);
 }
 
@@ -111,7 +112,7 @@ int  cms::amqp::CMSMessageProducer::getDeliveryMode() const
 
 void  cms::amqp::CMSMessageProducer::setDisableMessageID(bool value)
 {
-	info("com.stonex.cms.CMSMessageProducer", fmt::format("disable message id {}", value));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("disable message id {}", value));
 	mPimpl->setDisableMessageID(value);
 }
 
@@ -122,7 +123,7 @@ bool  cms::amqp::CMSMessageProducer::getDisableMessageID() const
 
 void  cms::amqp::CMSMessageProducer::setDisableMessageTimeStamp(bool value)
 {
-	info("com.stonex.cms.CMSMessageProducer", fmt::format("disable message timestamp {}", value));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("disable message timestamp {}", value));
 	mPimpl->setDisableMessageTimeStamp(value);
 }
 
@@ -133,7 +134,7 @@ bool  cms::amqp::CMSMessageProducer::getDisableMessageTimeStamp() const
 
 void  cms::amqp::CMSMessageProducer::setPriority(int priority)
 {
-	info("com.stonex.cms.CMSMessageProducer", fmt::format("set priority {}", priority));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("set priority {}", priority));
 	mPimpl->setPriority(priority);
 }
 
@@ -144,7 +145,7 @@ int  cms::amqp::CMSMessageProducer::getPriority() const
 
 void  cms::amqp::CMSMessageProducer::setTimeToLive(long long time)
 {
-	info("com.stonex.cms.CMSMessageProducer", fmt::format("set TTL {} [ms]", time));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("set TTL {} [ms]", time));
 	mPimpl->setTimeToLive(time);
 }
 
@@ -155,7 +156,7 @@ long long  cms::amqp::CMSMessageProducer::getTimeToLive() const
 
 void  cms::amqp::CMSMessageProducer::setMessageTransformer(::cms::MessageTransformer* transformer)
 {
-	info("com.stonex.cms.CMSMessageProducer", fmt::format("set message transformer: {}", (void*)transformer));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("set message transformer: {}", (void*)transformer));
 	mPimpl->setMessageTransformer(transformer);
 }
 
@@ -166,12 +167,6 @@ void  cms::amqp::CMSMessageProducer::setMessageTransformer(::cms::MessageTransfo
 
 void cms::amqp::CMSMessageProducer::close()
 {
-	info("com.stonex.cms.CMSMessageProducer", "closing");
+	mLogger->log(SEVERITY::LOG_INFO, "closing");
 	mPimpl->close();
 }
-
-void cms::amqp::CMSMessageProducer::setLogger(std::shared_ptr<StonexLogger> sink)
-{
-	StonexLogSource::setLogger(sink);
-	mPimpl->setLogger(sink);
-};

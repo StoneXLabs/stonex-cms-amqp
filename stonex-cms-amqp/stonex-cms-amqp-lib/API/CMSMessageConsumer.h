@@ -23,7 +23,8 @@
 #include <cms/MessageConsumer.h>
 #include <cms/MessageAvailableListener.h>
 
-#include <logger/StonexLogSource.h>
+#include <API/ClientState.h>
+#include <LoggerFactory/LoggerFactory.h>
 
 #include "stonex-cms-amqp-lib-defines.h"
 
@@ -32,15 +33,16 @@ AMQP_DEFINES
 
 	class SessionContext;
 	class MessageConsumerImpl;
+	class CMSSession;
 
-	class CMS_API CMSMessageConsumer : public ::cms::MessageConsumer, public StonexLogSource
+	class CMS_API CMSMessageConsumer : public ::cms::MessageConsumer
 	{
 	public:
-		CMSMessageConsumer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr);
-		CMSMessageConsumer(const ::cms::Destination* destination, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr);
-		CMSMessageConsumer(const ::cms::Destination* destination, const std::string& name, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr);
+		CMSMessageConsumer(cms::amqp::CMSSession& parent, const ::cms::Destination* destination, std::shared_ptr<SessionContext> context);
+		CMSMessageConsumer(cms::amqp::CMSSession& parent, const ::cms::Destination* destination, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context);
+		CMSMessageConsumer(cms::amqp::CMSSession& parent, const ::cms::Destination* destination, const std::string& name, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context);
 
-		~CMSMessageConsumer() override = default;
+		~CMSMessageConsumer();
 
 		::cms::Message* receive() override;
 		::cms::Message* receive(int milis) override;
@@ -61,11 +63,14 @@ AMQP_DEFINES
 		void stop() override;
 		void close() override;
 
-		void setLogger(std::shared_ptr<StonexLogger> sink) override;
+		ClientState getState();
+		void setState(ClientState state);
 
 	private:
-
+		StonexLoggerPtr mLogger;
 		std::shared_ptr<MessageConsumerImpl> mPimpl;
+		cms::amqp::CMSSession* mParent;
+
 	};
 
 

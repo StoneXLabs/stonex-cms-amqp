@@ -22,7 +22,8 @@
 #include <thread>
 
 #include <proton/container.hpp>
-
+#include <proton/messaging_handler.hpp>
+#include <logger/StoneXLogger.h>
 
 namespace activemq::library::ActiveMQCPP
 {
@@ -36,7 +37,7 @@ namespace cms::amqp
 	/*!Singleton containing proton::container as top proton handling object used as reference object for Connection/Session/Producer?Consumer creation and library messages handling
 	   Object contains Thread in which proton::container runs
 	*/
-	class ProtonCppLibrary
+	class ProtonCppLibrary : public proton::messaging_handler
 	{
 	private:
 		ProtonCppLibrary();
@@ -46,7 +47,11 @@ namespace cms::amqp
 		static std::shared_ptr<proton::container> getContainer();
 		static ProtonCppLibrary& getInstance();
 
+		void on_container_start(proton::container& container) override;
+		void on_container_stop(proton::container& container) override;
+
 	private:
+		StonexLoggerPtr mLogger;
 		static ProtonCppLibrary* mInstance;
 
 		std::shared_ptr<proton::container> mContainer;

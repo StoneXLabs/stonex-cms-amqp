@@ -1,7 +1,5 @@
 
-#include <API/CMSConnectionFactory.h>
-#include <API/CMSSession.h>
-#include <API/CMSMessageProducer.h>
+#include "MessageProcessor.h"
 
 #include <Log4CxxLogger/Log4CxxLogger.h>
 #include <fmt/format.h>
@@ -9,6 +7,7 @@
 #include <log4cxx/logger.h>
 #include <log4cxx/xml/domconfigurator.h>
 
+#include <stdlib.h>
 
 class ParameterParser
 {
@@ -104,58 +103,45 @@ int main(int argc, char* argv[])
 	stonex::logger::initialize(LoggerFactory::LoggerType::LOG4CXX);
 	log4cxx::xml::DOMConfigurator::configure(params.at(config_logger.data()));
 
-	MyExceptionListener* exl = new MyExceptionListener;
+	MessageProcessor processor;
 
-	auto logger = LoggerFactory::getInstance().create("com.stonex.app.sender");
+	processor.Start();
+	std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
-	logger->log(SEVERITY::LOG_INFO, "example sender started");
+	std::thread senderThread([&]() {
 
-	logger->log(SEVERITY::LOG_INFO, "creating connection");
-
-	std::shared_ptr<cms::ConnectionFactory> factory(cms::amqp::CMSConnectionFactory::createCMSConnectionFactory(params.at(param_broker_url.data())));
-
-	logger->log(SEVERITY::LOG_INFO, fmt::format("created connection factory {}", params.at(param_broker_url.data())));
-
-
-
-	factory->setExceptionListener(exl);
-
-	///producer
-	auto producer_logger = LoggerFactory::getInstance().create("com.stonex.app.producer");
-
-	cms::Connection* producer_connection(factory->createConnection(params.at(param_user.data()), params.at(param_password.data())));
-	producer_logger->log(SEVERITY::LOG_INFO, fmt::format("created producer connection {} {}", params.at(param_user.data()), params.at(param_password.data())));
-
-	producer_connection->setExceptionListener(exl);
-
-	cms::Session* producer_session(producer_connection->createSession());
-
-	producer_logger->log(SEVERITY::LOG_INFO, "producer session established");
-
-	cms::Destination* testAddress = producer_session->createTopic(params.at(param_destination.data()));
-
-
-	cms::MessageProducer* producer(producer_session->createProducer(testAddress));
-
-    producer_logger->log(SEVERITY::LOG_INFO, "producer created");
-
-
-	std::thread t1([producer, producer_session, &params, &producer_logger]() {
-		for (int i = 0; i < std::stoi(params.at(param_message_count.data())); i++)
+		for (int i = 1;;)
 		{
-			std::this_thread::sleep_for(std::chrono::seconds(1));
+			processor.SendMessage("Hello");
 
-			auto mes = producer_session->createTextMessage(fmt::format("hello UE {}",i));
-			mes->setStringProperty("REGION", "UE");
-			mes->setStringProperty("ENV", "TEST");
+			if (i % 10 == 0)
+				throw std::exception("test crash");
 
-			producer_logger->log(SEVERITY::LOG_INFO, fmt::format("sending message {}",mes->getText()));
-			producer->send(mes);
-			delete mes;
 		}
 	});
 
-	t1.join();
+	std::thread senderThread2([&]() {
 
+		for (int i = 1;i; i++)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+			if (i % 10 == 0)
+			{
+	//			processor.CloseProducer();
+		//		abort();
+		//		throw std::exception("test crash");
+			}
+
+		}
+	});
+
+	senderThread2.join();
+
+//	throw std::exception("test crash");
+//	cms::Session* ts;
+//	ts->close();
+//	while (1) {};
+//	processor.SendMessage("Hello");
 	return 0;
 }

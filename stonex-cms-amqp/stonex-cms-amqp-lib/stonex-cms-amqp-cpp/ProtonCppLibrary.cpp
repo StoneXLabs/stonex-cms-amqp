@@ -18,32 +18,36 @@
  */
 
 #include "ProtonCppLibrary.h"
+#include <LoggerFactory/LoggerFactory.h>
 
+#include <fmt/format.h>
 #include <iostream>
 
 
-
 cms::amqp::ProtonCppLibrary::ProtonCppLibrary()
+    :mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.ProtonContainer"))
 {
-    mContainer = std::make_shared<proton::container>();
+    mContainer = std::make_shared<proton::container>(*this);
     mContainer->auto_stop(false);
     mContainerThread = std::make_unique<std::thread>(std::thread([this] {
         try
         {
-
+            mLogger->log(SEVERITY::LOG_INFO, fmt::format("starting proton container"));
             mContainer->run();
+            mLogger->log(SEVERITY::LOG_INFO, fmt::format("proton container work done"));
+            std::cout << "proton container work done" << std::endl;
         }
         catch (const std::exception& ex)
         {
-            std::cout << "container exception " << ex.what() << std::endl;
+            mLogger->log(SEVERITY::LOG_ERROR, fmt::format("container exception : {}", ex.what()));
         }
-
-        std::cout << "Container done" << std::endl;
         }));
 }
 
 cms::amqp::ProtonCppLibrary::~ProtonCppLibrary()
 {
+
+    mLogger->log(SEVERITY::LOG_INFO, fmt::format("stopping proton container"));
     mContainer->stop();
     mContainerThread->join();
 }
@@ -60,6 +64,16 @@ cms::amqp::ProtonCppLibrary &cms::amqp::ProtonCppLibrary::getInstance()
     static ProtonCppLibrary sInstance;
 
     return sInstance;
+}
+
+void cms::amqp::ProtonCppLibrary::on_container_start(proton::container& container)
+{
+    mLogger->log(SEVERITY::LOG_INFO, fmt::format("{}", __func__));
+}
+
+void cms::amqp::ProtonCppLibrary::on_container_stop(proton::container& container)
+{
+    mLogger->log(SEVERITY::LOG_INFO, fmt::format("{}", __func__));
 }
 
 void activemq::library::ActiveMQCPP::initialize_library()

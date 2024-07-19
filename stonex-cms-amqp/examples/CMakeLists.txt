@@ -7,5 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(send-receive)
 add_subdirectory(receiver)
 add_subdirectory(sender)
+add_subdirectory(ThreadSender)
+
 
 

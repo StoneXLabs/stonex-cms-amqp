@@ -45,9 +45,9 @@ AMQP_DEFINES
 	class CMS_API CMSConnection : public ::cms::Connection
 	{
 	public:
-		explicit CMSConnection(std::shared_ptr<FactoryContext> context);
-		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password);
-		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId);
+		explicit CMSConnection(std::shared_ptr<ConnectionImpl> impl);
+		/*CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password);
+		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId);*/
 
 		~CMSConnection() override = default;
 
@@ -77,9 +77,6 @@ AMQP_DEFINES
 
 		ClientState getState();
 		void setState(ClientState state);
-
-	protected:
-		std::shared_ptr<ConnectionContext> connectionContext() const;
 
 	private:
 		StonexLoggerPtr mLogger;

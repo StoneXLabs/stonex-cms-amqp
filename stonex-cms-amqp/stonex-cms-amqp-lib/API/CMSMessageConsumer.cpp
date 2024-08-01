@@ -24,54 +24,53 @@
 #include "MessageConsumerImpl.h"
 #include <API/CMSSession.h>
 
-cms::amqp::CMSMessageConsumer::CMSMessageConsumer(cms::amqp::CMSSession& parent, const ::cms::Destination* destination, std::shared_ptr<SessionContext> context)
-	:mPimpl(std::make_shared<MessageConsumerImpl>(destination, context->connection(), "")),
-	mParent(&parent),
+//cms::amqp::CMSMessageConsumer::CMSMessageConsumer(cms::amqp::CMSSession& parent, const ::cms::Destination* destination, std::shared_ptr<SessionContext> context)
+//	:mPimpl(std::make_shared<MessageConsumerImpl>(destination, context->connection(), "")),
+//	mParent(&parent),
+//	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSMessageConsumer"))
+//{
+//	if (parent.getState() == ClientState::STOPPED)
+//	{
+//		mPimpl->stop();
+//	}
+//	else
+//	{
+//		mPimpl->start();
+//
+//	}
+//}
+//
+//cms::amqp::CMSMessageConsumer::CMSMessageConsumer(cms::amqp::CMSSession& parent, const::cms::Destination* destination, const std::string& selector, std::shared_ptr<SessionContext> context)
+//	: mPimpl(std::make_shared<MessageConsumerImpl>(destination, context->connection(), selector)),
+//	mParent(&parent),
+//	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSMessageConsumer"))
+//{
+//	if (parent.getState() == ClientState::STOPPED)
+//	{
+//		mPimpl->stop();
+//	}
+//	else
+//	{
+//		mPimpl->start();
+//	}
+//}
+
+cms::amqp::CMSMessageConsumer::CMSMessageConsumer(std::shared_ptr<MessageConsumerImpl> impl)
+	: mPimpl(impl),
 	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSMessageConsumer"))
 {
-	if (parent.getState() == ClientState::STOPPED)
-	{
-		mPimpl->stop();
-	}
-	else
-	{
-		mPimpl->start();
-
-	}
-}
-
-cms::amqp::CMSMessageConsumer::CMSMessageConsumer(cms::amqp::CMSSession& parent, const::cms::Destination* destination, const std::string& selector, std::shared_ptr<SessionContext> context)
-	: mPimpl(std::make_shared<MessageConsumerImpl>(destination, context->connection(), selector)),
-	mParent(&parent),
-	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSMessageConsumer"))
-{
-	if (parent.getState() == ClientState::STOPPED)
-	{
-		mPimpl->stop();
-	}
-	else
-	{
-		mPimpl->start();
-	}
-}
-
-cms::amqp::CMSMessageConsumer::CMSMessageConsumer(cms::amqp::CMSSession& parent, const::cms::Destination* destination, const std::string& name, const std::string& selector, std::shared_ptr<SessionContext> context)
-	: mPimpl(std::make_shared<MessageConsumerImpl>(destination, name, context->connection(),context->isDurable(), context->isShared(), context->isAutoAck(), selector)),
-	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSMessageConsumer"))
-{
-	if (parent.getState() == ClientState::STOPPED)
-	{
-		mPimpl->stop();
-	}
-	else
-	{
-		mPimpl->start();
-	}
+	//if (parent.getState() == ClientState::STOPPED)
+	//{
+	//	mPimpl->stop();
+	//}
+	//else
+	//{
+	//	mPimpl->start();
+	//}
 }
 
 cms::amqp::CMSMessageConsumer::~CMSMessageConsumer()
 {
-	mParent->removeChild(*this);
 }
 
 ::cms::Message*  cms::amqp::CMSMessageConsumer::receive()

@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cms/ConnectionFactory.h>
+#include "ConnectionImpl.h"
 
 #include "../API/ConnectionContext.h"
 #include <logger/StoneXLogger.h>
@@ -29,11 +30,16 @@ namespace cms::amqp
 	class ConnectionFactoryImpl :  public std::enable_shared_from_this<ConnectionFactoryImpl>
 	{
 	public:
-		explicit ConnectionFactoryImpl(const std::string& brokerURI, const std::string& user = "", const std::string& password = "");
+		explicit ConnectionFactoryImpl(const std::string& brokerURI);
 		~ConnectionFactoryImpl() = default;
+
+		ConnectionContext createConnectionContext();
+		ConnectionContext createConnectionContext(const std::string& username, const std::string& password);
+		ConnectionContext createConnectionContext(const std::string& username, const std::string& password, const std::string& clientId);
 	
 	private:
 		StonexLoggerPtr mLogger;
+		FactoryContext mContext;
 	};
 };
 

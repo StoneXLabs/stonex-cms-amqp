@@ -45,9 +45,9 @@ namespace cms::amqp
 	class ConnectionImpl : public proton::messaging_handler
 	{
 	public:
-		ConnectionImpl(const FactoryContext& context);
+		ConnectionImpl(const ConnectionContext& context);
 
-		ConnectionImpl(const std::string& id, const FactoryContext& context);
+	//	ConnectionImpl(const std::string& id, const FactoryContext& context);
 
 		//!Constructor
 		/*!Create instance of CMS connection
@@ -110,19 +110,20 @@ namespace cms::amqp
 		void on_connection_close(proton::connection& connection) override;
 		void on_connection_error(proton::connection& connection) override;
 
-		std::shared_ptr<proton::connection> connection() const { return mConnection; }
+//		std::shared_ptr<proton::connection> connection() const { return mConnection; }
 
 	private:
 		bool syncClose();
-	private:
+//	private:
+	public:
 		StonexLoggerPtr mLogger;
 		ClientState mState = ClientState::UNNINITIALIZED;
 		cms::internal::AsyncCallSynchronizer mEXHandler;
 		const std::string mConnectionId;
 		std::string mBrokerUrl;
-		std::shared_ptr<proton::connection> mConnection;
+//		std::shared_ptr<proton::connection> mConnection;
 		::cms::ExceptionListener* mExceptionListener{ nullptr };
-		FactoryContext mContext;
+		ConnectionContext mContext;
 
 	};
 

@@ -32,13 +32,12 @@
 AMQP_DEFINES
 
 
-	class SessionContext;
 	class MessageProducerImpl;
 
 	class CMS_API CMSMessageProducer : public ::cms::MessageProducer
 	{
 	public:
-		CMSMessageProducer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context);
+		CMSMessageProducer(std::shared_ptr<MessageProducerImpl> impl);
 		~CMSMessageProducer() override = default;
 
 		void send(::cms::Message* mes) override;

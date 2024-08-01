@@ -24,6 +24,8 @@
 #include "ConnectionContext.h"
 #include <API/CMSConnection.h>
 #include "SessionImpl.h"
+#include "MessageConsumerImpl.h"
+#include "MessageProducerImpl.h"
 
 #include "CMSQueue.h"
 #include "CMSTopic.h"
@@ -36,29 +38,25 @@
 #include "CMSTextMessage.h"
 #include "CMSBytesMessage.h"
 
-cms::amqp::CMSSession::CMSSession(cms::amqp::CMSConnection& parent, const ConnectionContext& cntx)
-	:CMSSession(parent, cntx, cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE)
-{
-	if (mParent->getState() == ClientState::STOPPED)
-	{
-		stop();
-	}
-}
+//cms::amqp::CMSSession::CMSSession(cms::amqp::CMSConnection& parent, const ConnectionContext& cntx)
+//	:CMSSession(parent, cntx, cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE)
+//{
+//	if (mParent->getState() == ClientState::STOPPED)
+//	{
+//		stop();
+//	}
+//}
 
-cms::amqp::CMSSession::CMSSession(cms::amqp::CMSConnection& parent, const ConnectionContext& cntx, const ::cms::Session::AcknowledgeMode ackMode)
-	: mPimpl(std::make_shared<SessionImpl>(cntx.connection(),ackMode)),
-	mParent(&parent),
+cms::amqp::CMSSession::CMSSession(std::shared_ptr<SessionImpl> impl)
+	: mPimpl(impl),
 	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSSession"))
 {
-	if (mParent->getState() == ClientState::STOPPED)
-	{
-		stop();
-	}
+
 }
 
 cms::amqp::CMSSession::~CMSSession()
 {
-	mParent->removeChild(*this);
+	
 }
 
 void cms::amqp::CMSSession::close()
@@ -118,14 +116,19 @@ void cms::amqp::CMSSession::removeChild(cms::amqp::CMSMessageConsumer& child)
 cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destination* destination)
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating consumer. destination: {}",destination->getDestinationType()));
-	return mConsumers.emplace_back(new CMSMessageConsumer(*this, destination, std::make_shared<SessionContext>(mPimpl->session(), false, false, true)));
+	ConsumerContext context(mPimpl->mContext,false, false, destination);
+	std::shared_ptr<MessageConsumerImpl> consumer = std::make_shared<MessageConsumerImpl>(context);
+	return mConsumers.emplace_back(new CMSMessageConsumer(consumer));
 
 }
 
 cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destination* destination, const std::string& selector)
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating consumer. destination: {} selector: {}", destination->getDestinationType(), selector));
-	return mConsumers.emplace_back(new CMSMessageConsumer(*this, destination, selector, std::make_shared<SessionContext>(mPimpl->session(), false, false, mPimpl->ackMode() == ::cms::Session::AUTO_ACKNOWLEDGE)));
+	ConsumerContext context(mPimpl->mContext, false, false, destination);
+	std::shared_ptr<MessageConsumerImpl> consumer = std::make_shared<MessageConsumerImpl>(context);
+	return mConsumers.emplace_back(new CMSMessageConsumer(consumer));
+//	return mConsumers.emplace_back(new CMSMessageConsumer(*this, destination, selector, std::make_shared<SessionContext>(mPimpl->session(), false, false, mPimpl->ackMode() == ::cms::Session::AUTO_ACKNOWLEDGE)));
 }
 
 cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destination* destination, const std::string& selector, bool noLocal)
@@ -138,13 +141,21 @@ cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destina
 cms::MessageConsumer* cms::amqp::CMSSession::createDurableConsumer(const ::cms::Topic* destination, const std::string& name, const std::string& selector, bool noLocal)
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating durable consumer. destination: {} selector: {} noLocal: {}", destination->getDestinationType(), selector, noLocal));
-	return mConsumers.emplace_back(new CMSMessageConsumer(*this, destination, name, selector, std::make_shared<SessionContext>(mPimpl->session(), true, false, mPimpl->ackMode() == ::cms::Session::AUTO_ACKNOWLEDGE)));
+
+	ConsumerContext context(mPimpl->mContext, false, false, destination);
+	std::shared_ptr<MessageConsumerImpl> consumer = std::make_shared<MessageConsumerImpl>(context);
+	return mConsumers.emplace_back(new CMSMessageConsumer(consumer));
+//	return mConsumers.emplace_back(new CMSMessageConsumer(*this, destination, name, selector, std::make_shared<SessionContext>(mPimpl->session(), true, false, mPimpl->ackMode() == ::cms::Session::AUTO_ACKNOWLEDGE)));
 }
 
 cms::MessageProducer* cms::amqp::CMSSession::createProducer(const ::cms::Destination* destination)
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating producer. destination: {}", destination->getDestinationType()));
-	return new CMSMessageProducer(destination, std::make_shared<SessionContext>(mPimpl->session(), false, false, true));
+
+	ProducerContext context(mPimpl->mContext, destination);
+	std::shared_ptr<MessageProducerImpl> producer = std::make_shared<MessageProducerImpl>(context);
+	return mProducers.emplace_back(new CMSMessageProducer(producer));
+//	return new CMSMessageProducer(destination, std::make_shared<SessionContext>(mPimpl->session(), false, false, true));
 }
 
 cms::QueueBrowser* cms::amqp::CMSSession::createBrowser(const ::cms::Queue* queue)
@@ -281,11 +292,11 @@ cms::MessageTransformer* cms::amqp::CMSSession::getMessageTransformer() const
 }
 
 
-std::shared_ptr<cms::amqp::SessionContext> cms::amqp::CMSSession::createSessionContext(bool durable, bool shared, bool auto_ack) const
-{
-	mLogger->log(SEVERITY::LOG_DEBUG, fmt::format("create session context: durable: {} shared: {} auto_ack: {}", durable, shared, auto_ack));
-	return std::make_shared<cms::amqp::SessionContext>(mPimpl->session(), durable, shared, auto_ack);
-}
+//cms::amqp::SessionContext cms::amqp::CMSSession::createSessionContext(bool durable, bool shared, bool auto_ack) const
+//{
+//	mLogger->log(SEVERITY::LOG_DEBUG, fmt::format("create session context: durable: {} shared: {} auto_ack: {}", durable, shared, auto_ack));
+//	return cms::amqp::SessionContext(mPimpl->mContext, auto_ack);
+//}
 
 
 void cms::amqp::CMSSession::setState(ClientState state)

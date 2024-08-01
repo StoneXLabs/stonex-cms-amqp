@@ -8,7 +8,7 @@
 #include <log4cxx/xml/domconfigurator.h>
 
 #include <stdlib.h>
-
+#include <csignal>
 class ParameterParser
 {
 public:
@@ -110,37 +110,30 @@ int main(int argc, char* argv[])
 
 	std::thread senderThread([&]() {
 
-		for (int i = 1;;)
+		for (int i = 1;i < 100;i++)
 		{
 			processor.SendMessage("Hello");
 
-			if (i % 10 == 0)
-				throw std::exception("test crash");
+	//		if (i % 10 == 0)
+	//			throw std::exception("test crash");
 
 		}
 	});
 
 	std::thread senderThread2([&]() {
-
-		for (int i = 1;i; i++)
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-			if (i % 10 == 0)
-			{
-	//			processor.CloseProducer();
-		//		abort();
-		//		throw std::exception("test crash");
-			}
-
-		}
+		std::this_thread::sleep_for(std::chrono::seconds(4));
+		raise(SIGSEGV);
 	});
 
-	senderThread2.join();
+//	senderThread2.join();
 
 //	throw std::exception("test crash");
 //	cms::Session* ts;
 //	ts->close();
+	//if(senderThread2.joinable())
+	//	senderThread2.join();
+	//if (senderThread.joinable())
+	//	senderThread.join();
 //	while (1) {};
 //	processor.SendMessage("Hello");
 	return 0;

@@ -25,9 +25,8 @@
 #include "ProtonCppLibrary.h"
 #include <fmt/format.h>
 
-cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerURI, const std::string& user, const std::string& password)
-	:mPimpl(std::make_shared<ConnectionFactoryImpl>(brokerURI, user, password)),
-	mContext(std::make_shared<FactoryContext>(brokerURI, user, password, 0, ProtonCppLibrary::getContainer())),
+cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerURI)
+	:mPimpl(std::make_shared<ConnectionFactoryImpl>(brokerURI)),
 	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnectionFactory"))
 {
 }
@@ -36,7 +35,8 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 {
 	try
 	{
-		return new CMSConnection(mContext);
+		std::shared_ptr<ConnectionImpl> connection = std::make_shared<ConnectionImpl>(mPimpl->createConnectionContext());
+		return new CMSConnection(connection);
 	}
 	catch (const ::cms::CMSException& ex)
 	{
@@ -51,7 +51,8 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 	try
 	{
 		mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating connection user {}",username));
-		return new CMSConnection(mContext, username, password);
+		std::shared_ptr<ConnectionImpl> connection = std::make_shared<ConnectionImpl>(mPimpl->createConnectionContext(username, password));
+		return new CMSConnection(connection);
 	}
 	catch (const ::cms::CMSException& ex)
 	{
@@ -68,8 +69,8 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 	{
 
 		mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating connection user {} clientId {}", username, clientId));
-		mContext->updateCotainerId(clientId);
-		return new CMSConnection(mContext, username, password);
+		std::shared_ptr<ConnectionImpl> connection = std::make_shared<ConnectionImpl>(mPimpl->createConnectionContext(username, password, clientId));
+		return new CMSConnection(connection);
 	}
 	catch (const ::cms::CMSException& ex)
 	{
@@ -109,7 +110,7 @@ cms::MessageTransformer* cms::amqp::CMSConnectionFactory::getMessageTransformer(
 	return new CMSConnectionFactory(brokerURI);
 }
 
-std::shared_ptr<cms::amqp::FactoryContext> cms::amqp::CMSConnectionFactory::context() const
-{
-	return mContext;
-};
+//std::shared_ptr<cms::amqp::FactoryContext> cms::amqp::CMSConnectionFactory::context() const
+//{
+//	return mContext;
+//};

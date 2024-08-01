@@ -30,15 +30,11 @@
 #include <fmt/format.h>
 
 #include <sstream>
+#include "ProtonCppLibrary.h"
 
-cms::amqp::FactoryContext::FactoryContext(const std::string& url, const std::string& user, const std::string& password, const std::vector<std::string>& failover_urls, int reconnect_attempts, std::shared_ptr<proton::container> container)
-	: mBroker{ url }, mUser{ user }, mPassword{ password }, mFailoverAddresses{ failover_urls }, mReconnectAttempts{ reconnect_attempts }, mContainer{ container }
+cms::amqp::FactoryContext::FactoryContext(const std::string& url)
 {
-}
-
-cms::amqp::FactoryContext::FactoryContext(const std::string& url, const std::string& user, const std::string& password, int reconnect_attempts, std::shared_ptr<proton::container> container)
-	: mUser{ user }, mPassword{ password }, mReconnectAttempts{reconnect_attempts}, mContainer{ container }
-{
+	mContainer = ProtonCppLibrary::getContainer();
 	URIParser parser;
 	mParameters = parser.parseURI(url);
 	mBroker = mParameters.url_vec[0];
@@ -69,40 +65,40 @@ cms::amqp::FactoryContext& cms::amqp::FactoryContext::updateCotainerId(const std
 	return *this;
 }
 
-void cms::amqp::FactoryContext::requestBrokerConnection(proton::messaging_handler *handler)
-{
-	proton::connection_options co;
-	co.user(mUser);
-	co.password(mPassword);
-	co.sasl_allow_insecure_mechs(true);
-	co.sasl_allowed_mechs("PLAIN");
-	co.handler(*handler);
-
-	if (!mConnectionId.empty())
-		co.container_id(mConnectionId);
-	
-// no idea how to map
-//	co.idle_timeout(proton::duration(1 * 2));
-
-	//from URL
-	
-	
-	proton::reconnect_options rco;
-	
-	rco.failover_urls(mFailoverAddresses);
-
-	//fromURL
-	rco.delay(proton::duration(mParameters.failoverOptrions.initialReconnectDelay));
-	rco.max_delay(proton::duration(mParameters.failoverOptrions.maxReconnectDelay));
-	rco.max_attempts(mParameters.failoverOptrions.maxReconnectAttempts);
-	
-	
-	co.reconnect(rco);
-	co.desired_capabilities({ "ANONYMOUS-RELAY" });
-
-	mContainer->connect(mBroker, co);
-
-}
+//void cms::amqp::FactoryContext::requestBrokerConnection(proton::messaging_handler *handler)
+//{
+//	proton::connection_options co;
+//	co.user(mUser);
+//	co.password(mPassword);
+//	co.sasl_allow_insecure_mechs(true);
+//	co.sasl_allowed_mechs("PLAIN");
+//	co.handler(*handler);
+//
+//	if (!mConnectionId.empty())
+//		co.container_id(mConnectionId);
+//	
+//// no idea how to map
+////	co.idle_timeout(proton::duration(1 * 2));
+//
+//	//from URL
+//	
+//	
+//	proton::reconnect_options rco;
+//	
+//	rco.failover_urls(mFailoverAddresses);
+//
+//	//fromURL
+//	rco.delay(proton::duration(mParameters.failoverOptrions.initialReconnectDelay));
+//	rco.max_delay(proton::duration(mParameters.failoverOptrions.maxReconnectDelay));
+//	rco.max_attempts(mParameters.failoverOptrions.maxReconnectAttempts);
+//	
+//	
+//	co.reconnect(rco);
+//	co.desired_capabilities({ "ANONYMOUS-RELAY" });
+//
+//	mContainer->connect(mBroker, co);
+//
+//}
 
 std::shared_ptr<proton::container> cms::amqp::FactoryContext::container() 
 {
@@ -114,11 +110,12 @@ std::string cms::amqp::FactoryContext::broker() const
 	return mBroker;
 }
 
-std::string cms::amqp::FactoryContext::failoverAddresses() const
+std::vector<std::string> cms::amqp::FactoryContext::failoverAddresses() const
 {
-	std::ostringstream ss;
-	std::copy(std::cbegin(mFailoverAddresses), std::cend(mFailoverAddresses), std::ostream_iterator<std::string>(ss, ","));
-	return ss.str();
+	//std::ostringstream ss;
+	//std::copy(std::cbegin(mFailoverAddresses), std::cend(mFailoverAddresses), std::ostream_iterator<std::string>(ss, ","));
+	//return ss.str();
+	return mFailoverAddresses;
 }
 
 std::string cms::amqp::FactoryContext::user() const

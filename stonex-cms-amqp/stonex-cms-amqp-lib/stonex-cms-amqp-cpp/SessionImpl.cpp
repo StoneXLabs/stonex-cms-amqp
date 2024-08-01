@@ -50,12 +50,12 @@ class StreamMessage : public cms::StreamMessage {};
 
 
 
-cms::amqp::SessionImpl::SessionImpl(std::shared_ptr<proton::connection>  connection, ::cms::Session::AcknowledgeMode ack_mode)
+cms::amqp::SessionImpl::SessionImpl(const SessionContext& context)
 	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.SessionImpl")),
 	mEXHandler(mLogger),
-	mACKMode{ack_mode}
+	mContext(context)
 {
-	mEXHandler.SynchronizeCall(std::bind(&SessionImpl::syncStart, this, std::placeholders::_1), connection);
+	mEXHandler.SynchronizeCall(std::bind(&SessionImpl::syncStart, this, std::placeholders::_1), mContext.connection());
 }
 
 cms::amqp::SessionImpl::~SessionImpl()
@@ -86,7 +86,7 @@ void cms::amqp::SessionImpl::recover()
 
 ::cms::Session::AcknowledgeMode cms::amqp::SessionImpl::ackMode()
 {
-	return mACKMode;
+	return {};
 }
 
 

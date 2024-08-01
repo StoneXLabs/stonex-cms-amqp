@@ -41,81 +41,22 @@
 
 #include <LoggerFactory/LoggerFactory.h>
 
-cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, const std::string& selector)
-	:MessageConsumerImpl(destination, {}, session,false,false,true,selector)
-{
+//cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, const std::string& selector)
+//	:MessageConsumerImpl(destination, {}, session,false,false,true,selector)
+//{
+//
+//}
 
-}
-
-cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable, bool shared, bool autoAck, const std::string& selector)
+cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ConsumerContext& context)
 	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.MessageConsumerImpl")),
-	mEXHandler(mLogger)
+	mEXHandler(mLogger),
+	mContext(context)
 {
-	mRopts.handler(*this);
-	proton::source_options sopts{};
-	std::string address;
-
-	switch (auto destType = destination->getDestinationType())
-	{
-	case ::cms::Destination::DestinationType::QUEUE:
-		address = dynamic_cast<const CMSQueue*>(destination)->getQueueName();
-		if (destAddressParser.isShared(address)/*shared*/)
-		{
-			sopts.capabilities(std::vector<proton::symbol> { "queue", "shared" });
-		}
-		else
-			sopts.capabilities(std::vector<proton::symbol> { "queue" });
-		break;
-	case ::cms::Destination::DestinationType::TOPIC:
-		address = dynamic_cast<const CMSTopic*>(destination)->getTopicName();
-		sopts.capabilities(std::vector<proton::symbol> { "topic" });
-		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
-		address = dynamic_cast<const CMSTemporaryQueue*>(destination)->getQueueName();
-		sopts.capabilities(std::vector<proton::symbol> { "temporary-queue", "delete-on-close"});
-		sopts.dynamic(true); //taret or source options
-		sopts.expiry_policy(proton::terminus::expiry_policy::LINK_CLOSE); //according to documentation should be link detatch!!!!
-		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
-		address = dynamic_cast<const CMSTemporaryTopic*>(destination)->getTopicName();
-		sopts.capabilities(std::vector<proton::symbol> { "temporary-topic", "delete-on-close"});
-		sopts.dynamic(true); //taret or source options
-		sopts.expiry_policy(proton::terminus::expiry_policy::LINK_CLOSE);
-		break;
-	}
-
-	if (!name.empty()) 
-		mRopts.name(name);
-
-	if (durable) 
-	{
-		//configure durable subscription
-		sopts.durability_mode(proton::source::UNSETTLED_STATE);
-		sopts.expiry_policy(proton::source::NEVER);
-	}
-
-	if (!selector.empty())
-	{
-		proton::source::filter_map _filters;
-		proton::symbol filter_key("selector");
-		proton::value filter_value;
-		// The value is a specific CMS "described type": binary string with symbolic descriptor
-		proton::codec::encoder enc(filter_value);
-		enc << proton::codec::start::described()
-			<< proton::symbol("apache.org:selector-filter:string")
-			<< selector
-			<< proton::codec::finish();
-		// In our case, the map has this one element
-		_filters.put(filter_key, filter_value);
-		sopts.filters(_filters);
-	}
-	
-	mRopts.auto_accept(autoAck);
-	mRopts.source(sopts);
-	mRopts.credit_window(0);
+	proton::receiver_options ropts = mContext.config();
+	ropts.handler(*this);
 
 	//waiting until all relevant resources is initialized
-	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncCreate, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, mRopts, session);
+//	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncCreate, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, mRopts, session);
 }
 
 cms::amqp::MessageConsumerImpl::~MessageConsumerImpl()
@@ -291,7 +232,8 @@ bool cms::amqp::MessageConsumerImpl::syncCreate(const std::string& address, cons
 	mLogger->log(SEVERITY::LOG_TRACE, fmt::format(" {} address {}", __func__, address));
 #endif
 
-	return session->connection().work_queue().add([=] {session->open_receiver(address, mRopts); });
+//	return session->connection().work_queue().add([=] {session->open_receiver(address, mRopts); });
+	return false;
 }
 
 bool cms::amqp::MessageConsumerImpl::syncClose()

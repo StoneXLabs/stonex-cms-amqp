@@ -34,6 +34,7 @@
 #include "AMQPIDGenerator.h"
 #include "../API/ClientState.h"
 #include <logger/StoneXLogger.h>
+#include "../API/ConnectionContext.h"
 
 namespace cms::amqp
 {
@@ -47,7 +48,7 @@ namespace cms::amqp
 			std::shared_ptr <proton::message> from_cms_message(::cms::Message* message);
 		};
 	public:
-		MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session);
+		MessageProducerImpl(const ProducerContext& context);
 		~MessageProducerImpl();
 		void send(::cms::Message* message);
 		void send(::cms::Message* message, ::cms::AsyncCallback* onComplete);
@@ -95,6 +96,7 @@ namespace cms::amqp
 		std::unique_ptr<proton::sender> mProtonSender;
 		cms::internal::AsyncCallSynchronizer mEXHandler;
 		MessageConverter mConverter;
+		ProducerContext mContext;
 
 		::cms::DeliveryMode::DELIVERY_MODE mDeliveryMode = (::cms::DeliveryMode::DELIVERY_MODE)::cms::Message::DEFAULT_DELIVERY_MODE;
 		bool mMessageIdDisabed{ false };

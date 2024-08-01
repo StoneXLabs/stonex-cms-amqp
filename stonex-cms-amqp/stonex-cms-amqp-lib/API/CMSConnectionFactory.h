@@ -36,7 +36,7 @@ AMQP_DEFINES
 	{
 	public:
 
-		explicit CMSConnectionFactory(const std::string& brokerURI, const std::string& user = "", const std::string& password = "");
+		explicit CMSConnectionFactory(const std::string& brokerURI);
 
 		~CMSConnectionFactory() override = default;
 
@@ -57,12 +57,11 @@ AMQP_DEFINES
 
 		static ::cms::ConnectionFactory* createCMSConnectionFactory(const std::string& brokerURI);
 
-	protected:
-		std::shared_ptr<FactoryContext> context() const;
+	//protected:
+	//	std::shared_ptr<FactoryContext> context() const;
 
 	private:
 		StonexLoggerPtr mLogger;
-		std::shared_ptr<FactoryContext> mContext;
 		std::shared_ptr<ConnectionFactoryImpl> mPimpl;
 		::cms::ExceptionListener* mExceptionListener{ nullptr };
 		::cms::MessageTransformer* mMessageTransformer{ nullptr };

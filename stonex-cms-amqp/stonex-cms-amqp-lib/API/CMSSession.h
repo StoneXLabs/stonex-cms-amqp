@@ -41,8 +41,7 @@ AMQP_DEFINES
 	{
 
 	public:
-		explicit CMSSession(CMSConnection& parent, const cms::amqp::ConnectionContext& cntx);
-		explicit CMSSession(CMSConnection& parent, const cms::amqp::ConnectionContext& cntx, const ::cms::Session::AcknowledgeMode ackMode);
+		explicit CMSSession(std::shared_ptr<SessionImpl> impl);
 		virtual ~CMSSession();
 
 		void close() override;
@@ -95,13 +94,12 @@ AMQP_DEFINES
 		void setState(ClientState state);
 
 
-	protected:
-		std::shared_ptr<SessionContext> createSessionContext(bool durable, bool shared, bool auto_ack) const;
+	//protected:
+	//	SessionContext createSessionContext(bool durable, bool shared, bool auto_ack) const;
 
 	private:
 		StonexLoggerPtr mLogger;
 		std::shared_ptr<SessionImpl> mPimpl;
-		cms::amqp::CMSConnection* mParent;
 		std::vector<CMSMessageConsumer*> mConsumers;
 		std::vector<CMSMessageProducer*> mProducers;
 	};

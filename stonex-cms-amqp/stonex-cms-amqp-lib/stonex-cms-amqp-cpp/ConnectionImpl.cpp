@@ -32,25 +32,25 @@
 
 #include <fmt/format.h>
 
- cms::amqp::ConnectionImpl::ConnectionImpl(const FactoryContext& context)
-	:mContext{ context },
-	 mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.CMSConnectionFactory")),
-	 mEXHandler(mLogger)
-{	
-	mLogger->log(SEVERITY::LOG_INFO, fmt::format("request amqp connection: {} failover {} user {} clientId {}", mContext.broker(), mContext.failoverAddresses(), mContext.user(), mConnectionId));
-
-	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
-}
-
- cms::amqp::ConnectionImpl::ConnectionImpl(const std::string& id, const FactoryContext& context)
-	 :mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnectionFactory")),
+ cms::amqp::ConnectionImpl::ConnectionImpl(const ConnectionContext& context)
+	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.CMSConnectionFactory")),
 	 mEXHandler(mLogger),
-	 mConnectionId{id},
-	 mContext{context}
-{
-	mLogger->log(SEVERITY::LOG_INFO, fmt::format("request amqp connection: {} failover {} user {} clientId {}", mContext.broker(),mContext.failoverAddresses(), mContext.user(), mConnectionId));
-	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
+	 mContext(context)
+{	
+//	mLogger->log(SEVERITY::LOG_INFO, fmt::format("request amqp connection: {} failover {} user {} clientId {}", mContext.broker(), mContext.failoverAddresses(), mContext.user(), mConnectionId));
+
+//	mEXHandler.SynchronizeCall(std::bind(&ConnectionContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
 }
+
+// cms::amqp::ConnectionImpl::ConnectionImpl(const std::string& id, const FactoryContext& context)
+//	 :mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnectionFactory")),
+//	 mEXHandler(mLogger),
+//	 mConnectionId{id},
+//	 mContext{context}
+//{
+//	mLogger->log(SEVERITY::LOG_INFO, fmt::format("request amqp connection: {} failover {} user {} clientId {}", mContext.broker(),mContext.failoverAddresses(), mContext.user(), mConnectionId));
+//	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
+//}
 
 
 
@@ -61,7 +61,7 @@
 
 void  cms::amqp::ConnectionImpl::close()
 {
-	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} closing connection: {} ", __func__, mContext.broker()));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} closing connection: {} ", __func__, mContext.mPrimaryUrl));
 	if(mState == ClientState::STARTED || mState == ClientState::STOPPED)
 		mEXHandler.SynchronizeCall(std::bind(&ConnectionImpl::syncClose,this));
 
@@ -69,7 +69,7 @@ void  cms::amqp::ConnectionImpl::close()
 	
 std::string  cms::amqp::ConnectionImpl::getClientID() const
 {
-	return mConnection->container_id();
+	return mContext.mConnection->container_id();
 }
 
 void  cms::amqp::ConnectionImpl::setClientID(const std::string& clientID)
@@ -116,7 +116,7 @@ void  cms::amqp::ConnectionImpl::on_connection_open(proton::connection& connecti
 	else
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} auto reconnected : {} {}", __func__, connection.reconnected(), err.what()));
 
-	mConnection  = std::make_shared<proton::connection>(connection);
+	mContext.mConnection  = std::make_shared<proton::connection>(connection);
 
 	//connection is created in stopped state
 	setState(ClientState::STOPPED);
@@ -143,9 +143,9 @@ void  cms::amqp::ConnectionImpl::on_connection_error(proton::connection& connect
 bool  cms::amqp::ConnectionImpl::syncClose()
 {
 	bool ok{ false };
-	if (mConnection && !mConnection->closed())
+	if (mContext.mConnection && mContext.mConnection->closed())
 	{
-		ok = mConnection->work_queue().add([=] {mConnection->close(); });
+		ok = mContext.mConnection->work_queue().add([=] {mContext.mConnection->close(); });
 	}
 
 	return ok;

@@ -38,7 +38,7 @@ namespace cms::amqp
 	class SessionImpl : public proton::messaging_handler
 	{
 	public:
-		explicit SessionImpl(std::shared_ptr<proton::connection>  connection, ::cms::Session::AcknowledgeMode ack_mode = ::cms::Session::AUTO_ACKNOWLEDGE);
+		explicit SessionImpl(const SessionContext& context);
 		~SessionImpl();
 
 		void close();
@@ -62,12 +62,13 @@ namespace cms::amqp
 		bool syncStart(std::shared_ptr<proton::connection>  connection);
 		bool syncStop();
 
-	private:
+	//private:
+	public:
 		StonexLoggerPtr mLogger;
 		ClientState mState;
 		std::shared_ptr<proton::session> mSession;
 		cms::internal::AsyncCallSynchronizer mEXHandler;
-		const ::cms::Session::AcknowledgeMode mACKMode;
+		SessionContext mContext;
 	};
 
 };

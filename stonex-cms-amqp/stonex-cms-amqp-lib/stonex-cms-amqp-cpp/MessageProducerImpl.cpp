@@ -48,50 +48,14 @@ constexpr std::string_view TOPIC_CAPABILITY = "topic";
 constexpr std::string_view TEMPORARY_QUEUE_CAPABILITY = "temporary-queue";
 constexpr std::string_view TEMPORARY_TOPIC_CAPABILITY = "temporary-topic";
 
-cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session)
+cms::amqp::MessageProducerImpl::MessageProducerImpl(const ProducerContext& context)
 	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.MessageProducerImpl")),
-	mEXHandler(mLogger)
+	mEXHandler(mLogger),
+	mContext(context)
 {
-	proton::sender_options opts;
+	proton::sender_options opts = mContext.config();
 	opts.handler(*this);
-	proton::target_options topts{};
-	std::string address;
-
-	if (destination) 
-	{
-		switch (auto destType = destination->getDestinationType())
-		{
-		case ::cms::Destination::DestinationType::QUEUE:
-			address = dynamic_cast<const CMSQueue*>(destination)->getQueueName();
-			topts.capabilities(std::vector<proton::symbol> { "queue" });
-			break;
-		case ::cms::Destination::DestinationType::TOPIC:
-			address = dynamic_cast<const CMSTopic*>(destination)->getTopicName();
-			topts.capabilities(std::vector<proton::symbol> { "topic" });
-			break;
-		case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
-			address = dynamic_cast<const CMSTemporaryQueue*>(destination)->getQueueName();
-			topts.capabilities(std::vector<proton::symbol> { "temporary-queue", "delete-on-close" });
-			if (address.empty())
-				topts.dynamic(true); //taret or source options
-			topts.expiry_policy(proton::terminus::expiry_policy::LINK_CLOSE); //according to documentation should be link detatch!!!!
-			break;
-		case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
-			address = dynamic_cast<const CMSTemporaryTopic*>(destination)->getTopicName();
-			topts.capabilities(std::vector<proton::symbol> { "temporary-topic", "delete-on-close" });
-			topts.dynamic(true); //taret or source options
-			topts.expiry_policy(proton::terminus::expiry_policy::LINK_CLOSE); //according to documentation should be link detatch!!!!
-			break;
-
-		}
-	}
-	else 
-	{
-		topts.capabilities(std::vector<proton::symbol> { "queue" });
-	}
-
-	opts.target(topts);	
-	mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncCreate, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, opts, session);
+//	mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncCreate, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, opts, session);
 }
 
 cms::amqp::MessageProducerImpl::~MessageProducerImpl()

@@ -35,8 +35,10 @@ void MessageProcessor::SendMessage(const std::string& message)
 {
 	if (session && producer)
 	{
-
-		cms::TextMessage* mess = session->createTextMessage(message);
+		auto ptr = reinterpret_cast<unsigned char*>(std::malloc(1024 * sizeof(unsigned char)));
+		cms::BytesMessage* mess = session->createBytesMessage(ptr,1024);
+		std::free(ptr);
+	//	cms::TextMessage* mess = session->createTextMessage(message);
 		producer->send(mess);
 		delete mess;
 	}

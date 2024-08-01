@@ -30,26 +30,34 @@
 #include <algorithm>
 #include <vector>
 
-cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context)
-	:mPimpl{ std::make_shared<ConnectionImpl>(*context)},
-	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnection" + context->broker()))
+//cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context)
+//	:mPimpl{ std::make_shared<ConnectionImpl>(*context)},
+//	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnection" + context->broker()))
+//{
+//	mLogger->log(SEVERITY::LOG_INFO, fmt::format("created connection {}", context->broker()));
+//}
+//
+//cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password)
+//	: mPimpl{ std::make_shared<ConnectionImpl>((*context).updateUser(username).updatePassword(password)) },
+//	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnection" + context->broker()))
+//{
+//	mLogger->log(SEVERITY::LOG_INFO, fmt::format("created connection {} user {}", context->broker(), username));
+//}
+//
+//cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId)
+//	: mPimpl{ std::make_shared<ConnectionImpl>(clientId, (*context).updateUser(username).updatePassword(password))},
+//	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnection" + context->broker()))
+//{
+//	mLogger->log(SEVERITY::LOG_INFO, fmt::format("created connection {} user {} clientId {}", context->broker(), username, clientId));
+//}
+
+cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<ConnectionImpl> impl)
+	:mPimpl(impl),
+	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnection"))
 {
-	mLogger->log(SEVERITY::LOG_INFO, fmt::format("created connection {}", context->broker()));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("created connection"));
 }
 
-cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password)
-	: mPimpl{ std::make_shared<ConnectionImpl>((*context).updateUser(username).updatePassword(password)) },
-	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnection" + context->broker()))
-{
-	mLogger->log(SEVERITY::LOG_INFO, fmt::format("created connection {} user {}", context->broker(), username));
-}
-
-cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId)
-	: mPimpl{ std::make_shared<ConnectionImpl>(clientId, (*context).updateUser(username).updatePassword(password))},
-	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnection" + context->broker()))
-{
-	mLogger->log(SEVERITY::LOG_INFO, fmt::format("created connection {} user {} clientId {}", context->broker(), username, clientId));
-}
 
 void cms::amqp::CMSConnection::close()
 {
@@ -88,14 +96,18 @@ const ::cms::ConnectionMetaData* cms::amqp::CMSConnection::getMetaData() const
 cms::Session* cms::amqp::CMSConnection::createSession()
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("createSession ACK_MODE {}", cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE));
-	return mSessions.emplace_back(new CMSSession(*this, ConnectionContext(mPimpl->connection()), cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE));
+	SessionContext context(mPimpl->mContext, true);
+	std::shared_ptr<SessionImpl> session = std::make_shared<SessionImpl>(context);
+	return mSessions.emplace_back(new CMSSession(session));
 	
 }
 
 cms::Session* cms::amqp::CMSConnection::createSession(::cms::Session::AcknowledgeMode ackMode)
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("createSession ACK_MODE {}", ackMode));
-	return mSessions.emplace_back(new CMSSession(*this, ConnectionContext(mPimpl->connection()), ackMode));
+	SessionContext context(mPimpl->mContext, ackMode);
+	std::shared_ptr<SessionImpl> session = std::make_shared<SessionImpl>(context);
+	return mSessions.emplace_back(new CMSSession(session));
 }
 
 std::string cms::amqp::CMSConnection::getClientID() const
@@ -129,11 +141,6 @@ void cms::amqp::CMSConnection::setMessageTransformer(::cms::MessageTransformer* 
 cms::MessageTransformer* cms::amqp::CMSConnection::getMessageTransformer() const
 {
 	return mPimpl->getMessageTransformer();
-}
-
-std::shared_ptr <cms::amqp::ConnectionContext> cms::amqp::CMSConnection::connectionContext() const
-{
-	return std::make_shared<cms::amqp::ConnectionContext>(mPimpl->connection());
 }
 
 cms::amqp::ClientState cms::amqp::CMSConnection::getState()

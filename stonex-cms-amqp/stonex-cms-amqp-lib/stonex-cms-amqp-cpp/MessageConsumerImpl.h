@@ -35,6 +35,7 @@
 #include <regex>
 #include "../API/ClientState.h"
 #include <logger/StoneXLogger.h>
+#include "../API/ConnectionContext.h"
 
 namespace cms::amqp
 {
@@ -61,8 +62,8 @@ namespace cms::amqp
 			const std::regex FQQN_regex{ "^VirtualTopic\\.[a-zA-Z0-9_-]+::Consumer(\\.[a-zA-Z0-9_-]+)+" };
 		};
 	public:
-		explicit MessageConsumerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, const std::string& selector = "");
-		explicit MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable = false,  bool shared = false, bool autoAck = true, const std::string& selector = "");
+		explicit MessageConsumerImpl(const ConsumerContext& context);
+	//	explicit MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable = false,  bool shared = false, bool autoAck = true, const std::string& selector = "");
 
 
 		~MessageConsumerImpl();
@@ -111,7 +112,6 @@ namespace cms::amqp
 		std::unique_ptr<proton::receiver> mProtonReceiver;
 		cms::internal::AsyncCallSynchronizer mEXHandler;
 		::cms::MessageListener *mListener{ nullptr };
-		proton::receiver_options mRopts;
 		std::string mAddress;
 
 		std::shared_ptr<::cms::Destination> mDestination{ nullptr };
@@ -119,6 +119,7 @@ namespace cms::amqp
 		std::function<void(::cms::Message*)> onMessageCallback = [=](::cms::Message* message) ->void { delete message; };
 
 		DestinationParser destAddressParser;
+		ConsumerContext mContext;
 	};
 
 };

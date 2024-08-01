@@ -19,6 +19,12 @@ public:
 	{
 		producer->close();
 	}
+	~MessageProcessor(){
+		delete connection;
+//		delete session;
+//		delete producer;
+		workingThread->join();
+	}
 private:
 	cms::Connection* connection = nullptr;
 	cms::Session* session = nullptr;

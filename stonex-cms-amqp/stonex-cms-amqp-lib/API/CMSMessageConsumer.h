@@ -31,16 +31,15 @@
 AMQP_DEFINES
 
 
-	class SessionContext;
 	class MessageConsumerImpl;
 	class CMSSession;
 
 	class CMS_API CMSMessageConsumer : public ::cms::MessageConsumer
 	{
 	public:
-		CMSMessageConsumer(cms::amqp::CMSSession& parent, const ::cms::Destination* destination, std::shared_ptr<SessionContext> context);
-		CMSMessageConsumer(cms::amqp::CMSSession& parent, const ::cms::Destination* destination, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context);
-		CMSMessageConsumer(cms::amqp::CMSSession& parent, const ::cms::Destination* destination, const std::string& name, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context);
+		CMSMessageConsumer(std::shared_ptr<MessageConsumerImpl> impl);
+	/*	CMSMessageConsumer(cms::amqp::CMSSession& parent, const ::cms::Destination* destination, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context);
+		CMSMessageConsumer(cms::amqp::CMSSession& parent, const ::cms::Destination* destination, const std::string& name, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context);*/
 
 		~CMSMessageConsumer();
 
@@ -69,7 +68,6 @@ AMQP_DEFINES
 	private:
 		StonexLoggerPtr mLogger;
 		std::shared_ptr<MessageConsumerImpl> mPimpl;
-		cms::amqp::CMSSession* mParent;
 
 	};
 

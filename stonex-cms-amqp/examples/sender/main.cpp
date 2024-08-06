@@ -124,6 +124,7 @@ int main(int argc, char* argv[])
 	auto producer_logger = LoggerFactory::getInstance().create("com.stonex.app.producer");
 
 	cms::Connection* producer_connection(factory->createConnection(params.at(param_user.data()), params.at(param_password.data())));
+	
 	producer_logger->log(SEVERITY::LOG_INFO, fmt::format("created producer connection {} {}", params.at(param_user.data()), params.at(param_password.data())));
 
 	producer_connection->setExceptionListener(exl);

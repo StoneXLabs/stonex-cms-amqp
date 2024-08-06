@@ -47,29 +47,6 @@ namespace cms::amqp
 	public:
 		ConnectionImpl(const ConnectionContext& context);
 
-	//	ConnectionImpl(const std::string& id, const FactoryContext& context);
-
-		//!Constructor
-		/*!Create instance of CMS connection
-			\param id connection id <not used>
-			\param url CMS broker address
-			\param user
-			\param password
-			\param container reference to proton::container
-		*/
-		//ConnectionImpl(const std::string& id, const std::string& url, const std::string user, const std::string password, proton::container& container);
-
-		////!Constructor
-		///*!Create instance of CMS connection
-		//	\param id connection id <not used>
-		//	\param url CMS broker address
-		//	\param user
-		//	\param password
-		//	\param container shared pointer to proton::container
-		//*/
-		//ConnectionImpl(const std::string& id, const std::string& url, const std::string user, const std::string password, std::shared_ptr<proton::container> container);
-
-
 		ConnectionImpl(const ConnectionImpl&) = delete;
 		ConnectionImpl(ConnectionImpl&&) = delete;
 
@@ -112,8 +89,8 @@ namespace cms::amqp
 
 //		std::shared_ptr<proton::connection> connection() const { return mConnection; }
 
-	private:
-		bool syncClose();
+	//private:
+	//	bool syncClose();
 //	private:
 	public:
 		StonexLoggerPtr mLogger;
@@ -124,6 +101,10 @@ namespace cms::amqp
 //		std::shared_ptr<proton::connection> mConnection;
 		::cms::ExceptionListener* mExceptionListener{ nullptr };
 		ConnectionContext mContext;
+
+	private:
+		std::mutex mMutex;
+		std::condition_variable mCv;
 
 	};
 

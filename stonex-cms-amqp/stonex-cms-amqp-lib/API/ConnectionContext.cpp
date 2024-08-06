@@ -47,23 +47,6 @@ cms::amqp::FactoryContext::FactoryContext(const std::string& url)
 	}
 }
 
-cms::amqp::FactoryContext& cms::amqp::FactoryContext::updateUser(const std::string& user)
-{
-	mUser = user;
-	return *this;
-}
-
-cms::amqp::FactoryContext& cms::amqp::FactoryContext::updatePassword(const std::string& password)
-{
-	mPassword = password;
-	return *this;
-}
-
-cms::amqp::FactoryContext& cms::amqp::FactoryContext::updateCotainerId(const std::string& connectionId)
-{
-	mConnectionId = connectionId;
-	return *this;
-}
 
 //void cms::amqp::FactoryContext::requestBrokerConnection(proton::messaging_handler *handler)
 //{

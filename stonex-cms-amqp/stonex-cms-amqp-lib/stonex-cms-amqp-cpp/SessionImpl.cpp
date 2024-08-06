@@ -55,7 +55,7 @@ cms::amqp::SessionImpl::SessionImpl(const SessionContext& context)
 	mEXHandler(mLogger),
 	mContext(context)
 {
-	mEXHandler.SynchronizeCall(std::bind(&SessionImpl::syncStart, this, std::placeholders::_1), mContext.connection());
+	//mEXHandler.SynchronizeCall(std::bind(&SessionImpl::syncStart, this, std::placeholders::_1), mContext.connection());
 }
 
 cms::amqp::SessionImpl::~SessionImpl()

@@ -78,10 +78,6 @@ AMQP_DEFINES
 		~FactoryContext() = default;
 		FactoryContext(FactoryContext&& other) = delete;
 
-		cms::amqp::FactoryContext& updateUser(const std::string& user);
-		cms::amqp::FactoryContext& updatePassword(const std::string& password);
-		cms::amqp::FactoryContext& updateCotainerId(const std::string& connectionId);
-
 		std::shared_ptr<proton::container> container();
 
 		std::string broker() const;
@@ -113,8 +109,7 @@ AMQP_DEFINES
 			mClientId(clientId),
 			mInitialReconnectDelay(context.mParameters.failoverOptrions.initialReconnectDelay),
 			mMaxReconnectDelay(context.mParameters.failoverOptrions.maxReconnectDelay),
-			mMaxReconnectAttempts(context.mParameters.failoverOptrions.maxReconnectAttempts),
-			mContainer(context.container())
+			mMaxReconnectAttempts(context.mParameters.failoverOptrions.maxReconnectAttempts)
 		{
 		}
 
@@ -157,13 +152,8 @@ AMQP_DEFINES
 
 			co.reconnect(rco);
 			co.desired_capabilities({ "ANONYMOUS-RELAY" });
-		}
 
-		void requestBrokerConnection(proton::messaging_handler& handler)
-		{
-			proton::connection_options co = config();
-			co.handler(handler);
-			mContainer->connect(mPrimaryUrl, handler);
+			return co;
 		}
 
 	//private:
@@ -175,8 +165,8 @@ AMQP_DEFINES
 		const int mInitialReconnectDelay;
 		const int mMaxReconnectDelay;
 		const int mMaxReconnectAttempts;
-		std::shared_ptr<proton::container> mContainer;
-		std::shared_ptr<proton::connection> mConnection;
+		proton::work_queue* mWorkQueue{nullptr};
+		proton::connection mConnection;
 	};
 
 
@@ -185,16 +175,16 @@ AMQP_DEFINES
 	{
 	public:
 		SessionContext(ConnectionContext& context, bool auto_ack)
-			:mConnection{ context.mConnection },
-			mAuto_ack{auto_ack}
+			:mAuto_ack{auto_ack}
 		{
 		}
 
 		bool isAutoAck() { return mAuto_ack; }
 
-		std::shared_ptr<proton::connection> connection() const { return mConnection; }
-	private:
-		std::shared_ptr<proton::connection> mConnection;
+//		std::shared_ptr<proton::connection> connection() const { return mConnection; }
+//	private:
+		proton::work_queue* mWorkQueue{ nullptr };
+		proton::session mSession;
 		bool mAuto_ack;
 	};
 

@@ -45,18 +45,18 @@ cms::amqp::ConnectionFactoryImpl::ConnectionFactoryImpl(const std::string& broke
 
 
 
-cms::amqp::ConnectionContext cms::amqp::ConnectionFactoryImpl::createConnectionContext()
+cms::amqp::config::ConnectionContext cms::amqp::ConnectionFactoryImpl::createConnectionContext()
 {
-	return ConnectionContext(mContext);
+	return config::ConnectionContext(mContext);
 }
 
-cms::amqp::ConnectionContext cms::amqp::ConnectionFactoryImpl::createConnectionContext(const std::string& username, const std::string& password)
+cms::amqp::config::ConnectionContext cms::amqp::ConnectionFactoryImpl::createConnectionContext(const std::string& username, const std::string& password)
 {
-	return ConnectionContext(mContext, username, password);
+	return config::ConnectionContext(mContext, username, password);
 }
 
-cms::amqp::ConnectionContext cms::amqp::ConnectionFactoryImpl::createConnectionContext(const std::string& username, const std::string& password, const std::string& clientId)
+cms::amqp::config::ConnectionContext cms::amqp::ConnectionFactoryImpl::createConnectionContext(const std::string& username, const std::string& password, const std::string& clientId)
 {
-	return ConnectionContext(mContext, username, password, clientId);
+	return config::ConnectionContext(mContext, username, password, clientId);
 }
 

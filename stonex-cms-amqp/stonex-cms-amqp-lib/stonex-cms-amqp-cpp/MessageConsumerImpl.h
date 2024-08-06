@@ -35,7 +35,7 @@
 #include <regex>
 #include "../API/ClientState.h"
 #include <logger/StoneXLogger.h>
-#include "../API/ConnectionContext.h"
+#include "ConsumerContext.h"
 
 namespace cms::amqp
 {
@@ -62,7 +62,7 @@ namespace cms::amqp
 			const std::regex FQQN_regex{ "^VirtualTopic\\.[a-zA-Z0-9_-]+::Consumer(\\.[a-zA-Z0-9_-]+)+" };
 		};
 	public:
-		explicit MessageConsumerImpl(const ConsumerContext& context);
+		explicit MessageConsumerImpl(const config::ConsumerContext& context);
 	//	explicit MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable = false,  bool shared = false, bool autoAck = true, const std::string& selector = "");
 
 
@@ -119,7 +119,7 @@ namespace cms::amqp
 		std::function<void(::cms::Message*)> onMessageCallback = [=](::cms::Message* message) ->void { delete message; };
 
 		DestinationParser destAddressParser;
-		ConsumerContext mContext;
+		config::ConsumerContext mContext;
 	};
 
 };

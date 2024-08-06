@@ -96,7 +96,7 @@ const ::cms::ConnectionMetaData* cms::amqp::CMSConnection::getMetaData() const
 cms::Session* cms::amqp::CMSConnection::createSession()
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("createSession ACK_MODE {}", cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE));
-	SessionContext context(mPimpl->mContext, true);
+	config::SessionContext context(mPimpl->mContext, true);
 	std::shared_ptr<SessionImpl> session = std::make_shared<SessionImpl>(context);
 	return mSessions.emplace_back(new CMSSession(session));
 	
@@ -105,7 +105,7 @@ cms::Session* cms::amqp::CMSConnection::createSession()
 cms::Session* cms::amqp::CMSConnection::createSession(::cms::Session::AcknowledgeMode ackMode)
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("createSession ACK_MODE {}", ackMode));
-	SessionContext context(mPimpl->mContext, ackMode);
+	config::SessionContext context(mPimpl->mContext, ackMode);
 	std::shared_ptr<SessionImpl> session = std::make_shared<SessionImpl>(context);
 	return mSessions.emplace_back(new CMSSession(session));
 }

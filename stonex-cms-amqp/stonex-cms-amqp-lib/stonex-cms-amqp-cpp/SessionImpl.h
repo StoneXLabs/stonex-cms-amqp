@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "../activemq-cpp/src/main/cms/Session.h"
-#include "../API/ConnectionContext.h"
+#include <cms/Session.h>
+#include "SessionContext.h"
 #include <proton/connection.hpp>
 #include <proton/messaging_handler.hpp>
 
@@ -28,7 +28,7 @@
 #include <mutex>
 
 #include "AsyncCallSynchronizer.h"
-#include "../API/ClientState.h"
+#include "API/ClientState.h"
 
 #include <logger/StoneXLogger.h>
 
@@ -38,7 +38,7 @@ namespace cms::amqp
 	class SessionImpl : public proton::messaging_handler
 	{
 	public:
-		explicit SessionImpl(const SessionContext& context);
+		explicit SessionImpl(const config::SessionContext& context);
 		~SessionImpl();
 
 		void close();
@@ -68,7 +68,7 @@ namespace cms::amqp
 		ClientState mState;
 		std::shared_ptr<proton::session> mSession;
 		cms::internal::AsyncCallSynchronizer mEXHandler;
-		SessionContext mContext;
+		config::SessionContext mContext;
 	};
 
 };

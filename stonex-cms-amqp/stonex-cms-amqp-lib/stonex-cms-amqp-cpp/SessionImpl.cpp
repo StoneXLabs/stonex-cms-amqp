@@ -50,7 +50,7 @@ class StreamMessage : public cms::StreamMessage {};
 
 
 
-cms::amqp::SessionImpl::SessionImpl(const SessionContext& context)
+cms::amqp::SessionImpl::SessionImpl(const config::SessionContext& context)
 	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.SessionImpl")),
 	mEXHandler(mLogger),
 	mContext(context)

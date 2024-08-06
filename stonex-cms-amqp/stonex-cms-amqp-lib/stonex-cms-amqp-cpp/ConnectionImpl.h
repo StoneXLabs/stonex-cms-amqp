@@ -26,7 +26,7 @@
 
 #include <cms/Connection.h>
 
-#include "../API/ConnectionContext.h"
+#include "ConnectionContext.h"
 #include "AsyncCallSynchronizer.h"
 #include "../API/ClientState.h"
 
@@ -45,7 +45,7 @@ namespace cms::amqp
 	class ConnectionImpl : public proton::messaging_handler
 	{
 	public:
-		ConnectionImpl(const ConnectionContext& context);
+		ConnectionImpl(const config::ConnectionContext& context);
 
 		ConnectionImpl(const ConnectionImpl&) = delete;
 		ConnectionImpl(ConnectionImpl&&) = delete;
@@ -100,7 +100,7 @@ namespace cms::amqp
 		std::string mBrokerUrl;
 //		std::shared_ptr<proton::connection> mConnection;
 		::cms::ExceptionListener* mExceptionListener{ nullptr };
-		ConnectionContext mContext;
+		config::ConnectionContext mContext;
 
 	private:
 		std::mutex mMutex;

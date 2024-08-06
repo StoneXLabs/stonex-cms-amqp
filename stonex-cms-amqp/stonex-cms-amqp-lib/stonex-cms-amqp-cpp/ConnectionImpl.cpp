@@ -33,7 +33,7 @@
 
 #include <fmt/format.h>
 
- cms::amqp::ConnectionImpl::ConnectionImpl(const ConnectionContext& context)
+ cms::amqp::ConnectionImpl::ConnectionImpl(const config::ConnectionContext& context)
 	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.CMSConnectionFactory")),
 	 mEXHandler(mLogger),
 	 mContext(context)

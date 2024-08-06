@@ -35,7 +35,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 {
 	try
 	{
-		ConnectionContext context(mPimpl->createConnectionContext());
+		config::ConnectionContext context(mPimpl->createConnectionContext());
 		std::shared_ptr<ConnectionImpl> connection = std::make_shared<ConnectionImpl>(std::move(context));
 		return new CMSConnection(connection);
 	}

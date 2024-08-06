@@ -47,7 +47,7 @@
 //
 //}
 
-cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const ConsumerContext& context)
+cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const config::ConsumerContext& context)
 	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.MessageConsumerImpl")),
 	mEXHandler(mLogger),
 	mContext(context)

@@ -48,7 +48,7 @@ constexpr std::string_view TOPIC_CAPABILITY = "topic";
 constexpr std::string_view TEMPORARY_QUEUE_CAPABILITY = "temporary-queue";
 constexpr std::string_view TEMPORARY_TOPIC_CAPABILITY = "temporary-topic";
 
-cms::amqp::MessageProducerImpl::MessageProducerImpl(const ProducerContext& context)
+cms::amqp::MessageProducerImpl::MessageProducerImpl(const config::ProducerContext& context)
 	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.MessageProducerImpl")),
 	mEXHandler(mLogger),
 	mContext(context)

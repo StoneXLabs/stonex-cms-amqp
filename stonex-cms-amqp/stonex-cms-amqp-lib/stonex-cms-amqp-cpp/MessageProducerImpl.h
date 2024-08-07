@@ -95,13 +95,14 @@ namespace cms::amqp
 
 	private:
 		StonexLoggerPtr mLogger;
-		ClientState mState;
-		cms::internal::AsyncCallSynchronizer mEXHandler;
+		ClientState mState = ClientState::UNNINITIALIZED;
 		MessageConverter mConverter;
 		config::ProducerContext mContext;
 	private:
 		std::mutex mMutex;
 		std::condition_variable mCv;
+		std::condition_variable mSendable;
+		bool mCanSend{ false };
 
 		::cms::DeliveryMode::DELIVERY_MODE mDeliveryMode = (::cms::DeliveryMode::DELIVERY_MODE)::cms::Message::DEFAULT_DELIVERY_MODE;
 		bool mMessageIdDisabed{ false };

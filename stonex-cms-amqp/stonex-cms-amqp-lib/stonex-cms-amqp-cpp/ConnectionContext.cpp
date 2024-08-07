@@ -38,16 +38,12 @@ proton::connection_options cms::amqp::config::ConnectionContext::config()
 {
 	proton::connection_options co;
 
-	if (!mClientId.empty() && !mPassword.empty())
+	if (!mUser.empty() && !mPassword.empty())
 	{
 		co.user(mUser);
 		co.password(mPassword);
 	}
 
-
-
-	if (!mClientId.empty())
-		co.container_id(mClientId);
 
 	co.sasl_allow_insecure_mechs(true);
 	co.sasl_allowed_mechs("PLAIN");

@@ -22,16 +22,19 @@
 #include "API/CMSTopic.h"
 #include "API/CMSTemporaryQueue.h"
 #include "API/CMSTemporaryTopic.h"
+#include "SessionContext.h"
 
 #include <proton/target_options.hpp>
 #include <proton/symbol.hpp>
 
 cms::amqp::config::ProducerContext::ProducerContext(SessionContext& context, const cms::Destination* destination)
-	:mDestination(destination)
+	:mDestination(destination),
+	mWorkQueue(context.mWorkQueue),
+	mSession(context.mSession)
 {
 }
 
-proton::sender_options cms::amqp::config::ProducerContext::config()
+std::pair<std::string,proton::sender_options> cms::amqp::config::ProducerContext::config()
 {
 	proton::sender_options opts;
 	proton::target_options topts{};
@@ -71,5 +74,5 @@ proton::sender_options cms::amqp::config::ProducerContext::config()
 	}
 
 	opts.target(topts);
-	return opts;
+	return { address, opts };
 }

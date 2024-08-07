@@ -19,6 +19,7 @@
 #include <cms/Destination.h>
 #include <proton/sender_options.hpp>
 #include <proton/sender.hpp>
+#include <proton/session.hpp>
 
 namespace cms
 {
@@ -34,10 +35,11 @@ class ProducerContext
 
 public:
 	ProducerContext(SessionContext& context, const cms::Destination* destination);
-	proton::sender_options config();
+	std::pair<std::string, proton::sender_options> config();
 
 public:
 	proton::work_queue* mWorkQueue{ nullptr };
+	proton::session mSession;
 	proton::sender mSender;
 	const cms::Destination* mDestination{ nullptr };
 };

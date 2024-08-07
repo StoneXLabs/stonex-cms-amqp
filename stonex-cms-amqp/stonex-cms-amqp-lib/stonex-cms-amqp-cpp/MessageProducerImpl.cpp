@@ -50,15 +50,14 @@ constexpr std::string_view TEMPORARY_TOPIC_CAPABILITY = "temporary-topic";
 
 cms::amqp::MessageProducerImpl::MessageProducerImpl(const config::ProducerContext& context)
 	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.MessageProducerImpl")),
-	mEXHandler(mLogger),
 	mContext(context)
 {
 	std::unique_lock lk(mMutex);
-	proton::sender_options opts = mContext.config();
-	opts.handler(*this);
+	auto opts = mContext.config();
+	opts.second.handler(*this);
 	if (mContext.mWorkQueue)
 	{
-		mContext.mWorkQueue->add([=]() {mContext.mSender.open(opts); });
+		mContext.mWorkQueue->add([=]() {mContext.mSession.open_sender(opts.first,opts.second); });
 		mCv.wait(lk, [this]() {return mState != ClientState::UNNINITIALIZED; });
 	}
 	else
@@ -102,8 +101,17 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, ::cms::Message* message, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* onComplete)
 {
 	auto message_copy = message->clone();
-
-	mEXHandler.waitForResource();
+	std::unique_lock lk(mMutex);
+	/*if (mContext.mWorkQueue)
+	{
+		mContext.mWorkQueue->add([=]() {mContext.mSender.open(opts); });
+		mSendable.wait(lk, [this]() { return mCanSend;});
+	}
+	else
+	{
+		throw CMSException("Session uninitiaized");
+	}*/
+//	mEXHandler.waitForResource();
 
 
 	message_copy->setCMSDeliveryMode(deliveryMode);
@@ -131,10 +139,21 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 	if(!mess)
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "could not convert message to any of implemented types"));
 	delete message_copy;
-	if(onComplete) [[unlikely]]
-		mContext.mWorkQueue->add([this, mess, onComplete] {mContext.mSender.send(*mess); onComplete->onSuccess(); });
+	
+	if (mContext.mWorkQueue)
+	{
+		mSendable.wait(lk, [this]() { return mCanSend; });
+		mCanSend = false;
+		if (onComplete) [[unlikely]]
+			mContext.mWorkQueue->add([this, mess, onComplete] {mContext.mSender.send(*mess); onComplete->onSuccess(); });
+		else
+			mContext.mWorkQueue->add([this, mess] {mContext.mSender.send(*mess); });
+	}
 	else
-		mContext.mWorkQueue->add([this, mess] {mContext.mSender.send(*mess); });
+	{
+		throw CMSException("Session uninitiaized");
+	}
+
 
 	
 	
@@ -166,7 +185,9 @@ void cms::amqp::MessageProducerImpl::on_sendable(proton::sender& sender)
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
 #endif
-	mEXHandler.onResourceInitialized();
+	//mEXHandler.onResourceInitialized();
+	mCanSend = true;
+	mSendable.notify_one();
 }
 
 void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)

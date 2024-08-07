@@ -131,9 +131,8 @@ int main(int argc, char* argv[])
 		producer_logger->log(SEVERITY::LOG_INFO, fmt::format("created producer connection {} {}", params.at(param_user.data()), params.at(param_password.data())));
 
 		producer_connection->setExceptionListener(exl);
-
+	
 		cms::Session* producer_session(producer_connection->createSession());
-
 		producer_logger->log(SEVERITY::LOG_INFO, "producer session established");
 
 		cms::Destination* testAddress = producer_session->createTopic(params.at(param_destination.data()));

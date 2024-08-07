@@ -19,6 +19,7 @@
 
 #include <proton/work_queue.hpp>
 #include <proton/session.hpp>
+#include <proton/connection.hpp>
 
 namespace cms
 {
@@ -39,6 +40,7 @@ public:
 	//	private:
 	proton::work_queue* mWorkQueue{ nullptr };
 	proton::session mSession;
+	proton::connection mConnection;
 	bool mAuto_ack;
 };
 

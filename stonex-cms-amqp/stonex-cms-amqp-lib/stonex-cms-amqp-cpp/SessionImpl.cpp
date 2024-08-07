@@ -52,7 +52,6 @@ class StreamMessage : public cms::StreamMessage {};
 
 cms::amqp::SessionImpl::SessionImpl(const config::SessionContext& context)
 	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.SessionImpl")),
-	mEXHandler(mLogger),
 	mContext(context)
 {
 	std::unique_lock lk(mMutex);
@@ -60,7 +59,7 @@ cms::amqp::SessionImpl::SessionImpl(const config::SessionContext& context)
 	sessionOptions.handler(*this);
 	if (mContext.mWorkQueue)
 	{
-		mContext.mWorkQueue->add([=]() {mContext.mSession.open(sessionOptions); });
+		mContext.mWorkQueue->add([=]() {mContext.mConnection.open_session(sessionOptions); });
 		mCv.wait(lk, [this]() {return mState != ClientState::UNNINITIALIZED; });
 	}
 	else

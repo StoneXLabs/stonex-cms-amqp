@@ -23,7 +23,8 @@
 
 cms::amqp::config::SessionContext::SessionContext(ConnectionContext& context, bool auto_ack)
  :mAuto_ack(auto_ack),
- mWorkQueue(context.mWorkQueue)
+ mWorkQueue(context.mWorkQueue),
+mConnection(context.mConnection)
 {
 }
 

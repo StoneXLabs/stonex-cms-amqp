@@ -95,7 +95,6 @@ namespace cms::amqp
 	public:
 		StonexLoggerPtr mLogger;
 		ClientState mState = ClientState::UNNINITIALIZED;
-		cms::internal::AsyncCallSynchronizer mEXHandler;
 		const std::string mConnectionId;
 		std::string mBrokerUrl;
 //		std::shared_ptr<proton::connection> mConnection;

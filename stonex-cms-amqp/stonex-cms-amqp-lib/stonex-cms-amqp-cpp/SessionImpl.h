@@ -64,7 +64,6 @@ namespace cms::amqp
 	public:
 		StonexLoggerPtr mLogger;
 		ClientState mState = ClientState::UNNINITIALIZED;
-		cms::internal::AsyncCallSynchronizer mEXHandler;
 		config::SessionContext mContext;
 	private:
 		std::mutex mMutex;

@@ -109,7 +109,6 @@ namespace cms::amqp
 	private:
 		StonexLoggerPtr mLogger;
 		ClientState mState = ClientState::UNNINITIALIZED;
-		cms::internal::AsyncCallSynchronizer mEXHandler;
 		::cms::MessageListener *mListener{ nullptr };
 		std::string mAddress;
 

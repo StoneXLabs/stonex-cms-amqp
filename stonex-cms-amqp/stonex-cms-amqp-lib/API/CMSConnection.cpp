@@ -67,25 +67,20 @@ void cms::amqp::CMSConnection::close()
 
 void cms::amqp::CMSConnection::start()
 {
-	setState(ClientState::STARTED);
-	for (auto session : mSessions)
+//	setState(ClientState::STARTED);
+	/*for (auto session : mSessions)
 	{
 		session->start();
-	}
+	}*/
 }
 
 void cms::amqp::CMSConnection::stop()
 {
-	setState(ClientState::STOPPED);
-	for (auto session : mSessions)
-	{
-		session->stop();
-	}
-}
-
-void cms::amqp::CMSConnection::removeChild(cms::amqp::CMSSession& child)
-{
-	mSessions.erase(std::remove_if(std::begin(mSessions), std::end(mSessions), [&child](cms::amqp::CMSSession* item) {return (item == &child); }));
+//	setState(ClientState::STOPPED);
+	//for (auto session : mSessions)
+	//{
+	//	session->stop();
+	//}
 }
 
 const ::cms::ConnectionMetaData* cms::amqp::CMSConnection::getMetaData() const
@@ -98,7 +93,8 @@ cms::Session* cms::amqp::CMSConnection::createSession()
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("createSession ACK_MODE {}", cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE));
 	config::SessionContext context(mPimpl->mContext, true);
 	std::shared_ptr<SessionImpl> session = std::make_shared<SessionImpl>(context);
-	return mSessions.emplace_back(new CMSSession(session));
+	mSessions.emplace_back(session);
+	return new CMSSession(session);
 	
 }
 
@@ -107,7 +103,8 @@ cms::Session* cms::amqp::CMSConnection::createSession(::cms::Session::Acknowledg
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("createSession ACK_MODE {}", ackMode));
 	config::SessionContext context(mPimpl->mContext, ackMode);
 	std::shared_ptr<SessionImpl> session = std::make_shared<SessionImpl>(context);
-	return mSessions.emplace_back(new CMSSession(session));
+	mSessions.emplace_back(session);
+	return new CMSSession(session);
 }
 
 std::string cms::amqp::CMSConnection::getClientID() const
@@ -143,15 +140,6 @@ cms::MessageTransformer* cms::amqp::CMSConnection::getMessageTransformer() const
 	return mPimpl->getMessageTransformer();
 }
 
-cms::amqp::ClientState cms::amqp::CMSConnection::getState()
-{
-	return mPimpl->getState();
-}
-
-void cms::amqp::CMSConnection::setState(ClientState state)
-{
-	mPimpl->setState(state);
-}
 
 
 

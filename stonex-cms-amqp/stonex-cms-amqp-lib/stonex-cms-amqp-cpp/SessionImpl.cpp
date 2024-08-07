@@ -55,6 +55,18 @@ cms::amqp::SessionImpl::SessionImpl(const config::SessionContext& context)
 	mEXHandler(mLogger),
 	mContext(context)
 {
+	std::unique_lock lk(mMutex);
+	proton::session_options sessionOptions;
+	sessionOptions.handler(*this);
+	if (mContext.mWorkQueue)
+	{
+		mContext.mWorkQueue->add([=]() {mContext.mSession.open(sessionOptions); });
+		mCv.wait(lk, [this]() {return mState != ClientState::UNNINITIALIZED; });
+	}
+	else
+	{
+		throw CMSException("Connection uninitiaized");
+	}
 	//mEXHandler.SynchronizeCall(std::bind(&SessionImpl::syncStart, this, std::placeholders::_1), mContext.connection());
 }
 
@@ -65,8 +77,15 @@ cms::amqp::SessionImpl::~SessionImpl()
 
 void cms::amqp::SessionImpl::close()
 {
-	if(getState() == ClientState::STARTED)
-		mEXHandler.SynchronizeCall(std::bind(&SessionImpl::syncClose, this));
+	if (auto queue = mContext.mWorkQueue; queue != nullptr)
+	{
+		std::unique_lock lk(mMutex);
+		queue->add([this]() {mContext.mSession.close(); });
+		mCv.wait(lk, [this]() {return mState != ClientState::CLOSED; });
+	}
+
+	//if(getState() == ClientState::STARTED)
+	//	mEXHandler.SynchronizeCall(std::bind(&SessionImpl::syncClose, this));
 }
 
 void cms::amqp::SessionImpl::commit()
@@ -99,9 +118,10 @@ void cms::amqp::SessionImpl::on_session_open(proton::session& session)
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
 	//error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, err.what()));
 
-	mSession = std::make_shared<proton::session>(session);
-	setState(ClientState::STARTED);
-	mEXHandler.onResourceInitialized();
+	mContext.mSession = session;
+	mContext.mWorkQueue = &mContext.mSession.work_queue();
+	setState(ClientState::STARTED); //check
+	mCv.notify_one();
 }
 
 void cms::amqp::SessionImpl::on_session_close(proton::session& session)
@@ -114,20 +134,16 @@ void cms::amqp::SessionImpl::on_session_close(proton::session& session)
 	//error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, err.what()));
 
 	setState(ClientState::CLOSED);
-	mEXHandler.onResourceInitialized();
+	mCv.notify_one();
+//	mEXHandler.onResourceInitialized();
 }
 
 void cms::amqp::SessionImpl::on_session_error(proton::session& session)
 {
 	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, session.error().what()));
 	//error("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, session.error().what()));
-	mEXHandler.onResourceUninitialized(session.error()); // move to close??
+//	mEXHandler.onResourceUninitialized(session.error()); // move to close??
 
-}
-
-std::shared_ptr<proton::session> cms::amqp::SessionImpl::session()
-{
-	return mSession;
 }
 
 cms::amqp::ClientState cms::amqp::SessionImpl::getState()
@@ -142,12 +158,12 @@ void cms::amqp::SessionImpl::setState(ClientState state)
 	mState = state;
 }
 
-bool cms::amqp::SessionImpl::syncClose()
-{
-	return mSession->connection().work_queue().add([=] {mSession->close(); });
-	
-
-}
+//bool cms::amqp::SessionImpl::syncClose()
+//{
+//	return mSession->connection().work_queue().add([=] {mSession->close(); });
+//	
+//
+//}
 
 bool cms::amqp::SessionImpl::syncStart(std::shared_ptr<proton::connection>  connection)
 {
@@ -156,10 +172,10 @@ bool cms::amqp::SessionImpl::syncStart(std::shared_ptr<proton::connection>  conn
 	return connection->work_queue().add([=] {connection->open_session(sopt); });
 }
 
-bool cms::amqp::SessionImpl::syncStop()
-{
-	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{} {}", __func__, "method not implemented"));
-	//trace("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
-
-	return false;
-}
+//bool cms::amqp::SessionImpl::syncStop()
+//{
+//	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{} {}", __func__, "method not implemented"));
+//	//trace("com.stonex.cms.amqp.SessionImpl", fmt::format("{} {}", __func__, "method not implemented"));
+//
+//	return false;
+//}

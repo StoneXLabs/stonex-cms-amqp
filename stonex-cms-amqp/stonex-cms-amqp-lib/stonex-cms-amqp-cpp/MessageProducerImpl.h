@@ -86,17 +86,22 @@ namespace cms::amqp
 		void on_sender_error(proton::sender& sender) override;
 		void on_sender_close(proton::sender& sender) override;
 
+		ClientState getState();
+		void setState(ClientState state);
+
 	private:
-		bool syncClose();
-		bool syncCreate(const std::string& address, const proton::sender_options& options, std::shared_ptr<proton::session>  session);
+	//	bool syncClose();
+	//	bool syncCreate(const std::string& address, const proton::sender_options& options, std::shared_ptr<proton::session>  session);
 
 	private:
 		StonexLoggerPtr mLogger;
 		ClientState mState;
-		std::unique_ptr<proton::sender> mProtonSender;
 		cms::internal::AsyncCallSynchronizer mEXHandler;
 		MessageConverter mConverter;
 		config::ProducerContext mContext;
+	private:
+		std::mutex mMutex;
+		std::condition_variable mCv;
 
 		::cms::DeliveryMode::DELIVERY_MODE mDeliveryMode = (::cms::DeliveryMode::DELIVERY_MODE)::cms::Message::DEFAULT_DELIVERY_MODE;
 		bool mMessageIdDisabed{ false };

@@ -75,7 +75,7 @@ void  cms::amqp::ConnectionImpl::close()
 		queue->add([this]() {mContext.mConnection.close(); });
 		mCv.wait(lk, [this]() {return mState != ClientState::CLOSED; });
 	}
-	if (mState == ClientState::STARTED || mState == ClientState::STOPPED) {}
+	//if (mState == ClientState::STARTED || mState == ClientState::STOPPED) {}
 	//	mEXHandler.SynchronizeCall(std::bind(&ConnectionImpl::syncClose,this));
 
 }

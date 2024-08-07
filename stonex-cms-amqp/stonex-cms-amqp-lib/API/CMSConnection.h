@@ -40,7 +40,7 @@ AMQP_DEFINES
 	class ConnectionImpl;
 	class FactoryContext;
 	class ConnectionContext;
-	class CMSSession;
+	class SessionImpl;
 
 	class CMS_API CMSConnection : public ::cms::Connection
 	{
@@ -54,7 +54,6 @@ AMQP_DEFINES
 		void close() override;
 		void start() override;
 		void stop() override;
-		void removeChild(CMSSession& child);
 		const ::cms::ConnectionMetaData* getMetaData() const override;
 
 
@@ -75,13 +74,10 @@ AMQP_DEFINES
 		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
 		::cms::MessageTransformer* getMessageTransformer() const override;
 
-		ClientState getState();
-		void setState(ClientState state);
-
 	private:
 		StonexLoggerPtr mLogger;
 		std::shared_ptr<ConnectionImpl> mPimpl;
-		std::vector<CMSSession*> mSessions;
+		std::vector<std::weak_ptr<SessionImpl>> mSessions;
 
 	};
 

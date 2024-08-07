@@ -86,11 +86,11 @@ void cms::amqp::CMSSession::recover()
 void cms::amqp::CMSSession::start()
 {
 	mLogger->log(SEVERITY::LOG_INFO, "starting session");
-	for (auto consumer : mConsumers)
-	{
-		consumer->start();
-	}
-	setState(ClientState::STARTED);
+	//for (auto consumer : mConsumers)
+	//{
+	//	consumer->start();
+	//}
+	//setState(ClientState::STARTED);
 
 	//for (auto producer : mProducers)
 	//{
@@ -101,16 +101,11 @@ void cms::amqp::CMSSession::start()
 void cms::amqp::CMSSession::stop()
 {
 	mLogger->log(SEVERITY::LOG_INFO, "stopping session");
-	for (auto consumer : mConsumers)
-	{
-		consumer->stop();
-	}
-	setState(ClientState::STOPPED);
-}
-
-void cms::amqp::CMSSession::removeChild(cms::amqp::CMSMessageConsumer& child)
-{
-	mConsumers.erase(std::remove_if(std::begin(mConsumers), std::end(mConsumers), [&child](cms::amqp::CMSMessageConsumer* item) {return (item == &child); }));
+//	for (auto consumer : mConsumers)
+//	{
+//		consumer->stop();
+//	}
+//	setState(ClientState::STOPPED);
 }
 
 cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destination* destination)
@@ -118,7 +113,8 @@ cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destina
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating consumer. destination: {}",destination->getDestinationType()));
 	config::ConsumerContext context(mPimpl->mContext,false, false, destination);
 	std::shared_ptr<MessageConsumerImpl> consumer = std::make_shared<MessageConsumerImpl>(context);
-	return mConsumers.emplace_back(new CMSMessageConsumer(consumer));
+	mConsumers.emplace_back(consumer);
+	return new CMSMessageConsumer(consumer);
 
 }
 
@@ -127,7 +123,8 @@ cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destina
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating consumer. destination: {} selector: {}", destination->getDestinationType(), selector));
 	config::ConsumerContext context(mPimpl->mContext, false, false, destination);
 	std::shared_ptr<MessageConsumerImpl> consumer = std::make_shared<MessageConsumerImpl>(context);
-	return mConsumers.emplace_back(new CMSMessageConsumer(consumer));
+	mConsumers.emplace_back(consumer);
+	return new CMSMessageConsumer(consumer);
 //	return mConsumers.emplace_back(new CMSMessageConsumer(*this, destination, selector, std::make_shared<SessionContext>(mPimpl->session(), false, false, mPimpl->ackMode() == ::cms::Session::AUTO_ACKNOWLEDGE)));
 }
 
@@ -144,7 +141,8 @@ cms::MessageConsumer* cms::amqp::CMSSession::createDurableConsumer(const ::cms::
 
 	config::ConsumerContext context(mPimpl->mContext, false, false, destination);
 	std::shared_ptr<MessageConsumerImpl> consumer = std::make_shared<MessageConsumerImpl>(context);
-	return mConsumers.emplace_back(new CMSMessageConsumer(consumer));
+	mConsumers.emplace_back(consumer);
+	return new CMSMessageConsumer(consumer);
 //	return mConsumers.emplace_back(new CMSMessageConsumer(*this, destination, name, selector, std::make_shared<SessionContext>(mPimpl->session(), true, false, mPimpl->ackMode() == ::cms::Session::AUTO_ACKNOWLEDGE)));
 }
 
@@ -154,7 +152,8 @@ cms::MessageProducer* cms::amqp::CMSSession::createProducer(const ::cms::Destina
 
 	config::ProducerContext context(mPimpl->mContext, destination);
 	std::shared_ptr<MessageProducerImpl> producer = std::make_shared<MessageProducerImpl>(context);
-	return mProducers.emplace_back(new CMSMessageProducer(producer));
+	mProducers.emplace_back(producer);
+	return new CMSMessageProducer(producer);
 //	return new CMSMessageProducer(destination, std::make_shared<SessionContext>(mPimpl->session(), false, false, true));
 }
 
@@ -297,14 +296,3 @@ cms::MessageTransformer* cms::amqp::CMSSession::getMessageTransformer() const
 //	mLogger->log(SEVERITY::LOG_DEBUG, fmt::format("create session context: durable: {} shared: {} auto_ack: {}", durable, shared, auto_ack));
 //	return cms::amqp::SessionContext(mPimpl->mContext, auto_ack);
 //}
-
-
-void cms::amqp::CMSSession::setState(ClientState state)
-{
-	mPimpl->setState(state);
-}
-
-cms::amqp::ClientState cms::amqp::CMSSession::getState()
-{
-	return mPimpl->getState();
-};

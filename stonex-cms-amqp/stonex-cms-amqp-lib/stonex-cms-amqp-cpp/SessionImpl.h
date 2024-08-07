@@ -52,23 +52,23 @@ namespace cms::amqp
 		void on_session_close(proton::session& session) override;
 		void on_session_error(proton::session& session) override;
 
-		std::shared_ptr<proton::session> session();
-
 		ClientState getState();
 		void setState(ClientState state);
 
 	private:
-		bool syncClose();
+	//	bool syncClose();
 		bool syncStart(std::shared_ptr<proton::connection>  connection);
-		bool syncStop();
+	//	bool syncStop();
 
 	//private:
 	public:
 		StonexLoggerPtr mLogger;
-		ClientState mState;
-		std::shared_ptr<proton::session> mSession;
+		ClientState mState = ClientState::UNNINITIALIZED;
 		cms::internal::AsyncCallSynchronizer mEXHandler;
 		config::SessionContext mContext;
+	private:
+		std::mutex mMutex;
+		std::condition_variable mCv;
 	};
 
 };

@@ -53,8 +53,19 @@ cms::amqp::MessageProducerImpl::MessageProducerImpl(const config::ProducerContex
 	mEXHandler(mLogger),
 	mContext(context)
 {
+	std::unique_lock lk(mMutex);
 	proton::sender_options opts = mContext.config();
 	opts.handler(*this);
+	if (mContext.mWorkQueue)
+	{
+		mContext.mWorkQueue->add([=]() {mContext.mSender.open(opts); });
+		mCv.wait(lk, [this]() {return mState != ClientState::UNNINITIALIZED; });
+	}
+	else
+	{
+		throw CMSException("Session uninitiaized");
+	}
+	
 //	mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncCreate, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, opts, session);
 }
 
@@ -103,7 +114,7 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 			message_copy->setCMSDestination(destination);
 		else
 		{
-			auto sender_default_destination = AMQPCMSMessageConverter::createCMSDestination(mProtonSender.get());
+			auto sender_default_destination = AMQPCMSMessageConverter::createCMSDestination(&mContext.mSender);
 			message_copy->setCMSDestination(sender_default_destination);
 			delete sender_default_destination;
 		}
@@ -121,9 +132,9 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "could not convert message to any of implemented types"));
 	delete message_copy;
 	if(onComplete) [[unlikely]]
-		mProtonSender->connection().work_queue().add([this, mess, onComplete] {mProtonSender->send(*mess); onComplete->onSuccess(); });
+		mContext.mWorkQueue->add([this, mess, onComplete] {mContext.mSender.send(*mess); onComplete->onSuccess(); });
 	else
-		mProtonSender->connection().work_queue().add([this, mess] {mProtonSender->send(*mess); });
+		mContext.mWorkQueue->add([this, mess] {mContext.mSender.send(*mess); });
 
 	
 	
@@ -134,8 +145,20 @@ void cms::amqp::MessageProducerImpl::close()
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
 #endif
-	if(mState == ClientState::STARTED)
-		mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncClose, this));
+	//if(mState == ClientState::STARTED)
+	//	mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncClose, this));
+
+	if (mContext.mWorkQueue)
+	{
+		std::unique_lock lk(mMutex);
+		mContext.mWorkQueue->add([=]() {mContext.mSender.close(); }); //check draining
+		mCv.wait(lk, [this]() {return mState == ClientState::STOPPED; });
+		setState(ClientState::STARTED);
+	}
+	else
+	{
+		throw CMSException("Session uninitiaized");
+	}
 }
 
 void cms::amqp::MessageProducerImpl::on_sendable(proton::sender& sender)
@@ -155,16 +178,23 @@ void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)
 	else
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
 
-	mProtonSender = std::make_unique<proton::sender>(sender);
-	if (sender.error().empty())
-	{
-		
-		//add comment
-		mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(mProtonSender.get()));
 
-		mState = ClientState::STARTED;
-		mEXHandler.onResourceInitialized();
-	}
+	mContext.mSender = sender;
+	mContext.mWorkQueue = &mContext.mSender.work_queue();
+	mContext.mDestination = AMQPCMSMessageConverter::createCMSDestination(&mContext.mSender);
+	setState(ClientState::STARTED); //check
+	mCv.notify_one();
+
+//	mProtonSender = std::make_unique<proton::sender>(sender);
+	//if (sender.error().empty())
+	//{
+	//	
+	//	//add comment
+	//	mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(mProtonSender.get()));
+
+	//	mState = ClientState::STARTED;
+	//	mEXHandler.onResourceInitialized();
+	//}
 	
 }
 
@@ -180,26 +210,49 @@ void cms::amqp::MessageProducerImpl::on_sender_close(proton::sender& sender)
 		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
 	else
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} address {} anonymous {} dynamic {} durable {}  {}", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode(), err.what()));
-	mState = ClientState::CLOSED;
-	mEXHandler.onResourceUninitialized(sender.error());
-}
+	//mState = ClientState::CLOSED;
+	//mEXHandler.onResourceUninitialized(sender.error());
 
-bool cms::amqp::MessageProducerImpl::syncClose()
-{
-	if (mState == ClientState::STARTED)
-		return  mProtonSender->session().connection().work_queue().add([this] {mProtonSender->close(); });
-	else 
-		return true;
-}
-
-bool cms::amqp::MessageProducerImpl::syncCreate(const std::string& address, const proton::sender_options& options, std::shared_ptr<proton::session> session)
-{
-	if (mState != ClientState::STARTED)
-		return  session->connection().work_queue().add([session, address, options] {session->open_sender(address, options); });
+	if (mContext.mWorkQueue)
+	{
+		std::unique_lock lk(mMutex);
+		mContext.mWorkQueue->add([=]() {mContext.mSender.close(); }); //check draining
+		mCv.wait(lk, [this]() {return mState == ClientState::STOPPED; });
+		setState(ClientState::STARTED);
+	}
 	else
-		return true;
-	
+	{
+		throw CMSException("Session uninitiaized");
+	}
 }
+
+cms::amqp::ClientState cms::amqp::MessageProducerImpl::getState()
+{
+	return mState;
+}
+
+void cms::amqp::MessageProducerImpl::setState(ClientState state)
+{
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} last state {} current state {}", __func__, mState, state));
+	mState = state;
+}
+
+//bool cms::amqp::MessageProducerImpl::syncClose()
+//{
+//	if (mState == ClientState::STARTED)
+//		return  mProtonSender->session().connection().work_queue().add([this] {mProtonSender->close(); });
+//	else 
+//		return true;
+//}
+
+//bool cms::amqp::MessageProducerImpl::syncCreate(const std::string& address, const proton::sender_options& options, std::shared_ptr<proton::session> session)
+//{
+//	if (mState != ClientState::STARTED)
+//		return  session->connection().work_queue().add([session, address, options] {session->open_sender(address, options); });
+//	else
+//		return true;
+//	
+//}
 
 void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, ::cms::Message* message)
 {

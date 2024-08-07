@@ -99,27 +99,27 @@ namespace cms::amqp
 		ClientState getState();
 		void setState(ClientState state);
 	private:
-		bool syncCreate(const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session>  session);
+	/*	bool syncCreate(const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session>  session);
 		bool syncClose();
-		bool syncStop();
+		bool syncStop();*/
 		// refctor - duplicate from Producer
 		//::cms::Destination* initializeDestination();
 		//::cms::Destination::DestinationType capabilityToDestinationType(const  std::vector<proton::symbol>& capabilities) const;
 
 	private:
 		StonexLoggerPtr mLogger;
-		ClientState mState;
-		std::unique_ptr<proton::receiver> mProtonReceiver;
+		ClientState mState = ClientState::UNNINITIALIZED;
 		cms::internal::AsyncCallSynchronizer mEXHandler;
 		::cms::MessageListener *mListener{ nullptr };
 		std::string mAddress;
-
-		std::shared_ptr<::cms::Destination> mDestination{ nullptr };
 
 		std::function<void(::cms::Message*)> onMessageCallback = [=](::cms::Message* message) ->void { delete message; };
 
 		DestinationParser destAddressParser;
 		config::ConsumerContext mContext;
+	private:
+		std::mutex mMutex;
+		std::condition_variable mCv;
 	};
 
 };

@@ -52,8 +52,18 @@ cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const config::ConsumerContex
 	mEXHandler(mLogger),
 	mContext(context)
 {
+	std::unique_lock lk(mMutex);
 	proton::receiver_options ropts = mContext.config();
 	ropts.handler(*this);
+	if (mContext.mWorkQueue)
+	{
+		mContext.mWorkQueue->add([=]() {mContext.mReceiver.open(ropts); });
+		mCv.wait(lk, [this]() {return mState != ClientState::UNNINITIALIZED; });
+	}
+	else
+	{
+		throw CMSException("Session uninitiaized");
+	}
 
 	//waiting until all relevant resources is initialized
 //	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncCreate, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, mRopts, session);
@@ -111,8 +121,18 @@ void cms::amqp::MessageConsumerImpl::start()
 {
 
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{}", __func__));
-	mProtonReceiver->add_credit(10);
-	setState(ClientState::STARTED);
+
+	if (mContext.mWorkQueue)
+	{
+		std::unique_lock lk(mMutex);
+		mContext.mWorkQueue->add([=]() {mContext.mReceiver.add_credit(10); });
+		mCv.wait(lk, [this]() {return mState == ClientState::STOPPED; });
+		setState(ClientState::STARTED);
+	}
+	else
+	{
+		throw CMSException("Session uninitiaized");
+	}
 
 }
 
@@ -120,14 +140,36 @@ void cms::amqp::MessageConsumerImpl::stop()
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{}", __func__));
 
-	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncStop, this));
+	if (mContext.mWorkQueue)
+	{
+		std::unique_lock lk(mMutex);
+		mContext.mWorkQueue->add([=]() {mContext.mReceiver.drain(); }); //check draining
+		mCv.wait(lk, [this]() {return mState == ClientState::STOPPED; });
+		setState(ClientState::STARTED);
+	}
+	else
+	{
+		throw CMSException("Session uninitiaized");
+	}
+//	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncStop, this));
 }
 
 void cms::amqp::MessageConsumerImpl::close()
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{}", __func__));
 
-	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncClose, this));
+	if (mContext.mWorkQueue)
+	{
+		std::unique_lock lk(mMutex);
+		mContext.mWorkQueue->add([=]() {mContext.mReceiver.close(); }); //check draining
+		mCv.wait(lk, [this]() {return mState == ClientState::STOPPED; });
+		setState(ClientState::STARTED);
+	}
+	else
+	{
+		throw CMSException("Session uninitiaized");
+	}
+//	mEXHandler.SynchronizeCall(std::bind(&MessageConsumerImpl::syncClose, this));
 }
 
 void cms::amqp::MessageConsumerImpl::on_receiver_open(proton::receiver& receiver)
@@ -139,13 +181,19 @@ void cms::amqp::MessageConsumerImpl::on_receiver_open(proton::receiver& receiver
 	else
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
 
-	mProtonReceiver = std::make_unique<proton::receiver>(receiver);
-	if (receiver.error().empty())
-	{
-		mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(mProtonReceiver.get()));
-		setState(ClientState::STARTED);
-		mEXHandler.onResourceInitialized();
-	}
+
+	mContext.mReceiver = receiver;
+	mContext.mWorkQueue = &mContext.mReceiver.work_queue();
+	mContext.mDestination = AMQPCMSMessageConverter::createCMSDestination(&mContext.mReceiver);
+	setState(ClientState::STARTED); //check
+	mCv.notify_one();
+//	mProtonReceiver = std::make_unique<proton::receiver>(receiver);
+	//if (receiver.error().empty())
+	//{
+	//	mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(mProtonReceiver.get()));
+	//	setState(ClientState::STARTED);
+	//	mEXHandler.onResourceInitialized();
+	//}
 
 
 }
@@ -157,10 +205,12 @@ void cms::amqp::MessageConsumerImpl::on_receiver_close(proton::receiver& receive
 		mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
 	else
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
-#endif
+#endif/*
 	mEXHandler.onResourceUninitialized(receiver.error());
 
-	setState(ClientState::STOPPED);
+	setState(ClientState::STOPPED);*/
+	setState(ClientState::CLOSED);
+	mCv.notify_one();
 }
 
 void cms::amqp::MessageConsumerImpl::on_receiver_detach(proton::receiver& receiver)
@@ -170,9 +220,12 @@ void cms::amqp::MessageConsumerImpl::on_receiver_detach(proton::receiver& receiv
 		mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
 	else
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
-#endif
+#endif/*
 	mEXHandler.onResourceInitialized();
+	setState(ClientState::DETATCHED);*/
+
 	setState(ClientState::DETATCHED);
+	mCv.notify_one();
 }
 
 void cms::amqp::MessageConsumerImpl::on_receiver_error(proton::receiver& receiver)
@@ -183,8 +236,11 @@ void cms::amqp::MessageConsumerImpl::on_receiver_error(proton::receiver& receive
 void cms::amqp::MessageConsumerImpl::on_receiver_drain_finish(proton::receiver& receiver)
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} draining done", __func__));
+	//setState(ClientState::STOPPED);
+	//mEXHandler.onResourceInitialized();
+
 	setState(ClientState::STOPPED);
-	mEXHandler.onResourceInitialized();
+	mCv.notify_one();
 }
 
 
@@ -198,21 +254,21 @@ void cms::amqp::MessageConsumerImpl::on_message(proton::delivery& delivery, prot
 #if _DEBUG
 		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} {} credit {} draining {}", __func__, "bytes message", delivery.receiver().credit(), delivery.receiver().draining()));
 #endif
-		onMessageCallback(new CMSBytesMessage(&message, &delivery, mProtonReceiver.get()));
+		onMessageCallback(new CMSBytesMessage(&message, &delivery, &mContext.mReceiver));
 	}
 	else
 	{
 #if _DEBUG
 		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} {} credit {}, draining {}", __func__, "text message", delivery.receiver().credit(), delivery.receiver().draining()));
 #endif
-		onMessageCallback(new CMSTextMessage(&message, &delivery, mProtonReceiver.get()));
+		onMessageCallback(new CMSTextMessage(&message, &delivery, &mContext.mReceiver));
 	}
 	
 }
 
 const std::string cms::amqp::MessageConsumerImpl::getAddress() const
 {
-	return mProtonReceiver->source().address();
+	return  mContext.mReceiver.source().address();
 }
 
 cms::amqp::ClientState cms::amqp::MessageConsumerImpl::getState()
@@ -226,38 +282,38 @@ void cms::amqp::MessageConsumerImpl::setState(ClientState state)
 	mState = state;
 }
 
-bool cms::amqp::MessageConsumerImpl::syncCreate(const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session> session)
-{
-#if _DEBUG
-	mLogger->log(SEVERITY::LOG_TRACE, fmt::format(" {} address {}", __func__, address));
-#endif
+//bool cms::amqp::MessageConsumerImpl::syncCreate(const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session> session)
+//{
+//#if _DEBUG
+//	mLogger->log(SEVERITY::LOG_TRACE, fmt::format(" {} address {}", __func__, address));
+//#endif
+//
+////	return session->connection().work_queue().add([=] {session->open_receiver(address, mRopts); });
+//	return false;
+//}
+//
+//bool cms::amqp::MessageConsumerImpl::syncClose()
+//{
+//#if _DEBUG
+//	mLogger->log(SEVERITY::LOG_TRACE, fmt::format(" {}", __func__));
+//#endif
+//
+//	if (!mProtonReceiver->closed() /* && mState == STATUS::OPEN*/) {
+//		return mProtonReceiver->connection().work_queue().add([=] {mProtonReceiver->close(); });
+//	}
+//	else
+//		return false;
+//}
 
-//	return session->connection().work_queue().add([=] {session->open_receiver(address, mRopts); });
-	return false;
-}
-
-bool cms::amqp::MessageConsumerImpl::syncClose()
-{
-#if _DEBUG
-	mLogger->log(SEVERITY::LOG_TRACE, fmt::format(" {}", __func__));
-#endif
-
-	if (!mProtonReceiver->closed() /* && mState == STATUS::OPEN*/) {
-		return mProtonReceiver->connection().work_queue().add([=] {mProtonReceiver->close(); });
-	}
-	else
-		return false;
-}
-
-bool cms::amqp::MessageConsumerImpl::syncStop()
-{
-#if _DEBUG
-	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
-#endif
-
-	return 	mProtonReceiver->work_queue().add([=] {
-		if(!mProtonReceiver->draining())
-		  mProtonReceiver->drain();
-	});
-//	return 	mProtonReceiver->connection().work_queue().add([=] {mProtonReceiver->detach(); });
-}
+//bool cms::amqp::MessageConsumerImpl::syncStop()
+//{
+//#if _DEBUG
+//	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
+//#endif
+//
+//	return 	mProtonReceiver->work_queue().add([=] {
+//		if(!mProtonReceiver->draining())
+//		  mProtonReceiver->drain();
+//	});
+////	return 	mProtonReceiver->connection().work_queue().add([=] {mProtonReceiver->detach(); });
+//}

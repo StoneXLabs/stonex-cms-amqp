@@ -52,20 +52,19 @@ cms::amqp::MessageProducerImpl::MessageProducerImpl(const config::ProducerContex
 	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.MessageProducerImpl")),
 	mContext(context)
 {
+	mContext.setLogger(mLogger);
 	std::unique_lock lk(mMutex);
 	auto opts = mContext.config();
 	opts.second.handler(*this);
 	if (mContext.mWorkQueue)
 	{
 		mContext.mWorkQueue->add([=]() {mContext.mSession.open_sender(opts.first,opts.second); });
-		mCv.wait(lk, [this]() {return mState != ClientState::UNNINITIALIZED; });
+		mCv.wait(lk, [this]() {return !mContext.checkState(ClientState::UNNINITIALIZED); });
 	}
 	else
 	{
 		throw CMSException("Session uninitiaized");
 	}
-	
-//	mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncCreate, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, opts, session);
 }
 
 cms::amqp::MessageProducerImpl::~MessageProducerImpl()
@@ -102,17 +101,6 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 {
 	auto message_copy = message->clone();
 	std::unique_lock lk(mMutex);
-	/*if (mContext.mWorkQueue)
-	{
-		mContext.mWorkQueue->add([=]() {mContext.mSender.open(opts); });
-		mSendable.wait(lk, [this]() { return mCanSend;});
-	}
-	else
-	{
-		throw CMSException("Session uninitiaized");
-	}*/
-//	mEXHandler.waitForResource();
-
 
 	message_copy->setCMSDeliveryMode(deliveryMode);
 	message_copy->setCMSPriority(priority);
@@ -140,7 +128,7 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "could not convert message to any of implemented types"));
 	delete message_copy;
 	
-	if (mContext.mWorkQueue)
+	if (mContext.mWorkQueue) //TO DO break by close called on send
 	{
 		mSendable.wait(lk, [this]() { return mCanSend; });
 		mCanSend = false;
@@ -164,15 +152,17 @@ void cms::amqp::MessageProducerImpl::close()
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
 #endif
-	//if(mState == ClientState::STARTED)
-	//	mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncClose, this));
+	if (mContext.checkState(ClientState::CLOSED))
+	{
+		mLogger->log(SEVERITY::LOG_WARNING, "trying to close producer that is allready closed");
+		return;
+	}
 
 	if (mContext.mWorkQueue)
 	{
 		std::unique_lock lk(mMutex);
 		mContext.mWorkQueue->add([=]() {mContext.mSender.close(); }); //check draining
-		mCv.wait(lk, [this]() {return mState == ClientState::STOPPED; });
-		setState(ClientState::STARTED);
+		mCv.wait(lk, [this]() {return mContext.checkState(ClientState::CLOSED); });
 	}
 	else
 	{
@@ -185,7 +175,6 @@ void cms::amqp::MessageProducerImpl::on_sendable(proton::sender& sender)
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
 #endif
-	//mEXHandler.onResourceInitialized();
 	mCanSend = true;
 	mSendable.notify_one();
 }
@@ -203,20 +192,15 @@ void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)
 	mContext.mSender = sender;
 	mContext.mWorkQueue = &mContext.mSender.work_queue();
 	mContext.mDestination = AMQPCMSMessageConverter::createCMSDestination(&mContext.mSender);
-	setState(ClientState::STARTED); //check
-	mCv.notify_one();
-
-//	mProtonSender = std::make_unique<proton::sender>(sender);
-	//if (sender.error().empty())
-	//{
-	//	
-	//	//add comment
-	//	mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(mProtonSender.get()));
-
-	//	mState = ClientState::STARTED;
-	//	mEXHandler.onResourceInitialized();
-	//}
-	
+	if (mContext.checkState(ClientState::UNNINITIALIZED))
+	{
+		mContext.setState(ClientState::STOPPED);
+	}
+	else
+	{
+		mContext.setState(ClientState::STARTED);
+	}
+	mCv.notify_one();	
 }
 
 void cms::amqp::MessageProducerImpl::on_sender_error(proton::sender & sender)
@@ -231,49 +215,10 @@ void cms::amqp::MessageProducerImpl::on_sender_close(proton::sender& sender)
 		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
 	else
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} address {} anonymous {} dynamic {} durable {}  {}", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode(), err.what()));
-	//mState = ClientState::CLOSED;
-	//mEXHandler.onResourceUninitialized(sender.error());
 
-	if (mContext.mWorkQueue)
-	{
-		std::unique_lock lk(mMutex);
-		mContext.mWorkQueue->add([=]() {mContext.mSender.close(); }); //check draining
-		mCv.wait(lk, [this]() {return mState == ClientState::STOPPED; });
-		setState(ClientState::STARTED);
-	}
-	else
-	{
-		throw CMSException("Session uninitiaized");
-	}
+	mContext.setState(ClientState::CLOSED);
+	mCv.notify_one();
 }
-
-cms::amqp::ClientState cms::amqp::MessageProducerImpl::getState()
-{
-	return mState;
-}
-
-void cms::amqp::MessageProducerImpl::setState(ClientState state)
-{
-	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} last state {} current state {}", __func__, mState, state));
-	mState = state;
-}
-
-//bool cms::amqp::MessageProducerImpl::syncClose()
-//{
-//	if (mState == ClientState::STARTED)
-//		return  mProtonSender->session().connection().work_queue().add([this] {mProtonSender->close(); });
-//	else 
-//		return true;
-//}
-
-//bool cms::amqp::MessageProducerImpl::syncCreate(const std::string& address, const proton::sender_options& options, std::shared_ptr<proton::session> session)
-//{
-//	if (mState != ClientState::STARTED)
-//		return  session->connection().work_queue().add([session, address, options] {session->open_sender(address, options); });
-//	else
-//		return true;
-//	
-//}
 
 void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, ::cms::Message* message)
 {
@@ -292,7 +237,6 @@ void cms::amqp::MessageProducerImpl::setDeliveryMode(int mode)
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("EXCEPTION {} {}", __func__, "Illegal delivery mode value"));
 		throw ::cms::CMSException("Illegal delivery mode value");
 	}
-	
 }
 
 int cms::amqp::MessageProducerImpl::getDeliveryMode() const

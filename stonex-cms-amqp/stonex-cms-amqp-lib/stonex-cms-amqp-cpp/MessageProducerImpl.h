@@ -28,13 +28,12 @@
 #include <cms/MessageProducer.h>
 #include <cms/MessageListener.h>
 
-
 #include "../API/CMSMessage.h"
-#include "AsyncCallSynchronizer.h"
 #include "AMQPIDGenerator.h"
 #include "../API/ClientState.h"
 #include <logger/StoneXLogger.h>
 #include "ProducerContext.h"
+#include <functional>
 
 namespace cms::amqp
 {
@@ -86,16 +85,8 @@ namespace cms::amqp
 		void on_sender_error(proton::sender& sender) override;
 		void on_sender_close(proton::sender& sender) override;
 
-		ClientState getState();
-		void setState(ClientState state);
-
-	private:
-	//	bool syncClose();
-	//	bool syncCreate(const std::string& address, const proton::sender_options& options, std::shared_ptr<proton::session>  session);
-
 	private:
 		StonexLoggerPtr mLogger;
-		ClientState mState = ClientState::UNNINITIALIZED;
 		MessageConverter mConverter;
 		config::ProducerContext mContext;
 	private:

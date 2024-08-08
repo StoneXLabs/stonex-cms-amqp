@@ -20,6 +20,7 @@
 #include <proton/work_queue.hpp>
 #include <proton/session.hpp>
 #include <proton/connection.hpp>
+#include "../API/ClientState.h"
 
 namespace cms
 {
@@ -29,15 +30,13 @@ namespace config
 {
 class ConnectionContext;
 
-class SessionContext
+class SessionContext : public StateMachine
 {
 public:
 	SessionContext(ConnectionContext& context, bool auto_ack);
 
 	bool isAutoAck();
 
-	//		std::shared_ptr<proton::connection> connection() const { return mConnection; }
-	//	private:
 	proton::work_queue* mWorkQueue{ nullptr };
 	proton::session mSession;
 	proton::connection mConnection;

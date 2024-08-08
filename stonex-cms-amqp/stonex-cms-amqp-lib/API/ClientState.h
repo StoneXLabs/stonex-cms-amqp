@@ -20,6 +20,7 @@
 #pragma once
 #include <iostream>
 #include <fmt/format.h>
+#include <logger/StoneXLogger.h>
 
 namespace cms::amqp
 {
@@ -31,6 +32,19 @@ namespace cms::amqp
 		CLOSED,
 		DETATCHED
 
+	};
+
+	class StateMachine
+	{
+	public:
+		bool checkState(ClientState state);
+		ClientState getState() const;
+		void setState(ClientState state);
+		void setLogger(StonexLoggerPtr logger);
+
+	private:
+		ClientState mState{ ClientState::UNNINITIALIZED };
+		StonexLoggerPtr mLogger;
 	};
 }
 

@@ -77,7 +77,6 @@ AMQP_DEFINES
 	private:
 		StonexLoggerPtr mLogger;
 		std::shared_ptr<ConnectionImpl> mPimpl;
-		std::vector<std::weak_ptr<SessionImpl>> mSessions;
 
 	};
 

@@ -20,6 +20,7 @@
 #include <proton/sender_options.hpp>
 #include <proton/sender.hpp>
 #include <proton/session.hpp>
+#include "../API/ClientState.h"
 
 namespace cms
 {
@@ -30,7 +31,7 @@ namespace config
 
 class SessionContext;
 
-class ProducerContext
+class ProducerContext : public StateMachine
 {
 
 public:

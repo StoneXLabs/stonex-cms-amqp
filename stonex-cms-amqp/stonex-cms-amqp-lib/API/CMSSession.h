@@ -92,8 +92,6 @@ AMQP_DEFINES
 	private:
 		StonexLoggerPtr mLogger;
 		std::shared_ptr<SessionImpl> mPimpl;
-		std::vector<std::shared_ptr<MessageConsumerImpl>> mConsumers;
-		std::vector<std::shared_ptr<MessageProducerImpl>> mProducers;
 	};
 
 

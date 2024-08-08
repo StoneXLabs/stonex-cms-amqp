@@ -20,6 +20,7 @@
 #pragma once
 #include <proton/work_queue.hpp>
 #include <proton/connection.hpp>
+#include "../API/ClientState.h"
 
 //AMQP_DEFINES
 
@@ -50,7 +51,7 @@ namespace config
 
 class FactoryContext;
 
-class ConnectionContext
+class ConnectionContext : public StateMachine
 {
 public:
 	ConnectionContext(FactoryContext& context, const std::string& username = "", const std::string& password = "", const std::string& clientId = "");

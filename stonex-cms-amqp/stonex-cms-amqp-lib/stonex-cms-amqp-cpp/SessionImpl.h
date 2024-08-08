@@ -27,13 +27,14 @@
 #include <condition_variable>
 #include <mutex>
 
-#include "AsyncCallSynchronizer.h"
 #include "API/ClientState.h"
 
 #include <logger/StoneXLogger.h>
 
 namespace cms::amqp
 {
+	class MessageConsumerImpl;
+	class MessageProducerImpl;
 
 	class SessionImpl : public proton::messaging_handler
 	{
@@ -41,6 +42,8 @@ namespace cms::amqp
 		explicit SessionImpl(const config::SessionContext& context);
 		~SessionImpl();
 
+		void start();
+		void stop();
 		void close();
 		void commit();
 		void rollback();
@@ -52,22 +55,18 @@ namespace cms::amqp
 		void on_session_close(proton::session& session) override;
 		void on_session_error(proton::session& session) override;
 
-		ClientState getState();
-		void setState(ClientState state);
-
-	private:
-	//	bool syncClose();
-		bool syncStart(std::shared_ptr<proton::connection>  connection);
-	//	bool syncStop();
+		void addConsumer(std::shared_ptr<MessageConsumerImpl> consumer);
+		void addProducer(std::shared_ptr<MessageProducerImpl> producer);
 
 	//private:
 	public:
 		StonexLoggerPtr mLogger;
-		ClientState mState = ClientState::UNNINITIALIZED;
 		config::SessionContext mContext;
 	private:
 		std::mutex mMutex;
 		std::condition_variable mCv;
+		std::vector<std::weak_ptr<MessageConsumerImpl>> mConsumers;
+		std::vector<std::weak_ptr<MessageProducerImpl>> mProducers;
 	};
 
 };

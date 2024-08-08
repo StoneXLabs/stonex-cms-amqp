@@ -29,12 +29,14 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 	:mPimpl(std::make_shared<ConnectionFactoryImpl>(brokerURI)),
 	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnectionFactory"))
 {
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("created connection factory : {}", brokerURI));
 }
 
 ::cms::Connection* cms::amqp::CMSConnectionFactory::createConnection()
 {
 	try
 	{
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating connection"));
 		config::ConnectionContext context(mPimpl->createConnectionContext());
 		std::shared_ptr<ConnectionImpl> connection = std::make_shared<ConnectionImpl>(std::move(context));
 		return new CMSConnection(connection);
@@ -110,8 +112,3 @@ cms::MessageTransformer* cms::amqp::CMSConnectionFactory::getMessageTransformer(
 {
 	return new CMSConnectionFactory(brokerURI);
 }
-
-//std::shared_ptr<cms::amqp::FactoryContext> cms::amqp::CMSConnectionFactory::context() const
-//{
-//	return mContext;
-//};

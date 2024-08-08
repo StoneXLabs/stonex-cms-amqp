@@ -27,7 +27,6 @@
 #include <cms/Connection.h>
 
 #include "ConnectionContext.h"
-#include "AsyncCallSynchronizer.h"
 #include "../API/ClientState.h"
 
 #include <memory>
@@ -35,6 +34,7 @@
 
 namespace cms::amqp
 {
+	class SessionImpl;
 	//!ProtonConnection
 	/*!
 	* Object representing CMS connection.
@@ -54,19 +54,9 @@ namespace cms::amqp
 		ConnectionImpl& operator = (ConnectionImpl&&) = delete;
 
 		~ConnectionImpl() override;
-
+		void start();
+		void stop();
 		void close();
-
-		//	const ConnectionMetaData* getMetaData() const;
-
-
-			//!createSession()
-			/*! instantienate new session for connection
-			* Session creation request is passed to connection work_queue, session
-			* method returns immiediately but created object is blocked until session creation is confirmed by broker
-			*/
-			//Session* createSession();
-			//Session* createSession(Session::AcknowledgeMode ackMode);
 
 		std::string getClientID() const;
 		void setClientID(const std::string& clientID);
@@ -77,8 +67,7 @@ namespace cms::amqp
 		void setMessageTransformer(::cms::MessageTransformer* transformer);
 		::cms::MessageTransformer* getMessageTransformer() const;
 
-		ClientState getState() const;
-		void setState(ClientState state);
+		void addSession(std::shared_ptr<SessionImpl> session);
 
 		void on_transport_open(proton::transport& transport) override;
 		void on_transport_close(proton::transport& transport) override;
@@ -86,24 +75,17 @@ namespace cms::amqp
 		void on_connection_open(proton::connection& connection) override;
 		void on_connection_close(proton::connection& connection) override;
 		void on_connection_error(proton::connection& connection) override;
-
-//		std::shared_ptr<proton::connection> connection() const { return mConnection; }
-
-	//private:
-	//	bool syncClose();
-//	private:
 	public:
 		StonexLoggerPtr mLogger;
-		ClientState mState = ClientState::UNNINITIALIZED;
 		const std::string mConnectionId;
 		std::string mBrokerUrl;
-//		std::shared_ptr<proton::connection> mConnection;
 		::cms::ExceptionListener* mExceptionListener{ nullptr };
 		config::ConnectionContext mContext;
 
 	private:
 		std::mutex mMutex;
 		std::condition_variable mCv;
+		std::vector<std::weak_ptr<SessionImpl>> mSessions;
 
 	};
 

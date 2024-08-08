@@ -19,9 +19,11 @@
 
 #include <string>
 #include <regex>
+#include <proton/session.hpp>
 #include <proton/receiver.hpp>
 #include <proton/receiver_options.hpp>
 #include <cms/Destination.h>
+#include "../API/ClientState.h"
 
 namespace cms
 {
@@ -31,7 +33,7 @@ namespace config
 {
 class SessionContext;
 
-class ConsumerContext
+class ConsumerContext : public StateMachine
 {
 	class DestinationParser
 	{
@@ -58,7 +60,7 @@ public:
 
 	bool isDurable();
 	bool isShared();
-	proton::receiver_options config();
+	std::pair<const std::string, proton::receiver_options> config();
 
 private:
 	bool mDurable_subscriber;
@@ -68,6 +70,7 @@ private:
 	DestinationParser destAddressParser;
 public:
 	proton::work_queue* mWorkQueue{ nullptr };
+	proton::session mSession;
 	proton::receiver mReceiver;
 	const cms::Destination* mDestination{ nullptr };
 };

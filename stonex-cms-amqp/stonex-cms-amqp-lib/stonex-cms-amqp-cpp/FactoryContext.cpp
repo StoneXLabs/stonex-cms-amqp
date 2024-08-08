@@ -47,9 +47,6 @@ std::string cms::amqp::config::FactoryContext::broker() const
 
 std::vector<std::string> cms::amqp::config::FactoryContext::failoverAddresses() const
 {
-	//std::ostringstream ss;
-	//std::copy(std::cbegin(mFailoverAddresses), std::cend(mFailoverAddresses), std::ostream_iterator<std::string>(ss, ","));
-	//return ss.str();
 	return mFailoverAddresses;
 }
 
@@ -62,37 +59,3 @@ int cms::amqp::config::FactoryContext::reconnectAttempts() const
 {
 	return mReconnectAttempts;
 }
-
-//void cms::amqp::config::ConnectionOptions::FailoverTransportOptions::setParametersFromString(const std::string& parameter)
-//{
-//	std::size_t  pos = parameter.find("=");
-//	if (pos == std::string::npos)
-//		return;
-//
-//	std::string param = parameter.substr(pos);
-//
-//	if (param == "initialReconnectDelay")
-//	{
-//		mInitialReconnectDelay = std::stoi(parameter.substr(pos + 1));
-//	}
-//	else if (param == "maxReconnectDelay")
-//	{
-//		mMaxReconnectDelay = std::stoi(parameter.substr(pos + 1));
-//	}
-//	else if (param == "useExpotentialBackOff")
-//	{
-//		mUseExpotentialBackOff = param == "true" ? true : false;
-//	}
-//	else if (param == "maxReconnectAttempts")
-//	{
-//		mMaxReconnectAttempts = std::stoi(parameter.substr(pos + 1));
-//	}
-//	else if (param == "randomize")
-//	{
-//		mRandomize = param == "true" ? true : false;
-//	}
-//	else if (param == "timeout")
-//	{
-//		mTimeout = std::stoi(parameter.substr(pos + 1));
-//	}
-//}

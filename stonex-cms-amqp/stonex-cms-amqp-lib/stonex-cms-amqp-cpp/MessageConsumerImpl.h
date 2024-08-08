@@ -18,8 +18,6 @@
  */
 
 #pragma once
-#include "AsyncCallSynchronizer.h"
-
 #include <condition_variable>
 #include <mutex>
 #include <functional>
@@ -63,8 +61,6 @@ namespace cms::amqp
 		};
 	public:
 		explicit MessageConsumerImpl(const config::ConsumerContext& context);
-	//	explicit MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable = false,  bool shared = false, bool autoAck = true, const std::string& selector = "");
-
 
 		~MessageConsumerImpl();
 		::cms::Message* receive();
@@ -96,19 +92,8 @@ namespace cms::amqp
 
 		const std::string getAddress() const;
 
-		ClientState getState();
-		void setState(ClientState state);
-	private:
-	/*	bool syncCreate(const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session>  session);
-		bool syncClose();
-		bool syncStop();*/
-		// refctor - duplicate from Producer
-		//::cms::Destination* initializeDestination();
-		//::cms::Destination::DestinationType capabilityToDestinationType(const  std::vector<proton::symbol>& capabilities) const;
-
 	private:
 		StonexLoggerPtr mLogger;
-		ClientState mState = ClientState::UNNINITIALIZED;
 		::cms::MessageListener *mListener{ nullptr };
 		std::string mAddress;
 

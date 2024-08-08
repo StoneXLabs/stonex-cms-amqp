@@ -72,4 +72,3 @@ proton::connection_options cms::amqp::config::ConnectionContext::config()
 
 	return co;
 }
-

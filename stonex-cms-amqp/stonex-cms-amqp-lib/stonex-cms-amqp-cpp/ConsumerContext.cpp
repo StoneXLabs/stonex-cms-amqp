@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 #include "ConsumerContext.h"
+#include "SessionContext.h"
 #include <proton/source_options.hpp>
 #include "API/CMSQueue.h"
 #include "API/CMSTopic.h"
@@ -26,14 +27,16 @@
 cms::amqp::config::ConsumerContext::ConsumerContext(SessionContext& context, bool durable, bool shared, const cms::Destination* destination)
 	:mDurable_subscriber{ durable },
 	mShared_subscriber{ shared },
-	mDestination(destination)
+	mDestination(destination),
+	mSession(context.mSession),
+	mWorkQueue(context.mWorkQueue)
 {
 }
 
 bool cms::amqp::config::ConsumerContext::isDurable() { return mDurable_subscriber; }
 bool cms::amqp::config::ConsumerContext::isShared() { return mShared_subscriber; }
 
-proton::receiver_options cms::amqp::config::ConsumerContext::config()
+std::pair<const std::string, proton::receiver_options> cms::amqp::config::ConsumerContext::config()
 {
 	proton::receiver_options ropts;
 	proton::source_options sopts{};
@@ -98,5 +101,5 @@ proton::receiver_options cms::amqp::config::ConsumerContext::config()
 	ropts.source(sopts);
 	ropts.credit_window(0);
 
-	return ropts;
+	return { address, ropts };
 }

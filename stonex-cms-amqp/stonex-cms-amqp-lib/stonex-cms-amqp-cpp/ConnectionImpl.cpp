@@ -36,47 +36,77 @@
  cms::amqp::ConnectionImpl::ConnectionImpl(const config::ConnectionContext& context)
 	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.ConnectionImpl")),
 	 mContext(context)
-{	
-
+{
+	 mContext.setLogger(mLogger);
 	 std::unique_lock lk(mMutex);
 	 proton::connection_options connectionOptions = mContext.config();
 	 connectionOptions.handler(*this);
 	 ProtonCppLibrary::getContainer()->connect(mContext.mPrimaryUrl, connectionOptions);
-	 mCv.wait(lk, [this]() {return mState != ClientState::UNNINITIALIZED; });
-//	mLogger->log(SEVERITY::LOG_INFO, fmt::format("request amqp connection: {} failover {} user {} clientId {}", mContext.broker(), mContext.failoverAddresses(), mContext.user(), mConnectionId));
-
-//	mEXHandler.SynchronizeCall(std::bind(&ConnectionContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
+	 mCv.wait(lk, [this]() {return !mContext.checkState(ClientState::UNNINITIALIZED); });
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("request amqp connection: {} failover {} user {} clientId {}", mContext.mPrimaryUrl, "mContext.mFailoverUrls", mContext.mUser, mConnectionId));
 }
 
-// cms::amqp::ConnectionImpl::ConnectionImpl(const std::string& id, const FactoryContext& context)
-//	 :mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnectionFactory")),
-//	 mEXHandler(mLogger),
-//	 mConnectionId{id},
-//	 mContext{context}
-//{
-//	mLogger->log(SEVERITY::LOG_INFO, fmt::format("request amqp connection: {} failover {} user {} clientId {}", mContext.broker(),mContext.failoverAddresses(), mContext.user(), mConnectionId));
-//	mEXHandler.SynchronizeCall(std::bind(&FactoryContext::requestBrokerConnection, &mContext, std::placeholders::_1), *this);
-//}
-
-
-
- cms::amqp::ConnectionImpl::~ConnectionImpl()
+cms::amqp::ConnectionImpl::~ConnectionImpl()
 {
-	close();
+  close();
 }
 
-void  cms::amqp::ConnectionImpl::close()
+
+void cms::amqp::ConnectionImpl::start()
 {
-	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} closing connection: {} ", __func__, mContext.mPrimaryUrl));
+	if (mContext.checkState(ClientState::CLOSED))
+	{
+		throw cms::IllegalStateException(fmt::format("{} - Connection has already been closed!", __func__));
+	}
+
+	for (auto& session : mSessions)
+	{
+		if (auto sessionPtr = session.lock())
+		{
+			sessionPtr->start();
+		}
+	}
+	mContext.setState(ClientState::STARTED);
+}
+
+void cms::amqp::ConnectionImpl::stop()
+{
+	for (auto& session : mSessions)
+	{
+		if (auto sessionPtr = session.lock())
+		{
+			sessionPtr->stop();
+		}
+	}
+	mContext.setState(ClientState::STOPPED);
+}
+
+void cms::amqp::ConnectionImpl::close()
+{
+	if (mContext.checkState(ClientState::CLOSED))
+	{
+		mLogger->log(SEVERITY::LOG_WARNING, fmt::format("{} closing connection: {} connection allready closed", __func__, mContext.mPrimaryUrl));
+	}
+	else
+	{
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} closing connection: {} ", __func__, mContext.mPrimaryUrl));
+	}
+
 	if (auto queue = mContext.mWorkQueue; queue != nullptr)
 	{
 		std::unique_lock lk(mMutex);
-		queue->add([this]() {mContext.mConnection.close(); });
-		mCv.wait(lk, [this]() {return mState != ClientState::CLOSED; });
-	}
-	//if (mState == ClientState::STARTED || mState == ClientState::STOPPED) {}
-	//	mEXHandler.SynchronizeCall(std::bind(&ConnectionImpl::syncClose,this));
 
+		for (auto& session : mSessions)
+		{
+			if (auto sessionPtr = session.lock())
+			{
+				sessionPtr->close();
+			}
+		}
+
+		queue->add([this]() {mContext.mConnection.close(); });
+		mCv.wait(lk, [this]() {return mContext.checkState(ClientState::CLOSED); });
+	}
 }
 	
 std::string  cms::amqp::ConnectionImpl::getClientID() const
@@ -108,9 +138,9 @@ void  cms::amqp::ConnectionImpl::on_transport_close(proton::transport& transport
 	else
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
 
-	setState(ClientState::CLOSED);
-	mCv.notify_one(); 
+	mContext.setState(ClientState::CLOSED);
 	mContext.mWorkQueue = nullptr;
+	mCv.notify_one();
 }
 
 void  cms::amqp::ConnectionImpl::on_transport_error(proton::transport& transport)
@@ -129,14 +159,12 @@ void  cms::amqp::ConnectionImpl::on_connection_open(proton::connection& connecti
 	else
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} auto reconnected : {} {}", __func__, connection.reconnected(), err.what()));
 
-
 	mContext.mConnection = connection;
 	mContext.mWorkQueue  = &mContext.mConnection.work_queue();
 
 	//connection is created in stopped state
-	setState(ClientState::STOPPED);
+	mContext.setState(ClientState::STOPPED);
 	mCv.notify_one();
-//	mEXHandler.onResourceInitialized();
 
 }
 void  cms::amqp::ConnectionImpl::on_connection_close(proton::connection& connection)
@@ -153,17 +181,6 @@ void  cms::amqp::ConnectionImpl::on_connection_error(proton::connection& connect
 	if (mExceptionListener)
 		mExceptionListener->onException(connection.error().what());
 }
-
-//bool  cms::amqp::ConnectionImpl::syncClose()
-//{
-//	bool ok{ false };
-//	if (mContext.mConnection && mContext.mConnection->closed())
-//	{
-//		ok = mContext.mConnection->work_queue().add([=] {mContext.mConnection->close(); });
-//	}
-//
-//	return ok;
-//}
 
 cms::ExceptionListener*  cms::amqp::ConnectionImpl::getExceptionListener() const
 {
@@ -185,13 +202,7 @@ cms::MessageTransformer*  cms::amqp::ConnectionImpl::getMessageTransformer() con
 	return nullptr;
 }
 
-cms::amqp::ClientState cms::amqp::ConnectionImpl::getState() const
+void cms::amqp::ConnectionImpl::addSession(std::shared_ptr<SessionImpl> session)
 {
-	return mState;
-}
-
-void cms::amqp::ConnectionImpl::setState(ClientState state)
-{
-	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} last state {} current state {}", __func__, mState, state));
-	mState = state;
+	mSessions.push_back(session);
 }

@@ -23,7 +23,6 @@
 #include <cms/MessageConsumer.h>
 #include <cms/MessageAvailableListener.h>
 
-#include <API/ClientState.h>
 #include <LoggerFactory/LoggerFactory.h>
 
 #include "stonex-cms-amqp-lib-defines.h"
@@ -38,9 +37,6 @@ AMQP_DEFINES
 	{
 	public:
 		CMSMessageConsumer(std::shared_ptr<MessageConsumerImpl> impl);
-	/*	CMSMessageConsumer(cms::amqp::CMSSession& parent, const ::cms::Destination* destination, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context);
-		CMSMessageConsumer(cms::amqp::CMSSession& parent, const ::cms::Destination* destination, const std::string& name, const std::string& selector, std::shared_ptr<cms::amqp::SessionContext> context);*/
-
 		~CMSMessageConsumer();
 
 		::cms::Message* receive() override;
@@ -61,10 +57,6 @@ AMQP_DEFINES
 		void start() override;
 		void stop() override;
 		void close() override;
-
-		ClientState getState();
-		void setState(ClientState state);
-
 	private:
 		StonexLoggerPtr mLogger;
 		std::shared_ptr<MessageConsumerImpl> mPimpl;

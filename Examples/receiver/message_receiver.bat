@@ -1,0 +1,1 @@
+receiver.exe url=failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3 user=CMSTEST password=CMSTEST destination_type=%1 destination=%2 iddle_timeout=%3 logger_config=%4

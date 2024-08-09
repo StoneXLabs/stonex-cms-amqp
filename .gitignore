@@ -1,6 +1,7 @@
 *
 !*/
 
+!Examples/**
 !stonex-cms-amqp/**
 !test_package/**
 !.gitignore

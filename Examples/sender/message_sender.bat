@@ -1,0 +1,1 @@
+sender.exe url=failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3 user=CMSTEST password=CMSTEST destination_type=%1 destination=%2 data_file=%3 message_count=%4 message_delay=%5 logger_config=%6 %*

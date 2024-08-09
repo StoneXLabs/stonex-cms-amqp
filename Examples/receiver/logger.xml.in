@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+    <!-- Output log messages to the system console. -->
+    <appender name="ConsoleAppender" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-5p %c{1} - %m%n" />
+        </layout>
+    </appender>
+
+    <!-- Also output log messages to the log file. -->
+	 <appender name="test_app" class="org.apache.log4j.FileAppender">
+        <param name="file" value="c:\logs\${LOGS_ROOT}\AppLogs.log" />
+        <param name="append" value="true" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %-5p %c{1}  - %m%n" />
+        </layout>	
+    </appender>
+	
+	 <appender name="consumer" class="org.apache.log4j.FileAppender">
+        <param name="file" value="c:\logs\${LOGS_ROOT}\Consumer.log" />
+        <param name="append" value="true" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %-5p %c{1}  - %m%n" />
+        </layout>	
+    </appender>
+	
+	 <appender name="cms_appender" class="org.apache.log4j.FileAppender">
+        <param name="file" value="c:\logs\${LOGS_ROOT}\CMSLogs.log" />
+        <param name="append" value="true" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %-5p %c{1}  - %m%n" />
+        </layout>	
+    </appender>
+	
+    <appender name="amqp_appender" class="org.apache.log4j.FileAppender">
+        <param name="file" value="c:\logs\${LOGS_ROOT}\ProtonLogs.log" />
+        <param name="append" value="true" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %-5p %c{1}  - %m%n" />
+        </layout>
+    </appender>
+	
+   
+	
+   
+
+    <root>
+        <priority value="DEBUG" />
+        <appender-ref ref="ConsoleAppender" />
+    </root>
+	
+	<logger name = "com.stonex.app">
+        <priority value="TRACE" />
+		<appender-ref ref="test_app"/>	
+	</logger>
+	
+	<logger name = "com.stonex.app.consumer">
+        <priority value="TRACE" />
+		<appender-ref ref="consumer"/>	
+	</logger>
+	
+	<logger name = "com.stonex.cms">
+        <priority value="DEBUG" />
+		<appender-ref ref="cms_appender"/>	
+	</logger>
+	
+	<logger name = "com.stonex.cms.amqp">
+        <priority value="DEBUG" />
+		<appender-ref ref="amqp_appender"/>		
+	</logger>
+	
+	
+
+</log4j:configuration>

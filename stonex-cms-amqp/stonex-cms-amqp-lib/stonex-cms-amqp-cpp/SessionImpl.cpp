@@ -103,7 +103,24 @@ void cms::amqp::SessionImpl::close()
 {
 	if (auto queue = mContext.mWorkQueue; queue != nullptr)
 	{
+
 		std::unique_lock lk(mMutex);
+
+		for (auto& consumer : mConsumers)
+		{
+			if (auto consumerPtr = consumer.lock())
+			{
+				consumerPtr->close();
+			}
+		}
+
+		for (auto& producer : mProducers)
+		{
+			if (auto producerPtr = producer.lock())
+			{
+				producerPtr->close();
+			}
+		}
 		queue->add([this]() {mContext.mSession.close(); });
 		mCv.wait(lk, [this]() {return mContext.checkState(ClientState::CLOSED); });
 	}
@@ -177,4 +194,13 @@ void cms::amqp::SessionImpl::addConsumer(std::shared_ptr<MessageConsumerImpl> co
 void cms::amqp::SessionImpl::addProducer(std::shared_ptr<MessageProducerImpl> producer)
 {
 	mProducers.push_back(producer);
+}
+
+
+void cms::amqp::SessionImpl::check()
+{
+	if (mContext.checkState(ClientState::CLOSED))
+	{
+		throw cms::IllegalStateException("Session allready closed");
+	}
 }

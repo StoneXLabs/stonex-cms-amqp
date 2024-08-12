@@ -1,3 +1,5 @@
+#pragma once
+
 #include <map>
 #include <cms/ExceptionListener.h>
 #include <cms/MessageListener.h>
@@ -31,7 +33,8 @@ public:
 	void onMessage(const cms::Message* message) override;
 	void setExpectedCount(unsigned int count, bool reset_counter = true);
 	void resetMessageCount();
-	std::pair<bool, int> check();
+	unsigned int messagesReceived();
+	std::pair<bool, std::string> check();
 	void process();
 
 private:

@@ -93,11 +93,17 @@ void MyMessageListener::resetMessageCount()
 	mMessagesCount = 0;
 }
 
-std::pair<bool, int> MyMessageListener::check()
+unsigned int MyMessageListener::messagesReceived()
+{
+	return mMessagesCount;
+}
+
+std::pair<bool, std::string> MyMessageListener::check()
 {
 	int diff = mExpectedMessagesCount - mMessagesCount;
 	bool ok = diff == 0;
 
+	std::string errorMsg;
 
 	if (ok)
 	{
@@ -105,8 +111,9 @@ std::pair<bool, int> MyMessageListener::check()
 	}
 	else
 	{
-		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("expected messages - received messages = {}", diff));
+		errorMsg = fmt::format("expected messages - received messages = {}", diff);
+		mLogger->log(SEVERITY::LOG_ERROR, errorMsg);
 	}
 
-	return { ok, diff };
+	return { ok, errorMsg };
 }

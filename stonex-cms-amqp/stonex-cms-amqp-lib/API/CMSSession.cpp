@@ -88,6 +88,7 @@ void cms::amqp::CMSSession::stop()
 
 cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destination* destination)
 {
+	mPimpl->check();
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating consumer. destination: {}",destination->getDestinationType()));
 	config::ConsumerContext context(mPimpl->mContext,false, false, destination);
 	std::shared_ptr<MessageConsumerImpl> consumer = std::make_shared<MessageConsumerImpl>(context);
@@ -98,6 +99,7 @@ cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destina
 
 cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destination* destination, const std::string& selector)
 {
+	mPimpl->check();
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating consumer. destination: {} selector: {}", destination->getDestinationType(), selector));
 	config::ConsumerContext context(mPimpl->mContext, false, false, destination);
 	std::shared_ptr<MessageConsumerImpl> consumer = std::make_shared<MessageConsumerImpl>(context);
@@ -107,6 +109,7 @@ cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destina
 
 cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destination* destination, const std::string& selector, bool noLocal)
 {
+	mPimpl->check();
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating consumer. destination: {} selector: {} noLocal: {}", destination->getDestinationType(), selector, noLocal));
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
@@ -114,6 +117,7 @@ cms::MessageConsumer* cms::amqp::CMSSession::createConsumer(const ::cms::Destina
 
 cms::MessageConsumer* cms::amqp::CMSSession::createDurableConsumer(const ::cms::Topic* destination, const std::string& name, const std::string& selector, bool noLocal)
 {
+	mPimpl->check();
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating durable consumer. destination: {} selector: {} noLocal: {}", destination->getDestinationType(), selector, noLocal));
 
 	config::ConsumerContext context(mPimpl->mContext, false, false, destination);
@@ -124,6 +128,7 @@ cms::MessageConsumer* cms::amqp::CMSSession::createDurableConsumer(const ::cms::
 
 cms::MessageProducer* cms::amqp::CMSSession::createProducer(const ::cms::Destination* destination)
 {
+	mPimpl->check();
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating producer. destination: {}", destination->getDestinationType()));
 
 	config::ProducerContext context(mPimpl->mContext, destination);
@@ -135,6 +140,7 @@ cms::MessageProducer* cms::amqp::CMSSession::createProducer(const ::cms::Destina
 
 cms::QueueBrowser* cms::amqp::CMSSession::createBrowser(const ::cms::Queue* queue)
 {
+	mPimpl->check();
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating browser. queue: {}", queue->getQueueName()));
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
@@ -142,6 +148,7 @@ cms::QueueBrowser* cms::amqp::CMSSession::createBrowser(const ::cms::Queue* queu
 
 cms::QueueBrowser* cms::amqp::CMSSession::createBrowser(const ::cms::Queue* queue, const std::string& selector)
 {
+	mPimpl->check();
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating browser. queue: {} selector: {}", queue->getQueueName(), selector));
 	throw ::cms::CMSException("illegal use - not implemented");
 	return nullptr;
@@ -149,30 +156,35 @@ cms::QueueBrowser* cms::amqp::CMSSession::createBrowser(const ::cms::Queue* queu
 
 cms::Queue* cms::amqp::CMSSession::createQueue(const std::string& queueName)
 {
+	mPimpl->check();
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating queue {}", queueName));
 	return new CMSQueue(queueName);
 }
 
 cms::Topic* cms::amqp::CMSSession::createTopic(const std::string& topicName)
 {
+	mPimpl->check();
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("creating topic {}", topicName));
 	return new CMSTopic(topicName);
 }
 
 cms::TemporaryQueue* cms::amqp::CMSSession::createTemporaryQueue()
 {
+	mPimpl->check();
 	mLogger->log(SEVERITY::LOG_INFO, "creating temporary queue");
 	return new CMSTemporaryQueue();
 }
 
 cms::TemporaryTopic* cms::amqp::CMSSession::createTemporaryTopic()
 {
+	mPimpl->check();
 	mLogger->log(SEVERITY::LOG_INFO, "creating temporary topic");
 	return new CMSTemporaryTopic();
 }
 
 cms::Message* cms::amqp::CMSSession::createMessage()
 {
+	mPimpl->check();
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "creating cms message");
 #endif
@@ -182,6 +194,7 @@ cms::Message* cms::amqp::CMSSession::createMessage()
 
 cms::BytesMessage* cms::amqp::CMSSession::createBytesMessage()
 {
+	mPimpl->check();
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "creating bytes message");
 #endif
@@ -191,6 +204,7 @@ cms::BytesMessage* cms::amqp::CMSSession::createBytesMessage()
 
 cms::BytesMessage* cms::amqp::CMSSession::createBytesMessage(const unsigned char* bytes, int bytesSize)
 {
+	mPimpl->check();
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, fmt::format("creating bytes message. byte size {}",bytesSize));
 #endif
@@ -199,6 +213,7 @@ cms::BytesMessage* cms::amqp::CMSSession::createBytesMessage(const unsigned char
 
 cms::StreamMessage* cms::amqp::CMSSession::createStreamMessage()
 {
+	mPimpl->check();
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "creating stream message");
 #endif
@@ -208,6 +223,7 @@ cms::StreamMessage* cms::amqp::CMSSession::createStreamMessage()
 
 cms::TextMessage* cms::amqp::CMSSession::createTextMessage()
 {
+	mPimpl->check();
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "creating text message");
 #endif
@@ -217,6 +233,7 @@ cms::TextMessage* cms::amqp::CMSSession::createTextMessage()
 
 cms::TextMessage* cms::amqp::CMSSession::createTextMessage(const std::string& text)
 {
+	mPimpl->check();
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "creating text message");
 #endif
@@ -225,6 +242,7 @@ cms::TextMessage* cms::amqp::CMSSession::createTextMessage(const std::string& te
 
 cms::MapMessage* cms::amqp::CMSSession::createMapMessage()
 {
+	mPimpl->check();
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "creating map message");
 #endif
@@ -250,6 +268,7 @@ bool cms::amqp::CMSSession::isTransacted() const
 
 void cms::amqp::CMSSession::unsubscribe(const std::string& name)
 {
+	mPimpl->check();
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("unsubscribe {}", name));
 	throw ::cms::CMSException("illegal use - not implemented");
 }

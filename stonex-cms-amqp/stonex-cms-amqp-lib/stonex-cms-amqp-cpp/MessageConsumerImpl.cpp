@@ -61,8 +61,7 @@ cms::amqp::MessageConsumerImpl::MessageConsumerImpl(const config::ConsumerContex
 
 cms::amqp::MessageConsumerImpl::~MessageConsumerImpl()
 {
-	if(mContext.getState() != ClientState::CLOSED)
-		close();
+	close();
 }
 
 ::cms::Message* cms::amqp::MessageConsumerImpl::receive()
@@ -147,6 +146,13 @@ void cms::amqp::MessageConsumerImpl::close()
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("{}", __func__));
 
+	if (mContext.checkState(ClientState::CLOSED))
+	{
+		mLogger->log(SEVERITY::LOG_WARNING, fmt::format("{} Message consumer allready closed", __func__));
+		return;
+	}
+		
+
 	if (mContext.mWorkQueue)
 	{
 		std::unique_lock lk(mMutex);
@@ -185,12 +191,11 @@ void cms::amqp::MessageConsumerImpl::on_receiver_open(proton::receiver& receiver
 
 void cms::amqp::MessageConsumerImpl::on_receiver_close(proton::receiver& receiver)
 {
-#if _DEBUG
 	if (auto err = receiver.error(); err.empty())
-		mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{}", __func__));
 	else
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
-#endif
+	mContext.mWorkQueue = nullptr;
 	mContext.setState(ClientState::CLOSED);
 	mCv.notify_one();
 }

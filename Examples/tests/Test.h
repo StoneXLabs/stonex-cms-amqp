@@ -8,7 +8,13 @@
 #include <LoggerFactory/LoggerFactory.h>
 #include "../common/ParameterParser .h"
 
-void devTest();
+#include <API/CMSConnectionFactory.h>
+#include <API/CMSSession.h>
+#include <API/CMSMessageConsumer.h>
+#include <API/CMSMessageProducer.h>
+#include <functional>
+#include <thread>
+
 
 void createConnection(const std::string& user, const std::string& password, const std::string& broker, cms::ExceptionListener* exListener = nullptr);
 void createConnection2(const std::string& user, const std::string& password, const std::string& broker, const std::string& address, cms::ExceptionListener* exListener = nullptr);

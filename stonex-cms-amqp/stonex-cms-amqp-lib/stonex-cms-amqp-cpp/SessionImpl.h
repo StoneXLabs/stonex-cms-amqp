@@ -57,8 +57,7 @@ namespace cms::amqp
 
 		void addConsumer(std::shared_ptr<MessageConsumerImpl> consumer);
 		void addProducer(std::shared_ptr<MessageProducerImpl> producer);
-
-	//private:
+		void check();
 	public:
 		StonexLoggerPtr mLogger;
 		config::SessionContext mContext;

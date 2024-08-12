@@ -83,12 +83,6 @@ const ::cms::ConnectionMetaData* cms::amqp::CMSConnection::getMetaData() const
 cms::Session* cms::amqp::CMSConnection::createSession()
 {
 	return createSession(cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE);
-	//mLogger->log(SEVERITY::LOG_INFO, fmt::format("createSession ACK_MODE {}", cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE));
-	//config::SessionContext context(mPimpl->mContext, true);
-	//std::shared_ptr<SessionImpl> session = std::make_shared<SessionImpl>(context);
-	//mPimpl->addSession(session);
-	//return new CMSSession(session);
-	
 }
 
 cms::Session* cms::amqp::CMSConnection::createSession(::cms::Session::AcknowledgeMode ackMode)

@@ -33,7 +33,7 @@
 {
 }
 
-void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes)
+void  cms::amqp::CMSMessageProducer::send(cms::Message* mes)
 {
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "sending message");
@@ -41,7 +41,7 @@ void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes)
 	mPimpl->send(mes);
 }
 
-void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, ::cms::AsyncCallback* callback)
+void  cms::amqp::CMSMessageProducer::send(cms::Message* mes, cms::AsyncCallback* callback)
 {
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "sending message with callback");
@@ -49,7 +49,7 @@ void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, ::cms::AsyncCallb
 	mPimpl->send(mes, callback);
 }
 
-void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive)
+void  cms::amqp::CMSMessageProducer::send(cms::Message* mes, int deliveryMode, int priority, long long timeToLive)
 {
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "sending message");
@@ -57,7 +57,7 @@ void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, int deliveryMode,
 	mPimpl->send(mes, deliveryMode, priority,timeToLive);
 }
 
-void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback)
+void  cms::amqp::CMSMessageProducer::send(cms::Message* mes, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* callback)
 {
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "sending message with callback");
@@ -65,7 +65,7 @@ void  cms::amqp::CMSMessageProducer::send(::cms::Message* mes, int deliveryMode,
 	mPimpl->send(mes, deliveryMode, priority, timeToLive, callback);
 }
 
-void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive)
+void  cms::amqp::CMSMessageProducer::send(const cms::Destination* destination, cms::Message* mes, int deliveryMode, int priority, long long timeToLive)
 {
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "sending message");
@@ -73,7 +73,7 @@ void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination,
 	mPimpl->send(destination, mes, deliveryMode, priority, timeToLive);
 }
 
-void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback)
+void  cms::amqp::CMSMessageProducer::send(const cms::Destination* destination, cms::Message* mes, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* callback)
 {
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "sending message with callback");
@@ -81,7 +81,7 @@ void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination,
 	mPimpl->send(destination, mes, deliveryMode, priority, timeToLive, callback);
 }
 
-void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes, ::cms::AsyncCallback* callback)
+void  cms::amqp::CMSMessageProducer::send(const cms::Destination* destination, cms::Message* mes, cms::AsyncCallback* callback)
 {
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "sending message");
@@ -89,7 +89,7 @@ void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination,
 	mPimpl->send(destination, mes, callback);
 }
 
-void  cms::amqp::CMSMessageProducer::send(const ::cms::Destination* destination, ::cms::Message* mes)
+void  cms::amqp::CMSMessageProducer::send(const cms::Destination* destination, cms::Message* mes)
 {
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "sending message");
@@ -154,13 +154,13 @@ long long  cms::amqp::CMSMessageProducer::getTimeToLive() const
 	return mPimpl->getTimeToLive();
 }
 
-void  cms::amqp::CMSMessageProducer::setMessageTransformer(::cms::MessageTransformer* transformer)
+void  cms::amqp::CMSMessageProducer::setMessageTransformer(cms::MessageTransformer* transformer)
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("set message transformer: {}", (void*)transformer));
 	mPimpl->setMessageTransformer(transformer);
 }
 
-::cms::MessageTransformer*  cms::amqp::CMSMessageProducer::getMessageTransformer() const
+cms::MessageTransformer*  cms::amqp::CMSMessageProducer::getMessageTransformer() const
 {
 	return mPimpl->getMessageTransformer();
 }

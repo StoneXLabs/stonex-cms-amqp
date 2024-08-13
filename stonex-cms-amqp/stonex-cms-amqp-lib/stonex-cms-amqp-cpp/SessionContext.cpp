@@ -27,5 +27,3 @@ cms::amqp::config::SessionContext::SessionContext(ConnectionContext& context, bo
 mConnection(context.mConnection)
 {
 }
-
-bool cms::amqp::config::SessionContext::isAutoAck() { return mAuto_ack; }

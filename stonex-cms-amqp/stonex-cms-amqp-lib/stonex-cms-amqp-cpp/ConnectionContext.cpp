@@ -21,16 +21,17 @@
 #include "FactoryContext.h"
 #include <proton/connection_options.hpp>
 #include <proton/reconnect_options.hpp>
+#include <sstream>
 
 cms::amqp::config::ConnectionContext::ConnectionContext(FactoryContext& context, const std::string& username, const std::string& password, const std::string& clientId)
-	:mPrimaryUrl(context.broker()),
-	mFailoverUrls(context.failoverAddresses()),
+	:mPrimaryUrl(context.mainBroker()),
+	mFailoverUrls(context.failoverUrl()),
 	mUser(username),
 	mPassword(password),
 	mClientId(clientId),
-	mInitialReconnectDelay(context.mParameters.failoverOptrions.initialReconnectDelay),
-	mMaxReconnectDelay(context.mParameters.failoverOptrions.maxReconnectDelay),
-	mMaxReconnectAttempts(context.mParameters.failoverOptrions.maxReconnectAttempts)
+	mInitialReconnectDelay(context.initialReconnectDelay()),
+	mMaxReconnectDelay(context.maxReconnectDelay()),
+	mMaxReconnectAttempts(context.maxReconnectAttempts())
 {
 }
 
@@ -71,4 +72,31 @@ proton::connection_options cms::amqp::config::ConnectionContext::config()
 	co.desired_capabilities({ "ANONYMOUS-RELAY" });
 
 	return co;
+}
+
+
+std::string cms::amqp::config::ConnectionContext::mainBroker()
+{
+	return mPrimaryUrl;
+}
+
+std::string cms::amqp::config::ConnectionContext::failoverUrl()
+{
+	std::stringstream ss;
+	for (const auto& url : mFailoverUrls)
+	{
+		ss << url << " ";
+	}
+
+	return ss.str();
+}
+
+std::string cms::amqp::config::ConnectionContext::user()
+{
+	return mUser;
+}
+
+std::string cms::amqp::config::ConnectionContext::clientId()
+{
+	return mClientId;
 }

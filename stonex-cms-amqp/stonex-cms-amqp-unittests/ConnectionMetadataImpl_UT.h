@@ -26,7 +26,7 @@ public:
 	void SetUp() override;
 	void TearDown() override;
 //private:
-	::cms::ConnectionMetaData* mUUT;
+	cms::ConnectionMetaData* mUUT;
 	
 };
 

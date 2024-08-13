@@ -38,7 +38,6 @@ public:
 	ProducerContext(SessionContext& context, const cms::Destination* destination);
 	std::pair<std::string, proton::sender_options> config();
 
-public:
 	proton::work_queue* mWorkQueue{ nullptr };
 	proton::session mSession;
 	proton::sender mSender;

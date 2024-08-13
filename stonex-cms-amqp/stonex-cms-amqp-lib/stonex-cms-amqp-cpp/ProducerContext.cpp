@@ -44,22 +44,22 @@ std::pair<std::string,proton::sender_options> cms::amqp::config::ProducerContext
 	{
 		switch (auto destType = mDestination->getDestinationType())
 		{
-		case ::cms::Destination::DestinationType::QUEUE:
+		case cms::Destination::DestinationType::QUEUE:
 			address = dynamic_cast<const CMSQueue*>(mDestination)->getQueueName();
 			topts.capabilities(std::vector<proton::symbol> { "queue" });
 			break;
-		case ::cms::Destination::DestinationType::TOPIC:
+		case cms::Destination::DestinationType::TOPIC:
 			address = dynamic_cast<const CMSTopic*>(mDestination)->getTopicName();
 			topts.capabilities(std::vector<proton::symbol> { "topic" });
 			break;
-		case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
+		case cms::Destination::DestinationType::TEMPORARY_QUEUE:
 			address = dynamic_cast<const CMSTemporaryQueue*>(mDestination)->getQueueName();
 			topts.capabilities(std::vector<proton::symbol> { "temporary-queue", "delete-on-close" });
 			if (address.empty())
 				topts.dynamic(true); //taret or source options
 			topts.expiry_policy(proton::terminus::expiry_policy::LINK_CLOSE); //according to documentation should be link detatch!!!!
 			break;
-		case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
+		case cms::Destination::DestinationType::TEMPORARY_TOPIC:
 			address = dynamic_cast<const CMSTemporaryTopic*>(mDestination)->getTopicName();
 			topts.capabilities(std::vector<proton::symbol> { "temporary-topic", "delete-on-close" });
 			topts.dynamic(true); //taret or source options

@@ -141,7 +141,7 @@ void cms::amqp::SessionImpl::recover()
 	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "method not implemented"));
 }
 
-::cms::Session::AcknowledgeMode cms::amqp::SessionImpl::ackMode()
+cms::Session::AcknowledgeMode cms::amqp::SessionImpl::ackMode()
 {
 	return {};
 }

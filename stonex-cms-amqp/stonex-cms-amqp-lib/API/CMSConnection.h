@@ -38,7 +38,7 @@ AMQP_DEFINES
 	class ConnectionContext;
 	class SessionImpl;
 
-	class CMS_API CMSConnection : public ::cms::Connection
+	class CMS_API CMSConnection : public cms::Connection
 	{
 	public:
 		explicit CMSConnection(std::shared_ptr<ConnectionImpl> impl);
@@ -48,7 +48,7 @@ AMQP_DEFINES
 		void close() override;
 		void start() override;
 		void stop() override;
-		const ::cms::ConnectionMetaData* getMetaData() const override;
+		const cms::ConnectionMetaData* getMetaData() const override;
 
 
 		//!createSession()
@@ -56,17 +56,17 @@ AMQP_DEFINES
 		* Session creation request is passed to connection work_queue, session
 		* method returns immiediately but created object is blocked until session creation is confirmed by broker
 		*/
-		::cms::Session* createSession() override;
-		::cms::Session* createSession(::cms::Session::AcknowledgeMode ackMode) override;
+		cms::Session* createSession() override;
+		cms::Session* createSession(cms::Session::AcknowledgeMode ackMode) override;
 
 		std::string getClientID() const override;
 		void setClientID(const std::string& clientID) override;
 
-		::cms::ExceptionListener* getExceptionListener() const override;
-		void setExceptionListener(::cms::ExceptionListener* listener) override;
+		cms::ExceptionListener* getExceptionListener() const override;
+		void setExceptionListener(cms::ExceptionListener* listener) override;
 
-		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
-		::cms::MessageTransformer* getMessageTransformer() const override;
+		void setMessageTransformer(cms::MessageTransformer* transformer) override;
+		cms::MessageTransformer* getMessageTransformer() const override;
 
 	private:
 		StonexLoggerPtr mLogger;

@@ -34,7 +34,7 @@ AMQP_DEFINES
 	class MessageConsumerImpl;
 	class MessageProducerImpl;
 
-	class CMS_API CMSSession : public ::cms::Session
+	class CMS_API CMSSession : public cms::Session
 	{
 
 	public:
@@ -50,41 +50,41 @@ AMQP_DEFINES
 		void stop() override;
 
 
-		::cms::MessageConsumer* createConsumer(const ::cms::Destination* destination) override;
-		::cms::MessageConsumer* createConsumer(const ::cms::Destination* destination, const std::string& selector) override;
-		::cms::MessageConsumer* createConsumer(const ::cms::Destination* destination, const std::string& selector, bool noLocal) override;
-		::cms::MessageConsumer* createDurableConsumer(const ::cms::Topic* destination, const std::string& name, const std::string& selector, bool noLocal = false) override;
+		cms::MessageConsumer* createConsumer(const cms::Destination* destination) override;
+		cms::MessageConsumer* createConsumer(const cms::Destination* destination, const std::string& selector) override;
+		cms::MessageConsumer* createConsumer(const cms::Destination* destination, const std::string& selector, bool noLocal) override;
+		cms::MessageConsumer* createDurableConsumer(const cms::Topic* destination, const std::string& name, const std::string& selector, bool noLocal = false) override;
 
-		::cms::MessageProducer* createProducer(const ::cms::Destination* destination) override;
+		cms::MessageProducer* createProducer(const cms::Destination* destination) override;
 
 
-		::cms::QueueBrowser* createBrowser(const ::cms::Queue* queue) override;;
-		::cms::QueueBrowser* createBrowser(const ::cms::Queue* queue, const std::string& selector) override;;
+		cms::QueueBrowser* createBrowser(const cms::Queue* queue) override;;
+		cms::QueueBrowser* createBrowser(const cms::Queue* queue, const std::string& selector) override;;
 
-		::cms::Queue* createQueue(const std::string& queueName) override;
-		::cms::Topic* createTopic(const std::string& topicName) override;
+		cms::Queue* createQueue(const std::string& queueName) override;
+		cms::Topic* createTopic(const std::string& topicName) override;
 
-		::cms::TemporaryQueue* createTemporaryQueue() override;
-		::cms::TemporaryTopic* createTemporaryTopic() override;
+		cms::TemporaryQueue* createTemporaryQueue() override;
+		cms::TemporaryTopic* createTemporaryTopic() override;
 
-		::cms::Message* createMessage() override;
+		cms::Message* createMessage() override;
 
-		::cms::BytesMessage* createBytesMessage() override;
-		::cms::BytesMessage* createBytesMessage(const unsigned char* bytes, int bytesSize) override;
+		cms::BytesMessage* createBytesMessage() override;
+		cms::BytesMessage* createBytesMessage(const unsigned char* bytes, int bytesSize) override;
 
-		::cms::StreamMessage* createStreamMessage() override;
+		cms::StreamMessage* createStreamMessage() override;
 
-		::cms::TextMessage* createTextMessage() override;
-		::cms::TextMessage* createTextMessage(const std::string& text) override;
+		cms::TextMessage* createTextMessage() override;
+		cms::TextMessage* createTextMessage(const std::string& text) override;
 
-		::cms::MapMessage* createMapMessage() override;
+		cms::MapMessage* createMapMessage() override;
 
-		::cms::Session::AcknowledgeMode getAcknowledgeMode() const override;
+		cms::Session::AcknowledgeMode getAcknowledgeMode() const override;
 
 		bool isTransacted() const override;
 		void unsubscribe(const std::string& name) override;
-		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
-		::cms::MessageTransformer* getMessageTransformer() const override;
+		void setMessageTransformer(cms::MessageTransformer* transformer) override;
+		cms::MessageTransformer* getMessageTransformer() const override;
 
 	private:
 		StonexLoggerPtr mLogger;

@@ -61,11 +61,11 @@ namespace cms::amqp
 		std::string getClientID() const;
 		void setClientID(const std::string& clientID);
 
-		::cms::ExceptionListener* getExceptionListener() const;
-		void setExceptionListener(::cms::ExceptionListener* listener);
+		cms::ExceptionListener* getExceptionListener() const;
+		void setExceptionListener(cms::ExceptionListener* listener);
 
-		void setMessageTransformer(::cms::MessageTransformer* transformer);
-		::cms::MessageTransformer* getMessageTransformer() const;
+		void setMessageTransformer(cms::MessageTransformer* transformer);
+		cms::MessageTransformer* getMessageTransformer() const;
 
 		void addSession(std::shared_ptr<SessionImpl> session);
 
@@ -79,7 +79,7 @@ namespace cms::amqp
 		StonexLoggerPtr mLogger;
 		const std::string mConnectionId;
 		std::string mBrokerUrl;
-		::cms::ExceptionListener* mExceptionListener{ nullptr };
+		cms::ExceptionListener* mExceptionListener{ nullptr };
 		config::ConnectionContext mContext;
 
 	private:

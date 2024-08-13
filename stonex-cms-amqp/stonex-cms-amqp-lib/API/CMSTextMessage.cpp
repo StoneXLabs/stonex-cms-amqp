@@ -42,7 +42,7 @@ cms::amqp::CMSTextMessage::CMSTextMessage(const std::string& text)
 {
 	mMessage = std::make_shared<proton::message>();
 	mMessage->durable(cms::DeliveryMode::PERSISTENT == 0); //default delivery mode PERISTENT -> durable(true)
-	mMessage->priority(::cms::Message::DEFAULT_MSG_PRIORITY);
+	mMessage->priority(cms::Message::DEFAULT_MSG_PRIORITY);
 	mMessage->body(text);
 	mMessage->message_annotations().put(X_OPT_JMS_MESSAGE_TYPE.data(), static_cast<int8_t>(MESSAGE_TYPE::TEXT_MESSAGE));
 }
@@ -55,14 +55,14 @@ mMessageDelivery{std::make_shared<proton::delivery>(*delivery)}
 	{
 		mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(mMessage));
 	}
-	catch (const ::cms::InvalidDestinationException &ex)
+	catch (const cms::InvalidDestinationException &ex)
 	{
 
 		try
 		{
 			mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(receiver));
 		}
-		catch (const ::cms::InvalidDestinationException& ex)
+		catch (const cms::InvalidDestinationException& ex)
 		{
 
 		}
@@ -73,7 +73,7 @@ mMessageDelivery{std::make_shared<proton::delivery>(*delivery)}
 		if (!mMessage->reply_to().empty() && !mReplyTo)
 			mReplyTo.reset(AMQPCMSMessageConverter::createCMSReplyToUsingMessageDestination(mMessage));
 	}
-	catch (const ::cms::InvalidDestinationException& ex)
+	catch (const cms::InvalidDestinationException& ex)
 	{
 
 	}
@@ -83,8 +83,6 @@ mMessageDelivery{std::make_shared<proton::delivery>(*delivery)}
 cms::amqp::CMSTextMessage::~CMSTextMessage()
 
 {
-//	if (mMessageDelivery)
-//		delete mMessageDelivery;
 }
 
 
@@ -97,21 +95,20 @@ std::string cms::amqp::CMSTextMessage::getText() const
 }
 
 
-::cms::Message* cms::amqp::CMSTextMessage::clone() const
+cms::Message* cms::amqp::CMSTextMessage::clone() const
 {
 	return new CMSTextMessage(*this);
 }
 
 void cms::amqp::CMSTextMessage::acknowledge() const
 { 
-	//mMessageDelivery.accept();
+
 	mMessageDelivery->accept();
 }
 
 void cms::amqp::CMSTextMessage::clearBody()
 {
 	mMessage->clear();
-	//throw ::cms::CMSException("illegal use - not implemented");
 }
 
 
@@ -130,7 +127,7 @@ bool cms::amqp::CMSTextMessage::propertyExists(const std::string& name) const
 	return AMQPCMSMessageConverter::propertyExists(name, mMessage);
 }
 
-::cms::Message::ValueType cms::amqp::CMSTextMessage::getPropertyValueType(const std::string& name) const
+cms::Message::ValueType cms::amqp::CMSTextMessage::getPropertyValueType(const std::string& name) const
 {
 	return AMQPCMSMessageConverter::type_id_to_ValueType(mMessage->properties().get(name).type());
 }
@@ -240,12 +237,12 @@ void cms::amqp::CMSTextMessage::setCMSDeliveryMode(int mode)
 	return AMQPCMSMessageConverter::setAMQPDeliveryMode(mode, mMessage);
 }
 
-const::cms::Destination* cms::amqp::CMSTextMessage::getCMSDestination() const
+const cms::Destination* cms::amqp::CMSTextMessage::getCMSDestination() const
 {
 	return mDestination.get();
 }
 
-void cms::amqp::CMSTextMessage::setCMSDestination(const::cms::Destination* destination)
+void cms::amqp::CMSTextMessage::setCMSDestination(const cms::Destination* destination)
 {
 	AMQPCMSMessageConverter::setAMQPDestination(destination, mMessage);
 	if (destination)
@@ -295,12 +292,12 @@ void cms::amqp::CMSTextMessage::setCMSRedelivered(bool redelivered)
 	return AMQPCMSMessageConverter::setAMQPRedelivered(redelivered, mMessage);
 }
 
-const::cms::Destination* cms::amqp::CMSTextMessage::getCMSReplyTo() const
+const cms::Destination* cms::amqp::CMSTextMessage::getCMSReplyTo() const
 {
 	return mReplyTo.get();
 }
 
-void cms::amqp::CMSTextMessage::setCMSReplyTo(const::cms::Destination* destination)
+void cms::amqp::CMSTextMessage::setCMSReplyTo(const cms::Destination* destination)
 {
 	AMQPCMSMessageConverter::setAMQPReplyTo(destination, mMessage);
 	if (destination)

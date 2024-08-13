@@ -72,32 +72,32 @@ cms::amqp::MessageProducerImpl::~MessageProducerImpl()
 	close();
 }
 
-void cms::amqp::MessageProducerImpl::send(::cms::Message* message)
+void cms::amqp::MessageProducerImpl::send(cms::Message* message)
 {
 	send(nullptr, message, mDeliveryMode, mPriority, mTTL, nullptr);
 }
 
-void cms::amqp::MessageProducerImpl::send(::cms::Message* message, ::cms::AsyncCallback* onComplete)
+void cms::amqp::MessageProducerImpl::send(cms::Message* message, cms::AsyncCallback* onComplete)
 {
 	send(nullptr, message, mDeliveryMode, mPriority, mTTL, onComplete);
 }
 
-void cms::amqp::MessageProducerImpl::send(::cms::Message* message, int deliveryMode, int priority, long long timeToLive)
+void cms::amqp::MessageProducerImpl::send(cms::Message* message, int deliveryMode, int priority, long long timeToLive)
 {
 	send(nullptr, message, deliveryMode, priority, timeToLive, nullptr);
 }
 
-void cms::amqp::MessageProducerImpl::send(::cms::Message* message, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* onComplete)
+void cms::amqp::MessageProducerImpl::send(cms::Message* message, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* onComplete)
 {
 	send(nullptr, message, deliveryMode, priority, timeToLive, onComplete);
 }
 
-void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, ::cms::Message* message, int deliveryMode, int priority, long long timeToLive)
+void cms::amqp::MessageProducerImpl::send(const cms::Destination* destination, cms::Message* message, int deliveryMode, int priority, long long timeToLive)
 {
 	send(destination, message, deliveryMode, priority, timeToLive, nullptr);
 }
 
-void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, ::cms::Message* message, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* onComplete)
+void cms::amqp::MessageProducerImpl::send(const cms::Destination* destination, cms::Message* message, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* onComplete)
 {
 	auto message_copy = message->clone();
 	std::unique_lock lk(mMutex);
@@ -220,7 +220,7 @@ void cms::amqp::MessageProducerImpl::on_sender_close(proton::sender& sender)
 	mCv.notify_one();
 }
 
-void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, ::cms::Message* message)
+void cms::amqp::MessageProducerImpl::send(const cms::Destination* destination, cms::Message* message)
 {
 	send(destination, message, mDeliveryMode, mPriority, mTTL, nullptr);
 }
@@ -229,13 +229,13 @@ void cms::amqp::MessageProducerImpl::setDeliveryMode(int mode)
 {
 	switch (mode) 
 	{
-	case ::cms::DeliveryMode::PERSISTENT:
-	case ::cms::DeliveryMode::NON_PERSISTENT:
-		mDeliveryMode = (::cms::DeliveryMode::DELIVERY_MODE)mode;
+	case cms::DeliveryMode::PERSISTENT:
+	case cms::DeliveryMode::NON_PERSISTENT:
+		mDeliveryMode = (cms::DeliveryMode::DELIVERY_MODE)mode;
 		break;
 	default:
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("EXCEPTION {} {}", __func__, "Illegal delivery mode value"));
-		throw ::cms::CMSException("Illegal delivery mode value");
+		throw cms::CMSException("Illegal delivery mode value");
 	}
 }
 
@@ -248,9 +248,9 @@ void cms::amqp::MessageProducerImpl::setDisableMessageID(bool value)
 {
 	mMessageIdDisabed = value;
 	if(mMessageIdDisabed)
-		mMessageIdSetter = []([[maybe_unused]] const ::cms::Message*){};
+		mMessageIdSetter = []([[maybe_unused]] const cms::Message*){};
 	else
-		mMessageIdSetter = [](::cms::Message* message){
+		mMessageIdSetter = [](cms::Message* message){
 		if (message->getCMSMessageID().empty() == true)
 		{
 			message->setCMSMessageID(AMQPIDGenerator::generateMessageId());
@@ -268,9 +268,9 @@ void cms::amqp::MessageProducerImpl::setDisableMessageTimeStamp(bool value)
 {
 	mTimestampDisabed = value;
 	if(mTimestampDisabed)
-		mTimestampSetter = []([[maybe_unused]] const ::cms::Message*){};
+		mTimestampSetter = []([[maybe_unused]] const cms::Message*){};
 	else
-		mTimestampSetter = [](::cms::Message* message){message->setCMSTimestamp(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()); };
+		mTimestampSetter = [](cms::Message* message){message->setCMSTimestamp(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()); };
 	
 }
 
@@ -299,7 +299,7 @@ long long cms::amqp::MessageProducerImpl::getTimeToLive() const
 	return mTTL;
 }
 
-std::shared_ptr <proton::message> cms::amqp::MessageProducerImpl::MessageConverter::from_cms_message(::cms::Message* message)
+std::shared_ptr <proton::message> cms::amqp::MessageProducerImpl::MessageConverter::from_cms_message(cms::Message* message)
 {
 	
 	if (auto obj = dynamic_cast<CMSMessage*>(message))

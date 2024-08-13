@@ -40,7 +40,7 @@ cms::amqp::ConnectionFactoryImpl::ConnectionFactoryImpl(const std::string& broke
 	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.ConnectionFactoryImpl"))
 {
 	if(brokerURI.empty())
-		throw ::cms::CMSException("Connection factory creation with EMPTY broker URL is forbidden");
+		throw cms::CMSException("Connection factory creation with EMPTY broker URL is forbidden");
 }
 
 

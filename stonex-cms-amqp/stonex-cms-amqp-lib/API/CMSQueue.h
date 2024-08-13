@@ -27,22 +27,22 @@
 AMQP_DEFINES
 
 
-    class CMS_API CMSQueue : public ::cms::Queue
+    class CMS_API CMSQueue : public cms::Queue
     {
     public:
         explicit CMSQueue(const std::string& queueName);
         CMSQueue(const CMSQueue& other);
         CMSQueue(CMSQueue&& other) = delete;
 
-        ::cms::Destination::DestinationType getDestinationType() const override;
+        cms::Destination::DestinationType getDestinationType() const override;
 
-        ::cms::Destination* clone() const override;
+        cms::Destination* clone() const override;
 
-        void copy(const ::cms::Destination& source) override;
+        void copy(const cms::Destination& source) override;
 
-        bool equals(const ::cms::Destination& other) const override;
+        bool equals(const cms::Destination& other) const override;
 
-        const ::cms::CMSProperties& getCMSProperties() const override;
+        const cms::CMSProperties& getCMSProperties() const override;
 
         std::string getQueueName() const override;
 
@@ -50,7 +50,7 @@ AMQP_DEFINES
 
     private:
         const std::string mQueueName;
-        const ::cms::Destination::DestinationType mDestinationType;
+        const cms::Destination::DestinationType mDestinationType;
     };
 
 

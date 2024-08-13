@@ -49,7 +49,7 @@ namespace cms::amqp
 		void rollback();
 		void recover();
 
-		::cms::Session::AcknowledgeMode ackMode();
+		cms::Session::AcknowledgeMode ackMode();
 
 		void on_session_open(proton::session& session) override;
 		void on_session_close(proton::session& session) override;

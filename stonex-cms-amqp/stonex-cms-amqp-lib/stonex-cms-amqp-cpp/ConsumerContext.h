@@ -62,17 +62,17 @@ public:
 	bool isShared();
 	std::pair<const std::string, proton::receiver_options> config();
 
+	proton::work_queue* mWorkQueue{ nullptr };
+	proton::session mSession;
+	proton::receiver mReceiver;
+	const cms::Destination* mDestination{ nullptr };
+
 private:
 	bool mDurable_subscriber;
 	bool mShared_subscriber;
 	const std::string mSelector;
 	const std::string mSubscriptionName;
 	DestinationParser destAddressParser;
-public:
-	proton::work_queue* mWorkQueue{ nullptr };
-	proton::session mSession;
-	proton::receiver mReceiver;
-	const cms::Destination* mDestination{ nullptr };
 };
 
 } //namespace config

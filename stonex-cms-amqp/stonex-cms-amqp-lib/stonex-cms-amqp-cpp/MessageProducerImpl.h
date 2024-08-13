@@ -44,21 +44,21 @@ namespace cms::amqp
 		class MessageConverter 
 		{
 		public:
-			std::shared_ptr <proton::message> from_cms_message(::cms::Message* message);
+			std::shared_ptr <proton::message> from_cms_message(cms::Message* message);
 		};
 	public:
 		MessageProducerImpl(const config::ProducerContext& context);
 		~MessageProducerImpl();
-		void send(::cms::Message* message);
-		void send(::cms::Message* message, ::cms::AsyncCallback* onComplete);
-		void send(::cms::Message* message, int deliveryMode, int priority, long long timeToLive);
-		void send(::cms::Message* message, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* onComplete);
+		void send(cms::Message* message);
+		void send(cms::Message* message, cms::AsyncCallback* onComplete);
+		void send(cms::Message* message, int deliveryMode, int priority, long long timeToLive);
+		void send(cms::Message* message, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* onComplete);
 
-        void send(const ::cms::Destination* destination, ::cms::Message* message, int deliveryMode, int priority, long long timeToLive);
+        void send(const cms::Destination* destination, cms::Message* message, int deliveryMode, int priority, long long timeToLive);
 
-		void send(const ::cms::Destination* destination, ::cms::Message* message, int deliveryMode,int priority, long long timeToLive, ::cms::AsyncCallback* onComplete);
-		void send(const::cms::Destination*,::cms::Message*,::cms::AsyncCallback*) {};
-		void send(const::cms::Destination* destination,::cms::Message* message);
+		void send(const cms::Destination* destination, cms::Message* message, int deliveryMode,int priority, long long timeToLive, cms::AsyncCallback* onComplete);
+		void send(const cms::Destination*,cms::Message*,cms::AsyncCallback*) {};
+		void send(const cms::Destination* destination,cms::Message* message);
 
 		void setDeliveryMode(int mode);
 		int getDeliveryMode() const;
@@ -75,8 +75,8 @@ namespace cms::amqp
 		void setTimeToLive(long long time);
 		long long getTimeToLive() const;
 
-		void setMessageTransformer(::cms::MessageTransformer* transformer) { };
-		::cms::MessageTransformer* getMessageTransformer() const { return nullptr; };
+		void setMessageTransformer(cms::MessageTransformer* transformer) { };
+		cms::MessageTransformer* getMessageTransformer() const { return nullptr; };
 		
 		void close();
 
@@ -95,22 +95,22 @@ namespace cms::amqp
 		std::condition_variable mSendable;
 		bool mCanSend{ false };
 
-		::cms::DeliveryMode::DELIVERY_MODE mDeliveryMode = (::cms::DeliveryMode::DELIVERY_MODE)::cms::Message::DEFAULT_DELIVERY_MODE;
+		cms::DeliveryMode::DELIVERY_MODE mDeliveryMode = (cms::DeliveryMode::DELIVERY_MODE)cms::Message::DEFAULT_DELIVERY_MODE;
 		bool mMessageIdDisabed{ false };
 		bool mTimestampDisabed{ false };
-		int mPriority = ::cms::Message::DEFAULT_MSG_PRIORITY;
-		long long mTTL = ::cms::Message::DEFAULT_TIME_TO_LIVE;
+		int mPriority = cms::Message::DEFAULT_MSG_PRIORITY;
+		long long mTTL = cms::Message::DEFAULT_TIME_TO_LIVE;
 
-		std::shared_ptr<::cms::Destination> mDestination{nullptr};
+		std::shared_ptr<cms::Destination> mDestination{nullptr};
 
-		std::function<void(::cms::Message*)> mMessageIdSetter = [](::cms::Message* message){
+		std::function<void(cms::Message*)> mMessageIdSetter = [](cms::Message* message){
 			if (message->getCMSMessageID().empty() == true)
 			{
 				message->setCMSMessageID(AMQPIDGenerator::generateMessageId());
 			}
 		};
 
-		std::function<void(::cms::Message*)>mTimestampSetter = [](::cms::Message* message) {message->setCMSTimestamp(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()); };
+		std::function<void(cms::Message*)>mTimestampSetter = [](cms::Message* message) {message->setCMSTimestamp(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()); };
 	};
 
 };

@@ -34,41 +34,41 @@ cms::amqp::CMSMessageConsumer::~CMSMessageConsumer()
 {
 }
 
-::cms::Message*  cms::amqp::CMSMessageConsumer::receive()
+cms::Message*  cms::amqp::CMSMessageConsumer::receive()
 {
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "receive");
 #endif
-	throw ::cms::CMSException("illegal use - not implemented");
+	throw cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
-::cms::Message*  cms::amqp::CMSMessageConsumer::receive(int milis)
+cms::Message*  cms::amqp::CMSMessageConsumer::receive(int milis)
 {
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, fmt::format("receive. timeout: {} [ms]",milis));
 #endif
-	throw ::cms::CMSException("illegal use - not implemented");
+	throw cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
-::cms::Message*  cms::amqp::CMSMessageConsumer::receiveNoWait()
+cms::Message*  cms::amqp::CMSMessageConsumer::receiveNoWait()
 {
 #if _DEBUG
 	mLogger->log(SEVERITY::LOG_DEBUG, "receive no wait");
 #endif
-	throw ::cms::CMSException("illegal use - not implemented");
+	throw cms::CMSException("illegal use - not implemented");
 	return nullptr;
 }
 
-void  cms::amqp::CMSMessageConsumer::setMessageListener(::cms::MessageListener* listener)
+void  cms::amqp::CMSMessageConsumer::setMessageListener(cms::MessageListener* listener)
 {
 	
 	mLogger->log(SEVERITY::LOG_DEBUG, fmt::format("set message listener: {}", (void*)listener));
 	mPimpl->setMessageListener(listener);
 }
 
-::cms::MessageListener*  cms::amqp::CMSMessageConsumer::getMessageListener() const
+cms::MessageListener*  cms::amqp::CMSMessageConsumer::getMessageListener() const
 {
 	return mPimpl->getMessageListener();
 }
@@ -78,24 +78,24 @@ std::string  cms::amqp::CMSMessageConsumer::getMessageSelector() const
 	return mPimpl->getMessageSelector();
 }
 
-void  cms::amqp::CMSMessageConsumer::setMessageTransformer(::cms::MessageTransformer* transformer)
+void  cms::amqp::CMSMessageConsumer::setMessageTransformer(cms::MessageTransformer* transformer)
 {
 	mLogger->log(SEVERITY::LOG_DEBUG, fmt::format("set message transformer: {}", (void*)transformer));
 	mPimpl->setMessageTransformer(transformer);
 }
 
-::cms::MessageTransformer*  cms::amqp::CMSMessageConsumer::getMessageTransformer() const
+cms::MessageTransformer*  cms::amqp::CMSMessageConsumer::getMessageTransformer() const
 {
 	return mPimpl->getMessageTransformer();
 }
 
-void  cms::amqp::CMSMessageConsumer::setMessageAvailableListener(::cms::MessageAvailableListener* listener)
+void  cms::amqp::CMSMessageConsumer::setMessageAvailableListener(cms::MessageAvailableListener* listener)
 {
 	mLogger->log(SEVERITY::LOG_DEBUG, fmt::format("set message available listener: {}", (void*)listener));
 	mPimpl->setMessageAvailableListener(listener);
 }
 
-::cms::MessageAvailableListener*  cms::amqp::CMSMessageConsumer::getMessageAvailableListener() const
+cms::MessageAvailableListener*  cms::amqp::CMSMessageConsumer::getMessageAvailableListener() const
 {
 	return mPimpl->getMessageAvailableListener();
 }

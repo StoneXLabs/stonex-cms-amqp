@@ -22,25 +22,7 @@
 #include <proton/connection.hpp>
 #include "ClientState.h"
 
-//AMQP_DEFINES
 
-
-//class CMS_API ConnectionOptions
-//{
-//public:
-//private:
-//	struct FailoverTransportOptions 
-//	{
-//		void setParametersFromString(const std::string& parameter);
-//
-//		int mInitialReconnectDelay;
-//		int mMaxReconnectDelay;
-//		bool mUseExpotentialBackOff;
-//		int mMaxReconnectAttempts;
-//		bool mRandomize;
-//		int mTimeout;
-//	};
-//};
 
 namespace cms
 {
@@ -57,8 +39,16 @@ public:
 	ConnectionContext(FactoryContext& context, const std::string& username = "", const std::string& password = "", const std::string& clientId = "");
 
 	proton::connection_options config();
+	std::string mainBroker();
+	std::string failoverUrl();
+	std::string user();
+	std::string clientId();
 
-//private:
+
+	proton::work_queue* mWorkQueue{ nullptr };
+	proton::connection mConnection;
+
+private:
 	const std::string mPrimaryUrl;
 	const std::vector<std::string> mFailoverUrls;
 	const std::string mUser;
@@ -67,8 +57,6 @@ public:
 	const int mInitialReconnectDelay;
 	const int mMaxReconnectDelay;
 	const int mMaxReconnectAttempts;
-	proton::work_queue* mWorkQueue{nullptr};
-	proton::connection mConnection;
 };
 
 } //namespace config

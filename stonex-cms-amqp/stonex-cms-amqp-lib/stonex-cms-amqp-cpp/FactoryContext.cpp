@@ -22,7 +22,6 @@
 
 cms::amqp::config::FactoryContext::FactoryContext(const std::string& url)
 {
-	mContainer = ProtonCppLibrary::getContainer();
 	URIParser parser;
 	mParameters = parser.parseURI(url);
 	mBroker = mParameters.url_vec[0];
@@ -35,27 +34,28 @@ cms::amqp::config::FactoryContext::FactoryContext(const std::string& url)
 	}
 }
 
-std::shared_ptr<proton::container> cms::amqp::config::FactoryContext::container()
-{
-	return mContainer;
-}
 
-std::string cms::amqp::config::FactoryContext::broker() const
+std::string cms::amqp::config::FactoryContext::mainBroker()
 {
 	return mBroker;
 }
 
-std::vector<std::string> cms::amqp::config::FactoryContext::failoverAddresses() const
+std::vector<std::string> cms::amqp::config::FactoryContext::failoverUrl()
 {
 	return mFailoverAddresses;
 }
 
-std::string cms::amqp::config::FactoryContext::user() const
+int cms::amqp::config::FactoryContext::initialReconnectDelay()
 {
-	return mUser;
+	return mParameters.failoverOptrions.initialReconnectDelay;
 }
 
-int cms::amqp::config::FactoryContext::reconnectAttempts() const
+int cms::amqp::config::FactoryContext::maxReconnectDelay()
 {
-	return mReconnectAttempts;
+	return mParameters.failoverOptrions.maxReconnectDelay;
+}
+
+int cms::amqp::config::FactoryContext::maxReconnectAttempts()
+{
+	return mParameters.failoverOptrions.maxReconnectAttempts;
 }

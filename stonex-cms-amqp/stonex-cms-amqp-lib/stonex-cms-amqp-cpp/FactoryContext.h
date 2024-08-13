@@ -36,22 +36,16 @@ public:
 
 	~FactoryContext() = default;
 	FactoryContext(FactoryContext&& other) = delete;
-
-	std::shared_ptr<proton::container> container();
-
-	std::string broker() const;
-	std::vector<std::string> failoverAddresses() const;
-	std::string user() const;
-	int reconnectAttempts() const;
-
-	//	private:
+	std::string mainBroker();
+	std::vector<std::string> failoverUrl();
+	int initialReconnectDelay();
+	int maxReconnectDelay();
+	int maxReconnectAttempts();
+private:
 	std::string mBroker;
 	std::vector<std::string> mFailoverAddresses;
 	std::string mUser;
 	std::string mPassword;
-	std::shared_ptr<proton::container> mContainer;
-	int mReconnectAttempts{ 0 }; //0 - no limit
-	std::string mConnectionId{};
 	URIParser::Parameters mParameters;
 
 

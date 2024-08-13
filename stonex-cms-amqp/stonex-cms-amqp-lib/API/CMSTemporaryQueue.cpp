@@ -42,19 +42,19 @@ cms::amqp::CMSTemporaryQueue& cms::amqp::CMSTemporaryQueue::operator=(const cms:
     return *this;
 }
 
-::cms::Destination::DestinationType cms::amqp::CMSTemporaryQueue::getDestinationType() const
+cms::Destination::DestinationType cms::amqp::CMSTemporaryQueue::getDestinationType() const
 {
     return mDestinationType;
 }
 
-::cms::Destination* cms::amqp::CMSTemporaryQueue::clone() const
+cms::Destination* cms::amqp::CMSTemporaryQueue::clone() const
 {
     return new CMSTemporaryQueue(*this);
 }
 
 void cms::amqp::CMSTemporaryQueue::copy(const Destination& source)
 {
-    throw ::cms::CMSException("illegal use - not implemented");
+    throw cms::CMSException("illegal use - not implemented");
 }
 
 bool cms::amqp::CMSTemporaryQueue::equals(const Destination& other) const
@@ -68,7 +68,7 @@ bool cms::amqp::CMSTemporaryQueue::equals(const Destination& other) const
     return true;
 }
 
-const ::cms::CMSProperties& cms::amqp::CMSTemporaryQueue::getCMSProperties() const
+const cms::CMSProperties& cms::amqp::CMSTemporaryQueue::getCMSProperties() const
 {
     // TODO: insert return statement here
     return CMSMessagePropertiesImpl();
@@ -81,7 +81,7 @@ std::string cms::amqp::CMSTemporaryQueue::getQueueName() const
 
 void cms::amqp::CMSTemporaryQueue::destroy()
 {
-    throw ::cms::CMSException("illegal use - not implemented");
+    throw cms::CMSException("illegal use - not implemented");
 }
 
 std::ostream & operator<<(std::ostream & os, const cms::amqp::CMSTemporaryQueue & ob)

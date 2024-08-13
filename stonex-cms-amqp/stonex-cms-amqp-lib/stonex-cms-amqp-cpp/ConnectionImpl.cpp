@@ -41,9 +41,9 @@
 	 std::unique_lock lk(mMutex);
 	 proton::connection_options connectionOptions = mContext.config();
 	 connectionOptions.handler(*this);
-	 ProtonCppLibrary::getContainer()->connect(mContext.mPrimaryUrl, connectionOptions);
+	 ProtonCppLibrary::getContainer()->connect(mContext.mainBroker(), connectionOptions);
 	 mCv.wait(lk, [this]() {return !mContext.checkState(ClientState::UNNINITIALIZED); });
-	mLogger->log(SEVERITY::LOG_INFO, fmt::format("request amqp connection: {} failover {} user {} clientId {}", mContext.mPrimaryUrl, "mContext.mFailoverUrls", mContext.mUser, mConnectionId));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("request amqp connection: {} failover {} user {} clientId {}", mContext.mainBroker(), mContext.failoverUrl(), mContext.user(), mContext.clientId()));
 }
 
 cms::amqp::ConnectionImpl::~ConnectionImpl()
@@ -85,11 +85,11 @@ void cms::amqp::ConnectionImpl::close()
 {
 	if (mContext.checkState(ClientState::CLOSED))
 	{
-		mLogger->log(SEVERITY::LOG_WARNING, fmt::format("{} closing connection: {} connection allready closed", __func__, mContext.mPrimaryUrl));
+		mLogger->log(SEVERITY::LOG_WARNING, fmt::format("{} closing connection: {} connection allready closed", __func__, mContext.mainBroker()));
 	}
 	else
 	{
-		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} closing connection: {} ", __func__, mContext.mPrimaryUrl));
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} closing connection: {} ", __func__, mContext.mainBroker()));
 	}
 
 	if (auto queue = mContext.mWorkQueue; queue != nullptr)
@@ -187,12 +187,12 @@ cms::ExceptionListener*  cms::amqp::ConnectionImpl::getExceptionListener() const
 	return mExceptionListener;
 }
 
-void  cms::amqp::ConnectionImpl::setExceptionListener(::cms::ExceptionListener* listener)
+void  cms::amqp::ConnectionImpl::setExceptionListener(cms::ExceptionListener* listener)
 {
 	mExceptionListener = listener;
 }
 
-void  cms::amqp::ConnectionImpl::setMessageTransformer(::cms::MessageTransformer* transformer)
+void  cms::amqp::ConnectionImpl::setMessageTransformer(cms::MessageTransformer* transformer)
 {
 
 }

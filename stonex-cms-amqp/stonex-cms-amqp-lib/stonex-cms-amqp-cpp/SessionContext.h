@@ -35,11 +35,11 @@ class SessionContext : public StateMachine
 public:
 	SessionContext(ConnectionContext& context, bool auto_ack);
 
-	bool isAutoAck();
-
 	proton::work_queue* mWorkQueue{ nullptr };
 	proton::session mSession;
 	proton::connection mConnection;
+
+private:
 	bool mAuto_ack;
 };
 

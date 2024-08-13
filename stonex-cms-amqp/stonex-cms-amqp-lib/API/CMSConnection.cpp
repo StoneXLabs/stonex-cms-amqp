@@ -30,27 +30,6 @@
 #include <algorithm>
 #include <vector>
 
-//cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context)
-//	:mPimpl{ std::make_shared<ConnectionImpl>(*context)},
-//	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnection" + context->broker()))
-//{
-//	mLogger->log(SEVERITY::LOG_INFO, fmt::format("created connection {}", context->broker()));
-//}
-//
-//cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password)
-//	: mPimpl{ std::make_shared<ConnectionImpl>((*context).updateUser(username).updatePassword(password)) },
-//	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnection" + context->broker()))
-//{
-//	mLogger->log(SEVERITY::LOG_INFO, fmt::format("created connection {} user {}", context->broker(), username));
-//}
-//
-//cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId)
-//	: mPimpl{ std::make_shared<ConnectionImpl>(clientId, (*context).updateUser(username).updatePassword(password))},
-//	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnection" + context->broker()))
-//{
-//	mLogger->log(SEVERITY::LOG_INFO, fmt::format("created connection {} user {} clientId {}", context->broker(), username, clientId));
-//}
-
 cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<ConnectionImpl> impl)
 	:mPimpl(impl),
 	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnection"))
@@ -75,7 +54,7 @@ void cms::amqp::CMSConnection::stop()
 	mPimpl->stop();
 }
 
-const ::cms::ConnectionMetaData* cms::amqp::CMSConnection::getMetaData() const
+const cms::ConnectionMetaData* cms::amqp::CMSConnection::getMetaData() const
 {
 	return new ConnectionMetadataImpl();
 }
@@ -85,7 +64,7 @@ cms::Session* cms::amqp::CMSConnection::createSession()
 	return createSession(cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE);
 }
 
-cms::Session* cms::amqp::CMSConnection::createSession(::cms::Session::AcknowledgeMode ackMode)
+cms::Session* cms::amqp::CMSConnection::createSession(cms::Session::AcknowledgeMode ackMode)
 {
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("createSession ACK_MODE {}", ackMode));
 	config::SessionContext context(mPimpl->mContext, ackMode);
@@ -96,7 +75,7 @@ cms::Session* cms::amqp::CMSConnection::createSession(::cms::Session::Acknowledg
 
 std::string cms::amqp::CMSConnection::getClientID() const
 {
-	throw ::cms::CMSException("illegal use - not implemented");
+	throw cms::CMSException("illegal use - not implemented");
 	return {};// mPimpl->getClientID();
 }
 
@@ -112,13 +91,13 @@ cms::ExceptionListener* cms::amqp::CMSConnection::getExceptionListener() const
 	return mPimpl->getExceptionListener();
 }
 
-void cms::amqp::CMSConnection::setExceptionListener(::cms::ExceptionListener* listener)
+void cms::amqp::CMSConnection::setExceptionListener(cms::ExceptionListener* listener)
 {
 	mLogger->log(SEVERITY::LOG_INFO, "set Exception Listener");
 	mPimpl->setExceptionListener(listener);
 }
 
-void cms::amqp::CMSConnection::setMessageTransformer(::cms::MessageTransformer* transformer)
+void cms::amqp::CMSConnection::setMessageTransformer(cms::MessageTransformer* transformer)
 {
 }
 

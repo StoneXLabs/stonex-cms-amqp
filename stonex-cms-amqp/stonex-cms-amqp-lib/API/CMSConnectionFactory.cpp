@@ -32,7 +32,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("created connection factory : {}", brokerURI));
 }
 
-::cms::Connection* cms::amqp::CMSConnectionFactory::createConnection()
+cms::Connection* cms::amqp::CMSConnectionFactory::createConnection()
 {
 	try
 	{
@@ -41,7 +41,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 		std::shared_ptr<ConnectionImpl> connection = std::make_shared<ConnectionImpl>(std::move(context));
 		return new CMSConnection(connection);
 	}
-	catch (const ::cms::CMSException& ex)
+	catch (const cms::CMSException& ex)
 	{
 		if (mExceptionListener)
 			mExceptionListener->onException(ex);
@@ -49,7 +49,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 	}
 }
 
-::cms::Connection* cms::amqp::CMSConnectionFactory::createConnection(const std::string& username, const std::string& password)
+cms::Connection* cms::amqp::CMSConnectionFactory::createConnection(const std::string& username, const std::string& password)
 {
 	try
 	{
@@ -57,7 +57,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 		std::shared_ptr<ConnectionImpl> connection = std::make_shared<ConnectionImpl>(mPimpl->createConnectionContext(username, password));
 		return new CMSConnection(connection);
 	}
-	catch (const ::cms::CMSException& ex)
+	catch (const cms::CMSException& ex)
 	{
 		if (mExceptionListener)
 			mExceptionListener->onException(ex);
@@ -66,7 +66,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 	}
 }
 
-::cms::Connection* cms::amqp::CMSConnectionFactory::createConnection(const std::string& username, const std::string& password, const std::string& clientId)
+cms::Connection* cms::amqp::CMSConnectionFactory::createConnection(const std::string& username, const std::string& password, const std::string& clientId)
 {
 	try
 	{
@@ -75,7 +75,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 		std::shared_ptr<ConnectionImpl> connection = std::make_shared<ConnectionImpl>(mPimpl->createConnectionContext(username, password, clientId));
 		return new CMSConnection(connection);
 	}
-	catch (const ::cms::CMSException& ex)
+	catch (const cms::CMSException& ex)
 	{
 		if (mExceptionListener)
 			mExceptionListener->onException(ex);
@@ -84,7 +84,7 @@ cms::amqp::CMSConnectionFactory::CMSConnectionFactory(const std::string& brokerU
 	}
 }
 
-void cms::amqp::CMSConnectionFactory::setExceptionListener(::cms::ExceptionListener* listener)
+void cms::amqp::CMSConnectionFactory::setExceptionListener(cms::ExceptionListener* listener)
 {
 	mLogger->log(SEVERITY::LOG_DEBUG, fmt::format("set exception listener: {}", (void*)listener));
 	mExceptionListener = listener;
@@ -95,7 +95,7 @@ cms::ExceptionListener* cms::amqp::CMSConnectionFactory::getExceptionListener() 
 	return mExceptionListener;
 }
 
-void cms::amqp::CMSConnectionFactory::setMessageTransformer(::cms::MessageTransformer* transformer)
+void cms::amqp::CMSConnectionFactory::setMessageTransformer(cms::MessageTransformer* transformer)
 {
 	mLogger->log(SEVERITY::LOG_DEBUG, fmt::format("set message transformer: {}", (void*)transformer));
 	mMessageTransformer = transformer;
@@ -108,7 +108,7 @@ cms::MessageTransformer* cms::amqp::CMSConnectionFactory::getMessageTransformer(
 
 
 
-::cms::ConnectionFactory* cms::amqp::CMSConnectionFactory::createCMSConnectionFactory(const std::string& brokerURI)
+cms::ConnectionFactory* cms::amqp::CMSConnectionFactory::createCMSConnectionFactory(const std::string& brokerURI)
 {
 	return new CMSConnectionFactory(brokerURI);
 }

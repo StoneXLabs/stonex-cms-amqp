@@ -64,31 +64,31 @@ cms::amqp::MessageConsumerImpl::~MessageConsumerImpl()
 	close();
 }
 
-::cms::Message* cms::amqp::MessageConsumerImpl::receive()
+cms::Message* cms::amqp::MessageConsumerImpl::receive()
 {
 	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "internal method not implemented"));
 	return nullptr;
 }
 
-::cms::Message* cms::amqp::MessageConsumerImpl::receive(int milis)
+cms::Message* cms::amqp::MessageConsumerImpl::receive(int milis)
 {
 	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "internal method not implemented"));
 	return nullptr;
 }
 
-::cms::Message* cms::amqp::MessageConsumerImpl::receiveNoWait()
+cms::Message* cms::amqp::MessageConsumerImpl::receiveNoWait()
 {
 	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "internal method not implemented"));
 	return nullptr;
 }
 
-void cms::amqp::MessageConsumerImpl::setMessageListener(::cms::MessageListener* listener)
+void cms::amqp::MessageConsumerImpl::setMessageListener(cms::MessageListener* listener)
 {
 	mListener = listener;
 	if (!mListener)
-		onMessageCallback = [](::cms::Message* message) ->void {delete message; };
+		onMessageCallback = [](cms::Message* message) ->void {delete message; };
 	else
-		onMessageCallback =  std::bind(&::cms::MessageListener::onMessage,listener,std::placeholders::_1);
+		onMessageCallback =  std::bind(&cms::MessageListener::onMessage,listener,std::placeholders::_1);
 }
 
 cms::MessageListener* cms::amqp::MessageConsumerImpl::getMessageListener() const
@@ -102,7 +102,7 @@ std::string cms::amqp::MessageConsumerImpl::getMessageSelector() const
 	return std::string();
 }
 
-void cms::amqp::MessageConsumerImpl::setMessageAvailableListener(::cms::MessageAvailableListener* listener)
+void cms::amqp::MessageConsumerImpl::setMessageAvailableListener(cms::MessageAvailableListener* listener)
 {
 }
 
@@ -113,11 +113,8 @@ void cms::amqp::MessageConsumerImpl::start()
 
 	if (mContext.mWorkQueue)
 	{
-		//no callback on sender credit changed
-	//	std::unique_lock lk(mMutex); 
 		mContext.mWorkQueue->add([=]() {mContext.mReceiver.add_credit(10); });
 		mContext.setState(ClientState::STARTED);
-	//	mCv.wait(lk, [this]() {return mContext.checkState(ClientState::STARTED); });
 	}
 	else
 	{

@@ -34,22 +34,22 @@ AMQP_DEFINES
 
 	class MessageProducerImpl;
 
-	class CMS_API CMSMessageProducer : public ::cms::MessageProducer
+	class CMS_API CMSMessageProducer : public cms::MessageProducer
 	{
 	public:
 		CMSMessageProducer(std::shared_ptr<MessageProducerImpl> impl);
 		~CMSMessageProducer() override = default;
 
-		void send(::cms::Message* mes) override;
-		void send(::cms::Message* mes, ::cms::AsyncCallback* callback) override;
-		void send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive) override;
-		void send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback) override;
+		void send(cms::Message* mes) override;
+		void send(cms::Message* mes, cms::AsyncCallback* callback) override;
+		void send(cms::Message* mes, int deliveryMode, int priority, long long timeToLive) override;
+		void send(cms::Message* mes, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* callback) override;
 
-		void send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive) override;
+		void send(const cms::Destination* destination, cms::Message* mes, int deliveryMode, int priority, long long timeToLive) override;
 														 
-		void send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback) override;
-		void send(const ::cms::Destination* destination, ::cms::Message* mes, ::cms::AsyncCallback* callback) override;
-		void send(const ::cms::Destination* destination, ::cms::Message* mes) override;
+		void send(const cms::Destination* destination, cms::Message* mes, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* callback) override;
+		void send(const cms::Destination* destination, cms::Message* mes, cms::AsyncCallback* callback) override;
+		void send(const cms::Destination* destination, cms::Message* mes) override;
 
 		/// <summary>
 		/// set message durability
@@ -71,8 +71,8 @@ AMQP_DEFINES
 		void setTimeToLive(long long time) override;
 		long long getTimeToLive() const override;
 
-		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
-		::cms::MessageTransformer* getMessageTransformer() const override;
+		void setMessageTransformer(cms::MessageTransformer* transformer) override;
+		cms::MessageTransformer* getMessageTransformer() const override;
 
 		void close() override;
 

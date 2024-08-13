@@ -33,26 +33,26 @@ AMQP_DEFINES
 	class MessageConsumerImpl;
 	class CMSSession;
 
-	class CMS_API CMSMessageConsumer : public ::cms::MessageConsumer
+	class CMS_API CMSMessageConsumer : public cms::MessageConsumer
 	{
 	public:
 		CMSMessageConsumer(std::shared_ptr<MessageConsumerImpl> impl);
 		~CMSMessageConsumer();
 
-		::cms::Message* receive() override;
-		::cms::Message* receive(int milis) override;
-		::cms::Message* receiveNoWait() override;
+		cms::Message* receive() override;
+		cms::Message* receive(int milis) override;
+		cms::Message* receiveNoWait() override;
 		
-		void setMessageListener(::cms::MessageListener* listener) override;
-		::cms::MessageListener* getMessageListener() const override;
+		void setMessageListener(cms::MessageListener* listener) override;
+		cms::MessageListener* getMessageListener() const override;
 		
 		std::string getMessageSelector() const override;
 		
-		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
-		::cms::MessageTransformer* getMessageTransformer() const override;
+		void setMessageTransformer(cms::MessageTransformer* transformer) override;
+		cms::MessageTransformer* getMessageTransformer() const override;
 		
-		void setMessageAvailableListener(::cms::MessageAvailableListener* listener) override;
-		::cms::MessageAvailableListener* getMessageAvailableListener() const override;
+		void setMessageAvailableListener(cms::MessageAvailableListener* listener) override;
+		cms::MessageAvailableListener* getMessageAvailableListener() const override;
 
 		void start() override;
 		void stop() override;

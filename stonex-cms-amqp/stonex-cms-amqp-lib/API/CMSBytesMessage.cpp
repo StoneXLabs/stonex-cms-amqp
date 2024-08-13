@@ -37,7 +37,7 @@ cms::amqp::CMSBytesMessage::CMSBytesMessage()
 {
 	mMessage = std::make_shared<proton::message>();
 	mMessage->durable(cms::DeliveryMode::PERSISTENT == 0); //default delivery mode PERISTENT
-	mMessage->priority(::cms::Message::DEFAULT_MSG_PRIORITY);
+	mMessage->priority(cms::Message::DEFAULT_MSG_PRIORITY);
 	mMessage->message_annotations().put(X_OPT_JMS_MESSAGE_TYPE.data(), static_cast<int8_t>(MESSAGE_TYPE::BYTES_MESSAGE));
 	mMessage->content_type("application/octet-stream");
 }
@@ -65,14 +65,14 @@ cms::amqp::CMSBytesMessage::CMSBytesMessage(proton::message* message, const prot
 	{
 		mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(mMessage));
 	}
-	catch (const ::cms::InvalidDestinationException& ex)
+	catch (const cms::InvalidDestinationException& ex)
 	{
 
 		try
 		{
 			mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(receiver));
 		}
-		catch (const ::cms::InvalidDestinationException& ex)
+		catch (const cms::InvalidDestinationException& ex)
 		{
 
 		}
@@ -83,7 +83,7 @@ cms::amqp::CMSBytesMessage::CMSBytesMessage(proton::message* message, const prot
 		if (!mMessage->reply_to().empty() && !mReplyTo)
 			mReplyTo.reset(AMQPCMSMessageConverter::createCMSReplyToUsingMessageDestination(mMessage));
 	}
-	catch (const ::cms::InvalidDestinationException& ex)
+	catch (const cms::InvalidDestinationException& ex)
 	{
 
 	}
@@ -94,7 +94,6 @@ cms::amqp::CMSBytesMessage::CMSBytesMessage(proton::message* message, const prot
 
 void cms::amqp::CMSBytesMessage::acknowledge() const
 {
-//	mMessageDelivery-> accept();
 	const_cast<proton::delivery*>(mMessageDelivery)->accept();
 }
 
@@ -121,7 +120,7 @@ bool cms::amqp::CMSBytesMessage::propertyExists(const std::string& name) const
 	return AMQPCMSMessageConverter::propertyExists(name, mMessage);
 }
 
-::cms::Message::ValueType cms::amqp::CMSBytesMessage::getPropertyValueType(const std::string& name) const
+cms::Message::ValueType cms::amqp::CMSBytesMessage::getPropertyValueType(const std::string& name) const
 {
 	return AMQPCMSMessageConverter::type_id_to_ValueType(mMessage->properties().get(name).type());
 }
@@ -231,12 +230,12 @@ void cms::amqp::CMSBytesMessage::setCMSDeliveryMode(int mode)
 	return AMQPCMSMessageConverter::setAMQPDeliveryMode(mode, mMessage);
 }
 
-const::cms::Destination* cms::amqp::CMSBytesMessage::getCMSDestination() const
+const cms::Destination* cms::amqp::CMSBytesMessage::getCMSDestination() const
 {
 	return mDestination.get();
 }
 
-void cms::amqp::CMSBytesMessage::setCMSDestination(const::cms::Destination* destination)
+void cms::amqp::CMSBytesMessage::setCMSDestination(const cms::Destination* destination)
 {
 	AMQPCMSMessageConverter::setAMQPDestination(destination, mMessage);
 	if (destination)
@@ -286,12 +285,12 @@ void cms::amqp::CMSBytesMessage::setCMSRedelivered(bool redelivered)
 	return AMQPCMSMessageConverter::setAMQPRedelivered(redelivered, mMessage);
 }
 
-const::cms::Destination* cms::amqp::CMSBytesMessage::getCMSReplyTo() const
+const cms::Destination* cms::amqp::CMSBytesMessage::getCMSReplyTo() const
 {
 	return mReplyTo.get();
 }
 
-void cms::amqp::CMSBytesMessage::setCMSReplyTo(const::cms::Destination* destination)
+void cms::amqp::CMSBytesMessage::setCMSReplyTo(const cms::Destination* destination)
 {
 	AMQPCMSMessageConverter::setAMQPReplyTo(destination, mMessage);
 	if (destination)
@@ -332,7 +331,7 @@ void cms::amqp::CMSBytesMessage::setBodyBytes(const unsigned char* buffer, int n
 unsigned char* cms::amqp::CMSBytesMessage::getBodyBytes() const
 {
 	if (mMessageBody.empty())
-		throw ::cms::CMSException("no more data");
+		throw cms::CMSException("no more data");
 
 	auto message = proton::get<proton::binary>(mMessage->body());
 
@@ -363,7 +362,7 @@ bool cms::amqp::CMSBytesMessage::readBoolean() const
 	}
 	catch (const std::out_of_range&)
 	{
-		throw ::cms::MessageEOFException();
+		throw cms::MessageEOFException();
 	}
 
 }
@@ -383,7 +382,7 @@ unsigned char cms::amqp::CMSBytesMessage::readByte() const
 	}
 	catch (const std::out_of_range&)
 	{
-		throw ::cms::MessageEOFException();
+		throw cms::MessageEOFException();
 	}
 }
 
@@ -411,7 +410,7 @@ int cms::amqp::CMSBytesMessage::readBytes(unsigned char* buffer, int length) con
 {
 	//TO DO ranges
 	if (int size = mMessageBody.size();size == 0 || size < read_position)
-		throw ::cms::MessageEOFException();
+		throw cms::MessageEOFException();
 
 	std::copy_n(std::next(mMessageBody.begin(), read_position), length, buffer);
 	read_position += length;
@@ -512,7 +511,7 @@ std::string cms::amqp::CMSBytesMessage::readUTF() const
 void cms::amqp::CMSBytesMessage::writeUTF(const std::string& value)
 {}
 
-::cms::BytesMessage* cms::amqp::CMSBytesMessage::clone() const
+cms::BytesMessage* cms::amqp::CMSBytesMessage::clone() const
 {
 	return new CMSBytesMessage(*this);
 }

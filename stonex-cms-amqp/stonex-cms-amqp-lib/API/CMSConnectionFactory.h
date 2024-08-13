@@ -32,7 +32,7 @@ AMQP_DEFINES
 
 	class ConnectionFactoryImpl;
 
-	class CMS_API CMSConnectionFactory : public ::cms::ConnectionFactory
+	class CMS_API CMSConnectionFactory : public cms::ConnectionFactory
 	{
 	public:
 
@@ -40,31 +40,28 @@ AMQP_DEFINES
 
 		~CMSConnectionFactory() override = default;
 
-		::cms::Connection* createConnection() override;
+		cms::Connection* createConnection() override;
 
-		::cms::Connection* createConnection(const std::string& username, const std::string& password) override;
+		cms::Connection* createConnection(const std::string& username, const std::string& password) override;
 
-		::cms::Connection* createConnection(const std::string& username, const std::string& password, const std::string& clientId) override;
+		cms::Connection* createConnection(const std::string& username, const std::string& password, const std::string& clientId) override;
 
 
-		void setExceptionListener(::cms::ExceptionListener* listener) override;
+		void setExceptionListener(cms::ExceptionListener* listener) override;
 
-		::cms::ExceptionListener* getExceptionListener() const override;
+		cms::ExceptionListener* getExceptionListener() const override;
 
-		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
+		void setMessageTransformer(cms::MessageTransformer* transformer) override;
 
-		::cms::MessageTransformer* getMessageTransformer() const  override;
+		cms::MessageTransformer* getMessageTransformer() const  override;
 
-		static ::cms::ConnectionFactory* createCMSConnectionFactory(const std::string& brokerURI);
-
-	//protected:
-	//	std::shared_ptr<FactoryContext> context() const;
+		static cms::ConnectionFactory* createCMSConnectionFactory(const std::string& brokerURI);
 
 	private:
 		StonexLoggerPtr mLogger;
 		std::shared_ptr<ConnectionFactoryImpl> mPimpl;
-		::cms::ExceptionListener* mExceptionListener{ nullptr };
-		::cms::MessageTransformer* mMessageTransformer{ nullptr };
+		cms::ExceptionListener* mExceptionListener{ nullptr };
+		cms::MessageTransformer* mMessageTransformer{ nullptr };
 	};
 
 

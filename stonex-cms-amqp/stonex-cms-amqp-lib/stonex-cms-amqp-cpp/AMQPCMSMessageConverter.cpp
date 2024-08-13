@@ -43,26 +43,26 @@
 
 cms::Destination* cms::amqp::AMQPCMSMessageConverter::createCMSDestination(const proton::sender* sender)
 {
-	::cms::Destination* dest{ nullptr };
+	cms::Destination* dest{ nullptr };
 	std::string t;
 	switch (capabilityToDestinationType(sender->target().capabilities()))
 	{
-	case ::cms::Destination::DestinationType::QUEUE:
+	case cms::Destination::DestinationType::QUEUE:
 		dest = new CMSQueue(sender->target().address());
 		break;
-	case ::cms::Destination::DestinationType::TOPIC:
+	case cms::Destination::DestinationType::TOPIC:
 		dest = new CMSTopic(sender->target().address());
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
+	case cms::Destination::DestinationType::TEMPORARY_QUEUE:
 		dest = new CMSTemporaryQueue();
 		dynamic_cast<CMSTemporaryQueue*>(dest)->mQueueName = sender->target().address();
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
+	case cms::Destination::DestinationType::TEMPORARY_TOPIC:
 		dest = new CMSTemporaryTopic();
 		dynamic_cast<CMSTemporaryTopic*>(dest)->mTopicName = sender->target().address();
 		break;
 	default:
-		throw ::cms::InvalidDestinationException("invalid destination type");
+		throw cms::InvalidDestinationException("invalid destination type");
 		break;
 	}
 	return dest;
@@ -70,138 +70,138 @@ cms::Destination* cms::amqp::AMQPCMSMessageConverter::createCMSDestination(const
 
 cms::Destination* cms::amqp::AMQPCMSMessageConverter::createCMSDestination(const proton::receiver* receiver)
 {
-	::cms::Destination* dest{ nullptr };
+	cms::Destination* dest{ nullptr };
 
 	switch (capabilityToDestinationType(receiver->source().capabilities()))
 	{
-	case ::cms::Destination::DestinationType::QUEUE:
+	case cms::Destination::DestinationType::QUEUE:
 		dest = new CMSQueue(receiver->source().address());
 		break;
-	case ::cms::Destination::DestinationType::TOPIC:
+	case cms::Destination::DestinationType::TOPIC:
 		dest = new CMSTopic(receiver->source().address());
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
+	case cms::Destination::DestinationType::TEMPORARY_QUEUE:
 		dest = new CMSTemporaryQueue();
 		dynamic_cast<CMSTemporaryQueue*>(dest)->mQueueName = receiver->source().address();
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
+	case cms::Destination::DestinationType::TEMPORARY_TOPIC:
 		dest = new CMSTemporaryTopic();
 		dynamic_cast<CMSTemporaryTopic*>(dest)->mTopicName = receiver->source().address();
 		break;
 	default:
-		throw ::cms::InvalidDestinationException("invalid destination type");
+		throw cms::InvalidDestinationException("invalid destination type");
 		break;
 	}
 	return dest;
 }
 
-::cms::Destination* cms::amqp::AMQPCMSMessageConverter::createCMSDestination(const std::shared_ptr<proton::message> message)
+cms::Destination* cms::amqp::AMQPCMSMessageConverter::createCMSDestination(const std::shared_ptr<proton::message> message)
 {
-	::cms::Destination* dest{ nullptr };
+	cms::Destination* dest{ nullptr };
 
 	if(message->address().empty())
-		throw ::cms::InvalidDestinationException("missing message destination address");
+		throw cms::InvalidDestinationException("missing message destination address");
 
 	switch (annotationsToDestinationType(message->message_annotations(),X_OPT_JMS_DEST.data()))
 	{
-	case ::cms::Destination::DestinationType::QUEUE:
+	case cms::Destination::DestinationType::QUEUE:
 		dest = new CMSQueue(message->address());
 		break;
-	case ::cms::Destination::DestinationType::TOPIC:
+	case cms::Destination::DestinationType::TOPIC:
 		dest = new CMSTopic(message->address());
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
+	case cms::Destination::DestinationType::TEMPORARY_QUEUE:
 		dest = new CMSTemporaryQueue();
 		dynamic_cast<CMSTemporaryQueue*>(dest)->mQueueName = message->address();
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
+	case cms::Destination::DestinationType::TEMPORARY_TOPIC:
 		dest = new CMSTemporaryTopic();
 		dynamic_cast<CMSTemporaryTopic*>(dest)->mTopicName = message->address();
 		break;
 	default:
-		throw ::cms::InvalidDestinationException("invalid destination type");
+		throw cms::InvalidDestinationException("invalid destination type");
 		break;
 	}
 	return dest;
 
 }
 
-::cms::Destination* cms::amqp::AMQPCMSMessageConverter::createCMSDestinationUsingMessageDestination(const proton::sender* sender, const std::shared_ptr<proton::message> message)
+cms::Destination* cms::amqp::AMQPCMSMessageConverter::createCMSDestinationUsingMessageDestination(const proton::sender* sender, const std::shared_ptr<proton::message> message)
 {
-	::cms::Destination* dest{ nullptr };
+	cms::Destination* dest{ nullptr };
 
 	switch (capabilityToDestinationType(sender->target().capabilities()))
 	{
-	case ::cms::Destination::DestinationType::QUEUE:
+	case cms::Destination::DestinationType::QUEUE:
 		dest = new CMSQueue(message->address());
 		break;
-	case ::cms::Destination::DestinationType::TOPIC:
+	case cms::Destination::DestinationType::TOPIC:
 		dest = new CMSTopic(message->address());
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
+	case cms::Destination::DestinationType::TEMPORARY_QUEUE:
 		dest = new CMSTemporaryQueue();
 		dynamic_cast<CMSTemporaryQueue*>(dest)->mQueueName = message->address();
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
+	case cms::Destination::DestinationType::TEMPORARY_TOPIC:
 		dynamic_cast<CMSTemporaryTopic*>(dest)->mTopicName = message->address();
 		break;
 	default:
-		throw ::cms::InvalidDestinationException("invalid destination type");
+		throw cms::InvalidDestinationException("invalid destination type");
 		break;
 	}
 	return dest;
 }
 
-::cms::Destination* cms::amqp::AMQPCMSMessageConverter::createCMSDestinationUsingMessageDestination(const proton::receiver* receiver, const std::shared_ptr<proton::message> message)
+cms::Destination* cms::amqp::AMQPCMSMessageConverter::createCMSDestinationUsingMessageDestination(const proton::receiver* receiver, const std::shared_ptr<proton::message> message)
 {
-	::cms::Destination* dest{ nullptr };
+	cms::Destination* dest{ nullptr };
 
 	switch (capabilityToDestinationType(receiver->source().capabilities()))
 	{
-	case ::cms::Destination::DestinationType::QUEUE:
+	case cms::Destination::DestinationType::QUEUE:
 		dest = new CMSQueue(message->address());
 		break;
-	case ::cms::Destination::DestinationType::TOPIC:
+	case cms::Destination::DestinationType::TOPIC:
 		dest = new CMSTopic(message->address());
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
+	case cms::Destination::DestinationType::TEMPORARY_QUEUE:
 		dest = new CMSTemporaryQueue();
 		dynamic_cast<CMSTemporaryQueue*>(dest)->mQueueName = message->address();
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
+	case cms::Destination::DestinationType::TEMPORARY_TOPIC:
 		dynamic_cast<CMSTemporaryTopic*>(dest)->mTopicName = message->address();
 		break;
 	default:
-		throw ::cms::InvalidDestinationException("invalid destination type");
+		throw cms::InvalidDestinationException("invalid destination type");
 		break;
 	}
 	return dest;
 }
 
-::cms::Destination* cms::amqp::AMQPCMSMessageConverter::createCMSReplyToUsingMessageDestination(const std::shared_ptr<proton::message> message)
+cms::Destination* cms::amqp::AMQPCMSMessageConverter::createCMSReplyToUsingMessageDestination(const std::shared_ptr<proton::message> message)
 {
-	::cms::Destination* dest{ nullptr };
+	cms::Destination* dest{ nullptr };
 
 	if (message->reply_to().empty())
 		return dest;
 
 	switch (annotationsToDestinationType(message->message_annotations(), X_OPT_JMS_REPLY_TO.data()))
 	{
-	case ::cms::Destination::DestinationType::QUEUE:
+	case cms::Destination::DestinationType::QUEUE:
 		dest = new CMSQueue(message->reply_to());
 		break;
-	case ::cms::Destination::DestinationType::TOPIC:
+	case cms::Destination::DestinationType::TOPIC:
 		dest = new CMSTopic(message->reply_to());
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
+	case cms::Destination::DestinationType::TEMPORARY_QUEUE:
 		dest = new CMSTemporaryQueue();
 		dynamic_cast<CMSTemporaryQueue*>(dest)->mQueueName = message->reply_to();
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
+	case cms::Destination::DestinationType::TEMPORARY_TOPIC:
 		dynamic_cast<CMSTemporaryTopic*>(dest)->mTopicName = message->reply_to();
 		break;
 	default:
-		throw ::cms::InvalidDestinationException("invalid destination type");
+		throw cms::InvalidDestinationException("invalid destination type");
 		break;
 	}
 	return dest;
@@ -213,22 +213,22 @@ cms::Destination::DestinationType cms::amqp::AMQPCMSMessageConverter::capability
 		return item == QUEUE_CAPABILITY || item == TOPIC_CAPABILITY || item == TEMPORARY_QUEUE_CAPABILITY || item == TEMPORARY_TOPIC_CAPABILITY; });
 
 	if (capability == std::cend(capabilities))
-		throw::cms::InvalidDestinationException("missing capability type.");  //to do more explicit message
+		throw cms::InvalidDestinationException("missing capability type.");  //to do more explicit message
 
 
 	if (auto setting = *capability; setting == QUEUE_CAPABILITY)
-		return ::cms::Destination::DestinationType::QUEUE;
+		return cms::Destination::DestinationType::QUEUE;
 	else if (setting == TOPIC_CAPABILITY)
-		return ::cms::Destination::DestinationType::TOPIC;
+		return cms::Destination::DestinationType::TOPIC;
 	else if (setting == TEMPORARY_QUEUE_CAPABILITY)
-		return ::cms::Destination::DestinationType::TEMPORARY_QUEUE;
+		return cms::Destination::DestinationType::TEMPORARY_QUEUE;
 	else if (setting == TEMPORARY_TOPIC_CAPABILITY)
-		return ::cms::Destination::DestinationType::TEMPORARY_TOPIC;
+		return cms::Destination::DestinationType::TEMPORARY_TOPIC;
 	else
-		throw ::cms::InvalidDestinationException("illegal capability type.");  //to do more explicit message
+		throw cms::InvalidDestinationException("illegal capability type.");  //to do more explicit message
 }
 
-::cms::Destination::DestinationType cms::amqp::AMQPCMSMessageConverter::annotationsToDestinationType(const proton::message::annotation_map& annotations, const proton::symbol& annotation_key)
+cms::Destination::DestinationType cms::amqp::AMQPCMSMessageConverter::annotationsToDestinationType(const proton::message::annotation_map& annotations, const proton::symbol& annotation_key)
 {
 	if (annotations.exists(annotation_key) & (annotation_key == X_OPT_TO_TYPE | annotation_key == X_OPT_REPLY_TO_TYPE))
 		return capabilityToDestinationType({ proton::to_string(annotations.get(annotation_key)) });
@@ -240,56 +240,56 @@ cms::Destination::DestinationType cms::amqp::AMQPCMSMessageConverter::capability
 		else if (type_id == proton::type_id::BYTE)
 			return JMSTypeToDestinationType(annotations.get(annotation_key).get<int8_t>());
 		else
-			throw ::cms::InvalidDestinationException(annotation_key + " type error expected UBYTEor BUTE");
+			throw cms::InvalidDestinationException(annotation_key + " type error expected UBYTEor BUTE");
 	}
 	else
-		throw ::cms::InvalidDestinationException("missing capability type.");
+		throw cms::InvalidDestinationException("missing capability type.");
 }
 
-::cms::Destination::DestinationType cms::amqp::AMQPCMSMessageConverter::JMSTypeToDestinationType(const uint8_t type)
+cms::Destination::DestinationType cms::amqp::AMQPCMSMessageConverter::JMSTypeToDestinationType(const uint8_t type)
 {
 	if (type == 0)
-		return ::cms::Destination::DestinationType::QUEUE;
+		return cms::Destination::DestinationType::QUEUE;
 	else if (type == 1)
-		return ::cms::Destination::DestinationType::TOPIC;
+		return cms::Destination::DestinationType::TOPIC;
 	else if (type == 2)
-		return ::cms::Destination::DestinationType::TEMPORARY_QUEUE;
+		return cms::Destination::DestinationType::TEMPORARY_QUEUE;
 	else if (type == 3)
-		return ::cms::Destination::DestinationType::TEMPORARY_TOPIC;
+		return cms::Destination::DestinationType::TEMPORARY_TOPIC;
 	else
-		throw ::cms::InvalidDestinationException("illegal capability type.");  //to do more explicit message
+		throw cms::InvalidDestinationException("illegal capability type.");  //to do more explicit message
 }
 
-::cms::Destination::DestinationType cms::amqp::AMQPCMSMessageConverter::JMSTypeToDestinationType(const int8_t type)
+cms::Destination::DestinationType cms::amqp::AMQPCMSMessageConverter::JMSTypeToDestinationType(const int8_t type)
 {
 	if (type == 0)
-		return ::cms::Destination::DestinationType::QUEUE;
+		return cms::Destination::DestinationType::QUEUE;
 	else if (type == 1)
-		return ::cms::Destination::DestinationType::TOPIC;
+		return cms::Destination::DestinationType::TOPIC;
 	else if (type == 2)
-		return ::cms::Destination::DestinationType::TEMPORARY_QUEUE;
+		return cms::Destination::DestinationType::TEMPORARY_QUEUE;
 	else if (type == 3)
-		return ::cms::Destination::DestinationType::TEMPORARY_TOPIC;
+		return cms::Destination::DestinationType::TEMPORARY_TOPIC;
 	else
-		throw ::cms::InvalidDestinationException("illegal capability type.");  //to do more explicit message
+		throw cms::InvalidDestinationException("illegal capability type.");  //to do more explicit message
 }
 
-std::string cms::amqp::AMQPCMSMessageConverter::destinationToAddress(const::cms::Destination* destintion)
+std::string cms::amqp::AMQPCMSMessageConverter::destinationToAddress(const cms::Destination* destintion)
 {
 	std::string output{};
 
 	switch (destintion->getDestinationType())
 	{
-	case ::cms::Destination::DestinationType::QUEUE:
+	case cms::Destination::DestinationType::QUEUE:
 		output = dynamic_cast<const CMSQueue*>(destintion)->getQueueName();
 		break;
-	case ::cms::Destination::DestinationType::TOPIC:
+	case cms::Destination::DestinationType::TOPIC:
 		output = dynamic_cast<const CMSTopic*>(destintion)->getTopicName();
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
+	case cms::Destination::DestinationType::TEMPORARY_QUEUE:
 		output = dynamic_cast<const CMSTemporaryQueue*>(destintion)->getQueueName();
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
+	case cms::Destination::DestinationType::TEMPORARY_TOPIC:
 		//			output = dynamic_cast<const CMSTemporaryTopic*>(&message)->getTopicName();
 		break;
 	}
@@ -297,97 +297,97 @@ std::string cms::amqp::AMQPCMSMessageConverter::destinationToAddress(const::cms:
 	return output;
 }
 
-std::string cms::amqp::AMQPCMSMessageConverter::destinationAddress(const ::cms::Message* message)
+std::string cms::amqp::AMQPCMSMessageConverter::destinationAddress(const cms::Message* message)
 {
 	return destinationToAddress(message->getCMSDestination());
 }
 
-std::string cms::amqp::AMQPCMSMessageConverter::replyToAddress(const::cms::Message* message)
+std::string cms::amqp::AMQPCMSMessageConverter::replyToAddress(const cms::Message* message)
 {
 	return destinationToAddress(message->getCMSReplyTo());
 }
 
-::cms::Message::ValueType cms::amqp::AMQPCMSMessageConverter::type_id_to_ValueType(proton::type_id t_id) 
+cms::Message::ValueType cms::amqp::AMQPCMSMessageConverter::type_id_to_ValueType(proton::type_id t_id) 
 {
-	::cms::Message::ValueType value_type(::cms::Message::ValueType::UNKNOWN_TYPE);
+	cms::Message::ValueType value_type(cms::Message::ValueType::UNKNOWN_TYPE);
 	switch (t_id)
 	{
 	case proton::type_id::NULL_TYPE:
-		value_type = ::cms::Message::ValueType::NULL_TYPE;
+		value_type = cms::Message::ValueType::NULL_TYPE;
 		break;
 	case proton::type_id::BOOLEAN:
-		value_type = ::cms::Message::ValueType::BOOLEAN_TYPE;
+		value_type = cms::Message::ValueType::BOOLEAN_TYPE;
 		break;
 	case proton::type_id::UBYTE:
 		//cms treats unsigned char as Byte
-		//value_type = ::cms::Message::ValueType::CHAR_TYPE;
-		value_type = ::cms::Message::ValueType::BYTE_TYPE;
+		//value_type = cms::Message::ValueType::CHAR_TYPE;
+		value_type = cms::Message::ValueType::BYTE_TYPE;
 		break;
 	case proton::type_id::BYTE:
-		value_type = ::cms::Message::ValueType::BYTE_TYPE;
+		value_type = cms::Message::ValueType::BYTE_TYPE;
 		break;
 	case proton::type_id::USHORT:
-		value_type = ::cms::Message::ValueType::UNKNOWN_TYPE;		
+		value_type = cms::Message::ValueType::UNKNOWN_TYPE;		
 		break;
 	case proton::type_id::SHORT:
-		value_type = ::cms::Message::ValueType::SHORT_TYPE;
+		value_type = cms::Message::ValueType::SHORT_TYPE;
 		break;
 	case proton::type_id::UINT:
-		value_type = ::cms::Message::ValueType::UNKNOWN_TYPE;
+		value_type = cms::Message::ValueType::UNKNOWN_TYPE;
 		break;
 	case proton::type_id::INT:
-		value_type = ::cms::Message::ValueType::INTEGER_TYPE;
+		value_type = cms::Message::ValueType::INTEGER_TYPE;
 		break;
 	case proton::type_id::CHAR:
-		value_type = ::cms::Message::ValueType::CHAR_TYPE;
+		value_type = cms::Message::ValueType::CHAR_TYPE;
 		break;
 	case proton::type_id::ULONG:
-		value_type = ::cms::Message::ValueType::UNKNOWN_TYPE;
+		value_type = cms::Message::ValueType::UNKNOWN_TYPE;
 		break;
 	case proton::type_id::LONG:
-		value_type = ::cms::Message::ValueType::LONG_TYPE;
+		value_type = cms::Message::ValueType::LONG_TYPE;
 		break;
 	case proton::type_id::TIMESTAMP:
-		value_type = ::cms::Message::ValueType::UNKNOWN_TYPE;
+		value_type = cms::Message::ValueType::UNKNOWN_TYPE;
 		break;
 	case proton::type_id::FLOAT:
-		value_type = ::cms::Message::ValueType::FLOAT_TYPE;
+		value_type = cms::Message::ValueType::FLOAT_TYPE;
 		break;
 	case proton::type_id::DOUBLE:
-		value_type = ::cms::Message::ValueType::DOUBLE_TYPE;
+		value_type = cms::Message::ValueType::DOUBLE_TYPE;
 		break;
 	case proton::type_id::DECIMAL32:
-		value_type = ::cms::Message::ValueType::FLOAT_TYPE;
+		value_type = cms::Message::ValueType::FLOAT_TYPE;
 		break;
 	case proton::type_id::DECIMAL64:
-		value_type = ::cms::Message::ValueType::FLOAT_TYPE;
+		value_type = cms::Message::ValueType::FLOAT_TYPE;
 		break;
 	case proton::type_id::DECIMAL128:
-		value_type = ::cms::Message::ValueType::DOUBLE_TYPE;
+		value_type = cms::Message::ValueType::DOUBLE_TYPE;
 		break;
 	case proton::type_id::UUID:
-		value_type = ::cms::Message::ValueType::UNKNOWN_TYPE;
+		value_type = cms::Message::ValueType::UNKNOWN_TYPE;
 		break;
 	case proton::type_id::BINARY:
-		value_type = ::cms::Message::ValueType::UNKNOWN_TYPE;
+		value_type = cms::Message::ValueType::UNKNOWN_TYPE;
 		break;
 	case proton::type_id::STRING:
-		value_type = ::cms::Message::ValueType::STRING_TYPE;
+		value_type = cms::Message::ValueType::STRING_TYPE;
 		break;
 	case proton::type_id::SYMBOL:
-		value_type = ::cms::Message::ValueType::UNKNOWN_TYPE;
+		value_type = cms::Message::ValueType::UNKNOWN_TYPE;
 		break;
 	case proton::type_id::DESCRIBED:
-		value_type = ::cms::Message::ValueType::UNKNOWN_TYPE;
+		value_type = cms::Message::ValueType::UNKNOWN_TYPE;
 		break;
 	case proton::type_id::ARRAY:
-		value_type = ::cms::Message::ValueType::UNKNOWN_TYPE;
+		value_type = cms::Message::ValueType::UNKNOWN_TYPE;
 		break;
 	case proton::type_id::MAP:
-		value_type = ::cms::Message::ValueType::UNKNOWN_TYPE;
+		value_type = cms::Message::ValueType::UNKNOWN_TYPE;
 		break;
 	default:
-		value_type = ::cms::Message::ValueType::UNKNOWN_TYPE;
+		value_type = cms::Message::ValueType::UNKNOWN_TYPE;
 		break;
 	}
 	return value_type;
@@ -453,7 +453,7 @@ std::array<char, 16> cms::amqp::AMQPCMSMessageConverter::hexStringToArray(const 
 	std::regex uuidPattern("[a-f A-F 0-9]{8}-[a-f A-F 0-9]{4}-[a-f A-F 0-9]{4}-[a-f A-F 0-9]{4}-[a-f A-F 0-9]{12}");
 
 	if (!std::regex_match(s, uuidPattern))
-		throw ::cms::CMSException("not uuid pattern");
+		throw cms::CMSException("not uuid pattern");
 
 	std::array<char, 16> binaryArray;
 	binaryArray.fill(0x00);
@@ -493,7 +493,7 @@ std::array<char, 16> cms::amqp::AMQPCMSMessageConverter::hexStringToArray(const 
 std::string cms::amqp::AMQPCMSMessageConverter::hexStringToBinaryArray(const std::string& s) 
 {
 	if (s.size() % 2)
-		throw ::cms::CMSException("string to binary conversion error, char count ");
+		throw cms::CMSException("string to binary conversion error, char count ");
 
 	std::string binaryArray(s.size() / 2, 0x00);
 	auto out_iter = binaryArray.begin();
@@ -535,22 +535,22 @@ std::string cms::amqp::AMQPCMSMessageConverter::binaryArrayToHexString(const std
 }
 
 
-std::string cms::amqp::AMQPCMSMessageConverter::destinationTypeToString(::cms::Destination::DestinationType dest_type) 
+std::string cms::amqp::AMQPCMSMessageConverter::destinationTypeToString(cms::Destination::DestinationType dest_type) 
 {
 	std::string destination_type_string;
 
 	switch (dest_type)
 	{
-	case ::cms::Destination::DestinationType::QUEUE:
+	case cms::Destination::DestinationType::QUEUE:
 		destination_type_string = "queue";
 		break;
-	case ::cms::Destination::DestinationType::TOPIC:
+	case cms::Destination::DestinationType::TOPIC:
 		destination_type_string = "topic";
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
+	case cms::Destination::DestinationType::TEMPORARY_QUEUE:
 		destination_type_string = "temporary-queue";
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
+	case cms::Destination::DestinationType::TEMPORARY_TOPIC:
 		destination_type_string = "temporary-topic";
 		break;
 	default:
@@ -560,22 +560,22 @@ std::string cms::amqp::AMQPCMSMessageConverter::destinationTypeToString(::cms::D
 	return destination_type_string;
 }
 
-int8_t cms::amqp::AMQPCMSMessageConverter::destinationTypeToJMSType(::cms::Destination::DestinationType dest_type)
+int8_t cms::amqp::AMQPCMSMessageConverter::destinationTypeToJMSType(cms::Destination::DestinationType dest_type)
 {
 	int8_t jms_to_type;
 
 	switch (dest_type)
 	{
-	case ::cms::Destination::DestinationType::QUEUE:
+	case cms::Destination::DestinationType::QUEUE:
 		jms_to_type = 0;
 		break;
-	case ::cms::Destination::DestinationType::TOPIC:
+	case cms::Destination::DestinationType::TOPIC:
 		jms_to_type = 1;
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
+	case cms::Destination::DestinationType::TEMPORARY_QUEUE:
 		jms_to_type = 2;
 		break;
-	case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
+	case cms::Destination::DestinationType::TEMPORARY_TOPIC:
 		jms_to_type = 3;
 		break;
 	default:
@@ -609,7 +609,7 @@ bool cms::amqp::AMQPCMSMessageConverter::propertyExists(const std::string& name,
 bool cms::amqp::AMQPCMSMessageConverter::getCMSBooleanProperty(const std::string& name,const std::shared_ptr<proton::message> message)
 {
 	if (!message->properties().exists(name))
-		throw ::cms::CMSException("property name " + name + "does not exist");
+		throw cms::CMSException("property name " + name + "does not exist");
 
 	try
 	{
@@ -617,7 +617,7 @@ bool cms::amqp::AMQPCMSMessageConverter::getCMSBooleanProperty(const std::string
 	}
 	catch (const proton::conversion_error& er)
 	{
-		throw ::cms::MessageFormatException(er.what());
+		throw cms::MessageFormatException(er.what());
 	}
 
 
@@ -626,7 +626,7 @@ bool cms::amqp::AMQPCMSMessageConverter::getCMSBooleanProperty(const std::string
 unsigned char cms::amqp::AMQPCMSMessageConverter::getCMSByteProperty(const std::string& name, const std::shared_ptr<proton::message> message)
 {
 	if (!message->properties().exists(name))
-		throw ::cms::CMSException("property name " + name + "does not exist");
+		throw cms::CMSException("property name " + name + "does not exist");
 
 	try
 	{
@@ -634,7 +634,7 @@ unsigned char cms::amqp::AMQPCMSMessageConverter::getCMSByteProperty(const std::
 	}
 	catch (const proton::conversion_error& er)
 	{
-		throw ::cms::MessageFormatException(er.what());
+		throw cms::MessageFormatException(er.what());
 	}
 
 }
@@ -642,7 +642,7 @@ unsigned char cms::amqp::AMQPCMSMessageConverter::getCMSByteProperty(const std::
 double cms::amqp::AMQPCMSMessageConverter::getCMSDoubleProperty(const std::string& name, const std::shared_ptr<proton::message> message)
 {
 	if (!message->properties().exists(name))
-		throw ::cms::CMSException("property name " + name + "does not exist");
+		throw cms::CMSException("property name " + name + "does not exist");
 
 	try
 	{
@@ -650,14 +650,14 @@ double cms::amqp::AMQPCMSMessageConverter::getCMSDoubleProperty(const std::strin
 	}
 	catch (const proton::conversion_error& er)
 	{
-		throw ::cms::MessageFormatException(er.what());
+		throw cms::MessageFormatException(er.what());
 	}
 }
 
 float cms::amqp::AMQPCMSMessageConverter::getCMSFloatProperty(const std::string& name, const std::shared_ptr<proton::message> message)
 {
 	if (!message->properties().exists(name))
-		throw ::cms::CMSException("property name " + name + "does not exist");
+		throw cms::CMSException("property name " + name + "does not exist");
 
 	try
 	{
@@ -665,14 +665,14 @@ float cms::amqp::AMQPCMSMessageConverter::getCMSFloatProperty(const std::string&
 	}
 	catch (const proton::conversion_error& er)
 	{
-		throw ::cms::MessageFormatException(er.what());
+		throw cms::MessageFormatException(er.what());
 	}
 }
 
 int cms::amqp::AMQPCMSMessageConverter::getCMSIntProperty(const std::string& name, const std::shared_ptr<proton::message> message)
 {
 	if (!message->properties().exists(name))
-		throw ::cms::CMSException("property name " + name + "does not exist");
+		throw cms::CMSException("property name " + name + "does not exist");
 
 	try
 	{
@@ -680,14 +680,14 @@ int cms::amqp::AMQPCMSMessageConverter::getCMSIntProperty(const std::string& nam
 	}
 	catch (const proton::conversion_error& er)
 	{
-		throw ::cms::MessageFormatException(er.what());
+		throw cms::MessageFormatException(er.what());
 	}
 }
 
 long long cms::amqp::AMQPCMSMessageConverter::getCMSLongProperty(const std::string& name, const std::shared_ptr<proton::message> message)
 {
 	if (!message->properties().exists(name))
-		throw ::cms::CMSException("property name " + name + "does not exist");
+		throw cms::CMSException("property name " + name + "does not exist");
 
 	try
 	{
@@ -695,14 +695,14 @@ long long cms::amqp::AMQPCMSMessageConverter::getCMSLongProperty(const std::stri
 	}
 	catch (const proton::conversion_error& er)
 	{
-		throw ::cms::MessageFormatException(er.what());
+		throw cms::MessageFormatException(er.what());
 	}
 }
 
 short cms::amqp::AMQPCMSMessageConverter::getCMSShortProperty(const std::string& name, const std::shared_ptr<proton::message> message)
 {
 	if (!message->properties().exists(name))
-		throw ::cms::CMSException("property name " + name + "does not exist");
+		throw cms::CMSException("property name " + name + "does not exist");
 
 	try
 	{
@@ -710,14 +710,14 @@ short cms::amqp::AMQPCMSMessageConverter::getCMSShortProperty(const std::string&
 	}
 	catch (const proton::conversion_error& er)
 	{
-		throw ::cms::MessageFormatException(er.what());
+		throw cms::MessageFormatException(er.what());
 	}
 }
 
 std::string cms::amqp::AMQPCMSMessageConverter::getCMSStringProperty(const std::string& name, const std::shared_ptr<proton::message> message)
 {
 	if (!message->properties().exists(name))
-		throw ::cms::CMSException("property name " + name + "does not exist");
+		throw cms::CMSException("property name " + name + "does not exist");
 
 	try
 	{
@@ -725,7 +725,7 @@ std::string cms::amqp::AMQPCMSMessageConverter::getCMSStringProperty(const std::
 	}
 	catch (const proton::conversion_error& er)
 	{
-		throw ::cms::MessageFormatException(er.what());
+		throw cms::MessageFormatException(er.what());
 	}
 }
 
@@ -844,19 +844,19 @@ void cms::amqp::AMQPCMSMessageConverter::setAMQPCorrelationID(const std::string&
 
 int cms::amqp::AMQPCMSMessageConverter::getCMSDeliveryMode(const std::shared_ptr<proton::message> message)
 {
-	//durable : true ::cms::DeliveryMode::PERSISTENT (0)
-	// 	return !message->durable() -> 0 -> ::cms::DeliveryMode::PERSISTENT;
+	//durable : true cms::DeliveryMode::PERSISTENT (0)
+	// 	return !message->durable() -> 0 -> cms::DeliveryMode::PERSISTENT;
 	return !message->durable();
 }
 
 void cms::amqp::AMQPCMSMessageConverter::setAMQPDeliveryMode(int mode, std::shared_ptr<proton::message> message)
 {
-	message->durable(mode == ::cms::DeliveryMode::PERSISTENT);
+	message->durable(mode == cms::DeliveryMode::PERSISTENT);
 }
 
 
 
-void cms::amqp::AMQPCMSMessageConverter::setAMQPDestination(const::cms::Destination* destination, std::shared_ptr<proton::message> message)
+void cms::amqp::AMQPCMSMessageConverter::setAMQPDestination(const cms::Destination* destination, std::shared_ptr<proton::message> message)
 {
 	if (destination)
 	{
@@ -976,7 +976,7 @@ void cms::amqp::AMQPCMSMessageConverter::setAMQPRedelivered(bool redelivered, st
 }
 
 
-void cms::amqp::AMQPCMSMessageConverter::setAMQPReplyTo(const::cms::Destination* destination, std::shared_ptr<proton::message> message)
+void cms::amqp::AMQPCMSMessageConverter::setAMQPReplyTo(const cms::Destination* destination, std::shared_ptr<proton::message> message)
 {
 	message->reply_to(AMQPCMSMessageConverter::destinationToAddress(destination));
 	message->message_annotations().put(X_OPT_JMS_REPLY_TO.data(), AMQPCMSMessageConverter::destinationTypeToJMSType(destination->getDestinationType()));

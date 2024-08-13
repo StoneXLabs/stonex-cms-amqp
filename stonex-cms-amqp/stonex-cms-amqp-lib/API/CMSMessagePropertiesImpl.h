@@ -27,7 +27,7 @@
 AMQP_DEFINES
 
 
-	class CMS_API CMSMessagePropertiesImpl : public ::cms::CMSProperties
+	class CMS_API CMSMessagePropertiesImpl : public cms::CMSProperties
 	{
 	public:
 

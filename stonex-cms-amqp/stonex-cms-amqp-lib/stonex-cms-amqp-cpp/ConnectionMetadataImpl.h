@@ -23,7 +23,7 @@
 
 namespace cms::amqp 
 {
-    class CMS_API ConnectionMetadataImpl : public ::cms::ConnectionMetaData
+    class CMS_API ConnectionMetadataImpl : public cms::ConnectionMetaData
     {
     public:
         ~ConnectionMetadataImpl() override = default;

@@ -28,7 +28,7 @@ AMQP_DEFINES
     class CMSMessageConsumer;
     class CMSMessageProducer;
 
-	class CMS_API CMSTemporaryQueue : public ::cms::TemporaryQueue
+	class CMS_API CMSTemporaryQueue : public cms::TemporaryQueue
 	{
         friend class MessageConsumerImpl;//remove
         friend class MessageProducerImpl;//remove
@@ -40,15 +40,15 @@ AMQP_DEFINES
 
         CMSTemporaryQueue& operator=(const CMSTemporaryQueue& other);
 
-        ::cms::Destination::DestinationType getDestinationType() const override;
+        cms::Destination::DestinationType getDestinationType() const override;
 
-        ::cms::Destination* clone() const override;
+        cms::Destination* clone() const override;
 
-        void copy(const ::cms::Destination& source) override;
+        void copy(const cms::Destination& source) override;
 
-        bool equals(const ::cms::Destination& other) const override;
+        bool equals(const cms::Destination& other) const override;
 
-        const ::cms::CMSProperties& getCMSProperties() const override;
+        const cms::CMSProperties& getCMSProperties() const override;
 
         std::string getQueueName() const override;
 
@@ -56,7 +56,7 @@ AMQP_DEFINES
 
     private:
         mutable std::string mQueueName;
-        /*const*/ ::cms::Destination::DestinationType mDestinationType;
+        /*const*/ cms::Destination::DestinationType mDestinationType;
 		void destroy() override;
 	};
 

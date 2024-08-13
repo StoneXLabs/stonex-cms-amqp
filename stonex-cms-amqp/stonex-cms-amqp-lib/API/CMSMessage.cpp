@@ -35,7 +35,7 @@ cms::amqp::CMSMessage::CMSMessage()
 	// set default durable to true that maps to  cms::DeliveryMode::PERSISTENT
 	mMessage = std::make_shared<proton::message>();
 	mMessage->durable(true);
-	mMessage->priority(::cms::Message::DEFAULT_MSG_PRIORITY);
+	mMessage->priority(cms::Message::DEFAULT_MSG_PRIORITY);
 }
 
 
@@ -55,7 +55,7 @@ cms::amqp::CMSMessage::CMSMessage(proton::message* mes)
 		if (!mMessage->address().empty())
 			setCMSDestination(AMQPCMSMessageConverter::createCMSDestination(mMessage));
 	}
-	catch (const ::cms::InvalidDestinationException& ex)
+	catch (const cms::InvalidDestinationException& ex)
 	{
 
 	}
@@ -67,7 +67,7 @@ cms::amqp::CMSMessage::CMSMessage(proton::message* mes)
 			setCMSReplyTo(AMQPCMSMessageConverter::createCMSReplyToUsingMessageDestination(mMessage));
 		}
 	}
-	catch (const ::cms::InvalidDestinationException& ex)
+	catch (const cms::InvalidDestinationException& ex)
 	{
 
 	}
@@ -82,7 +82,7 @@ cms::amqp::CMSMessage::CMSMessage(proton::message* mes, const proton::sender* se
 			setCMSDestination(AMQPCMSMessageConverter::createCMSDestination(sender));
 
 	}
-	catch (const ::cms::InvalidDestinationException& ex)
+	catch (const cms::InvalidDestinationException& ex)
 	{
 
 	}
@@ -98,14 +98,14 @@ cms::amqp::CMSMessage::CMSMessage(proton::message* mes, const proton::receiver* 
 		if (mMessage->address().empty())
 			setCMSDestination(AMQPCMSMessageConverter::createCMSDestination(receiver));
 	}
-	catch (const ::cms::InvalidDestinationException& ex)
+	catch (const cms::InvalidDestinationException& ex)
 	{
 
 	}
 
 }
 
-::cms::Message* cms::amqp::CMSMessage::clone() const
+cms::Message* cms::amqp::CMSMessage::clone() const
 {
 	return new CMSMessage(*this);
 }
@@ -130,7 +130,7 @@ bool cms::amqp::CMSMessage::propertyExists(const std::string& name) const
 	return AMQPCMSMessageConverter::propertyExists(name, mMessage);
 }
 
-::cms::Message::ValueType cms::amqp::CMSMessage::getPropertyValueType(const std::string& name) const
+cms::Message::ValueType cms::amqp::CMSMessage::getPropertyValueType(const std::string& name) const
 {
 	return AMQPCMSMessageConverter::type_id_to_ValueType(mMessage->properties().get(name).type());
 }
@@ -218,7 +218,7 @@ void cms::amqp::CMSMessage::setStringProperty(const std::string& name, const std
 {
 	AMQPCMSMessageConverter::setAMQPStringProperty(name, value, mMessage);
 }
-//////
+
 std::string cms::amqp::CMSMessage::getCMSCorrelationID() const
 {
 	return AMQPCMSMessageConverter::getCMSCorrelationID(mMessage);
@@ -239,12 +239,12 @@ void cms::amqp::CMSMessage::setCMSDeliveryMode(int mode)
 	return AMQPCMSMessageConverter::setAMQPDeliveryMode(mode, mMessage);
 }
 
-const::cms::Destination* cms::amqp::CMSMessage::getCMSDestination() const
+const cms::Destination* cms::amqp::CMSMessage::getCMSDestination() const
 {
 	return mDestination.get();
 }
 
-void cms::amqp::CMSMessage::setCMSDestination(const::cms::Destination* destination)
+void cms::amqp::CMSMessage::setCMSDestination(const cms::Destination* destination)
 {
 	AMQPCMSMessageConverter::setAMQPDestination(destination, mMessage);
 	if (destination)
@@ -294,12 +294,12 @@ void cms::amqp::CMSMessage::setCMSRedelivered(bool redelivered)
 	return AMQPCMSMessageConverter::setAMQPRedelivered(redelivered, mMessage);
 }
 
-const::cms::Destination* cms::amqp::CMSMessage::getCMSReplyTo() const
+const cms::Destination* cms::amqp::CMSMessage::getCMSReplyTo() const
 {
 	return mReplyTo.get();
 }
 
-void cms::amqp::CMSMessage::setCMSReplyTo(const::cms::Destination* destination)
+void cms::amqp::CMSMessage::setCMSReplyTo(const cms::Destination* destination)
 {
 	AMQPCMSMessageConverter::setAMQPReplyTo(destination, mMessage);
 	if (destination)

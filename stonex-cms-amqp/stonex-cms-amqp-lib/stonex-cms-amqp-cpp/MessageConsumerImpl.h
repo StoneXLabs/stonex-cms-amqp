@@ -63,20 +63,20 @@ namespace cms::amqp
 		explicit MessageConsumerImpl(const config::ConsumerContext& context);
 
 		~MessageConsumerImpl();
-		::cms::Message* receive();
-		::cms::Message* receive(int milis);
-		::cms::Message* receiveNoWait();
+		cms::Message* receive();
+		cms::Message* receive(int milis);
+		cms::Message* receiveNoWait();
 
-		void setMessageListener(::cms::MessageListener * listener);
-		::cms::MessageListener* getMessageListener() const;
+		void setMessageListener(cms::MessageListener * listener);
+		cms::MessageListener* getMessageListener() const;
 
 		std::string getMessageSelector() const;
 
-		void setMessageTransformer(::cms::MessageTransformer* transformer) {};
-		::cms::MessageTransformer* getMessageTransformer() const { return nullptr; };
+		void setMessageTransformer(cms::MessageTransformer* transformer) {};
+		cms::MessageTransformer* getMessageTransformer() const { return nullptr; };
 
-		void setMessageAvailableListener(::cms::MessageAvailableListener* listener);
-		::cms::MessageAvailableListener* getMessageAvailableListener() const { return nullptr; };
+		void setMessageAvailableListener(cms::MessageAvailableListener* listener);
+		cms::MessageAvailableListener* getMessageAvailableListener() const { return nullptr; };
 
 		void start();
 		void stop();
@@ -94,10 +94,10 @@ namespace cms::amqp
 
 	private:
 		StonexLoggerPtr mLogger;
-		::cms::MessageListener *mListener{ nullptr };
+		cms::MessageListener *mListener{ nullptr };
 		std::string mAddress;
 
-		std::function<void(::cms::Message*)> onMessageCallback = [=](::cms::Message* message) ->void { delete message; };
+		std::function<void(cms::Message*)> onMessageCallback = [=](cms::Message* message) ->void { delete message; };
 
 		DestinationParser destAddressParser;
 		config::ConsumerContext mContext;

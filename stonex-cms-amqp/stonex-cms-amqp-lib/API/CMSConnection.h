@@ -27,10 +27,6 @@
 
 
 #include <LoggerFactory/LoggerFactory.h>
-
-#include "ClientState.h"
-
-
 #include "stonex-cms-amqp-lib-defines.h"
 
 
@@ -46,8 +42,6 @@ AMQP_DEFINES
 	{
 	public:
 		explicit CMSConnection(std::shared_ptr<ConnectionImpl> impl);
-		/*CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password);
-		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId);*/
 
 		~CMSConnection() override = default;
 

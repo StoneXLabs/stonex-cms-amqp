@@ -28,9 +28,9 @@
 #include <cms/MessageProducer.h>
 #include <cms/MessageListener.h>
 
-#include "../API/CMSMessage.h"
+#include <cms/Message.h>
 #include "AMQPIDGenerator.h"
-#include "../API/ClientState.h"
+#include "ClientState.h"
 #include <logger/StoneXLogger.h>
 #include "ProducerContext.h"
 #include <functional>

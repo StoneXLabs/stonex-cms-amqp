@@ -29,9 +29,9 @@
 #include <cms/MessageConsumer.h>
 #include <cms/MessageListener.h>
 
-#include "../API/CMSMessage.h"
+#include <cms/Message.h>
 #include <regex>
-#include "../API/ClientState.h"
+#include "ClientState.h"
 #include <logger/StoneXLogger.h>
 #include "ConsumerContext.h"
 

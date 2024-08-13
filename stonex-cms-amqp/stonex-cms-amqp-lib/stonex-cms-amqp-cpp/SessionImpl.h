@@ -27,7 +27,7 @@
 #include <condition_variable>
 #include <mutex>
 
-#include "API/ClientState.h"
+#include "ClientState.h"
 
 #include <logger/StoneXLogger.h>
 

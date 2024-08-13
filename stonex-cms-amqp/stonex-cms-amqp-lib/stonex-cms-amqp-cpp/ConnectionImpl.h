@@ -27,7 +27,7 @@
 #include <cms/Connection.h>
 
 #include "ConnectionContext.h"
-#include "../API/ClientState.h"
+#include "ClientState.h"
 
 #include <memory>
 #include <logger/StoneXLogger.h>

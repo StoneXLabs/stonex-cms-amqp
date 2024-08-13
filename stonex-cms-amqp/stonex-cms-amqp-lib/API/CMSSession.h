@@ -22,9 +22,6 @@
 #include <cms/Session.h>
 
 #include <LoggerFactory/LoggerFactory.h>
-
-#include "ClientState.h"
-
 #include "stonex-cms-amqp-lib-defines.h"
 
 AMQP_DEFINES

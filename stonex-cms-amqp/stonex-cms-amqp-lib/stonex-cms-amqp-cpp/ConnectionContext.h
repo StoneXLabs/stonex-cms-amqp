@@ -20,7 +20,7 @@
 #pragma once
 #include <proton/work_queue.hpp>
 #include <proton/connection.hpp>
-#include "../API/ClientState.h"
+#include "ClientState.h"
 
 //AMQP_DEFINES
 

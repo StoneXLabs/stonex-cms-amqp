@@ -23,7 +23,7 @@
 #include <proton/receiver.hpp>
 #include <proton/receiver_options.hpp>
 #include <cms/Destination.h>
-#include "../API/ClientState.h"
+#include "ClientState.h"
 
 namespace cms
 {

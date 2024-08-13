@@ -20,7 +20,7 @@
 #include <proton/sender_options.hpp>
 #include <proton/sender.hpp>
 #include <proton/session.hpp>
-#include "../API/ClientState.h"
+#include "ClientState.h"
 
 namespace cms
 {

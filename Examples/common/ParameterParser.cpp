@@ -77,6 +77,7 @@ void MyMessageListener::onMessage(const cms::Message* message){
 	if (auto msg = dynamic_cast<const cms::TextMessage*>(message))
 		mLogger->log(SEVERITY::LOG_INFO, msg->getText());
 	mMessagesCount++;
+	delete message;
 }
 
 void MyMessageListener::setExpectedCount(unsigned int count, bool reset_counter)

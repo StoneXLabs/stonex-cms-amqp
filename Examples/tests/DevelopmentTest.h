@@ -67,6 +67,7 @@ public:
 	~DevelopmentTest();
 
 	void initialize(const std::string& broker, const std::string& user, const std::string& password, const std::string& producer_address, const std::string& consumer_address);
+	void reinitialize();
 
 	Test test1();
 	Test test2();
@@ -98,6 +99,9 @@ public:
 	Test test28();
 	Test test29();
 	Test test30();
+	Test test31();
+	Test test32();
+	Test test33();
 	void addResult(const Test result);
 
 	void verify();
@@ -129,7 +133,7 @@ public:
 
 private:
 
-	std::thread* produceMessages();
+	std::thread* produceMessages(unsigned int messagesToSend = 15);
 
 private:
 	std::string mBroker;

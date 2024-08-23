@@ -23,6 +23,56 @@ int main()
 
 	try
 	{
+
+
+		DevelopmentTest Test;
+
+		Test.initialize(broker, user, password, producer_address, consumer_address);
+			   
+		//Test.addResult(Test.test1());
+		//Test.addResult(Test.test2());
+		//Test.addResult(Test.test3());
+		//Test.addResult(Test.test4());
+		//Test.addResult(Test.test5());
+		//Test.addResult(Test.test6());
+		//Test.addResult(Test.test7());
+		//Test.addResult(Test.test8());
+		//Test.addResult(Test.test9());
+		//Test.addResult(Test.test10());
+		//Test.addResult(Test.test11());
+		//Test.addResult(Test.test12());
+		//Test.addResult(Test.test13());
+		//Test.addResult(Test.test14());
+		//Test.addResult(Test.test15());
+		//Test.addResult(Test.test16());
+		//Test.addResult(Test.test17());
+		//Test.addResult(Test.test18());
+		//Test.addResult(Test.test19());
+		//Test.addResult(Test.test20());
+		//Test.addResult(Test.test21());
+		//Test.addResult(Test.test22());
+		//Test.addResult(Test.test23());
+		//Test.addResult(Test.test24());
+		//Test.addResult(Test.test25());
+		//Test.addResult(Test.test26());
+		//Test.addResult(Test.test27());
+		//Test.addResult(Test.test28());
+		//Test.addResult(Test.test29());
+		//Test.addResult(Test.test30());
+
+		//reinit cms components
+		Test.reinitialize();
+		Test.addResult(Test.test31());
+		Test.reinitialize();
+		Test.addResult(Test.test32());
+		Test.reinitialize();
+		Test.addResult(Test.test33());
+	//	Test.reinitialize();
+	//	Test.addResult(Test.test33());
+
+		Test.verify();
+
+
 		{
 			DevelopmentTest Test;
 			Test.initialize(broker, user, password, producer_address, consumer_address);
@@ -167,43 +217,6 @@ int main()
 			Test.destructionCombination24();
 		}
 
-
-
-		DevelopmentTest Test;
-
-		Test.initialize(broker, user, password, producer_address, consumer_address);
-			   
-		Test.addResult(Test.test1());
-		Test.addResult(Test.test2());
-		Test.addResult(Test.test3());
-		Test.addResult(Test.test4());
-		Test.addResult(Test.test5());
-		Test.addResult(Test.test6());
-		Test.addResult(Test.test7());
-		Test.addResult(Test.test8());
-		Test.addResult(Test.test9());
-		Test.addResult(Test.test10());
-		Test.addResult(Test.test11());
-		Test.addResult(Test.test12());
-		Test.addResult(Test.test13());
-		Test.addResult(Test.test14());
-		Test.addResult(Test.test15());
-		Test.addResult(Test.test16());
-		Test.addResult(Test.test17());
-		Test.addResult(Test.test18());
-		Test.addResult(Test.test19());
-		Test.addResult(Test.test20());
-		Test.addResult(Test.test21());
-		Test.addResult(Test.test22());
-		Test.addResult(Test.test23());
-		Test.addResult(Test.test24());
-		Test.addResult(Test.test25());
-		Test.addResult(Test.test26());
-		Test.addResult(Test.test27());
-		Test.addResult(Test.test28());
-		Test.addResult(Test.test29());
-		Test.addResult(Test.test30());
-		Test.verify();
 	}
 	catch (std::exception& ex)
 	{

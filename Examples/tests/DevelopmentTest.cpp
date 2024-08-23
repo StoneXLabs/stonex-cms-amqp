@@ -72,6 +72,38 @@ void DevelopmentTest::initialize(const std::string& broker, const std::string& u
 	mConsumer->setMessageListener(&mMessageListener);
 }
 
+
+void DevelopmentTest::reinitialize()
+{
+	if (mFactory)
+	{
+		delete mFactory;
+		mFactory = nullptr;
+	}
+	if (mConnection)
+	{
+		delete mConnection;
+		mConnection = nullptr;
+	}
+	if (mSession)
+	{
+		delete mSession;
+		mSession = nullptr;
+	}
+	if (mConsumer)
+	{
+		delete mConsumer;
+		mConsumer = nullptr;
+	}
+	if (mProducer)
+	{
+		delete mProducer;
+		mProducer = nullptr;
+	}
+	mMessageListener.setExpectedCount(0);
+	initialize(mBroker, mUser, mPassword, mProducer_address, mConsumer_address);
+}
+
 Test DevelopmentTest::test1()
 {
 
@@ -116,7 +148,7 @@ Test DevelopmentTest::test3()
 Test DevelopmentTest::test4()
 {
 
-	Test result({ __func__,"sending 15 messages on started session, expecting 15 messages consumed",false,"" });
+	Test result({ __func__,"starting session, expecting 15 messages consumed",false,"" });
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("-------------------step {}-------------------", __func__));
 	mLogger->log(SEVERITY::LOG_INFO, result.desc_);
 	mMessageListener.setExpectedCount(15);
@@ -143,11 +175,11 @@ Test DevelopmentTest::test5()
 Test DevelopmentTest::test6()
 {
 
-	Test result({ __func__,"starting session, expecting consumer consumes all 15 messages from previous test",false,"" });
+	Test result({ __func__,"starting consumer, expecting consumer consumes all 15 messages from previous test",false,"" });
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("-------------------step {}-------------------", __func__));
 	mLogger->log(SEVERITY::LOG_INFO, result.desc_);
 	mMessageListener.setExpectedCount(15);
-	mSession->start();
+	mConsumer->start();
 	std::this_thread::sleep_for(std::chrono::seconds(5));
 	result.setResult(mMessageListener.check());
 	return result;
@@ -156,7 +188,7 @@ Test DevelopmentTest::test6()
 Test DevelopmentTest::test7()
 {
 
-	Test result({ __func__,"stoping connection, sedning 15 messages, expecting consumer consumes no messages",false,"" });
+	Test result({ __func__,"stoping consumer, sedning 15 messages, expecting consumer consumes no messages",false,"" });
 	mLogger->log(SEVERITY::LOG_INFO, fmt::format("-------------------step {}-------------------", __func__));
 	mLogger->log(SEVERITY::LOG_INFO, result.desc_);
 	mConnection->stop();
@@ -322,7 +354,6 @@ Test DevelopmentTest::test18()
 		mLogger->log(SEVERITY::LOG_INFO, "creating session on stoped connection SUCCESS");
 		delete session2;
 		session2 = nullptr;
-		//	result.error_ = "Expected exception not thrown";
 		result.success_ = true;
 	}
 	catch (const std::exception& ex)
@@ -610,6 +641,79 @@ Test DevelopmentTest::test30()
 	return result;
 }
 
+Test DevelopmentTest::test31()
+{
+	Test result({ __func__, "sending messages on closed connection",false,"" });
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("-------------------step {}-------------------", __func__));
+	mLogger->log(SEVERITY::LOG_INFO, result.desc_);
+
+	try
+	{
+//		mConnection->start();
+
+		auto message = mSession->createTextMessage("");
+		mConnection->close();
+		mProducer->send(message);
+		mLogger->log(SEVERITY::LOG_ERROR, "sending message on closed connection ERROR, expected exception thrown");
+		result.error_ = "csending message on closed connection ERROR, expected exception thrown";
+		result.success_ = false;
+	}
+	catch (const std::exception& ex)
+	{
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("Exception sending message on closed connection {}", ex.what()));
+		result.success_ = true;
+	}
+	return result;
+}
+
+Test DevelopmentTest::test32()
+{
+	Test result({ __func__, "sending messages on closed session",false,"" });
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("-------------------step {}-------------------", __func__));
+	mLogger->log(SEVERITY::LOG_INFO, result.desc_);
+
+	try
+	{
+		auto message = mSession->createTextMessage("");
+		mSession->close();
+		mProducer->send(message);
+		mLogger->log(SEVERITY::LOG_ERROR, "sending message on closed session ERROR, expected exception thrown");
+		result.error_ = "csending message on closed session ERROR, expected exception thrown";
+		result.success_ = false;
+	}
+	catch (const std::exception& ex)
+	{
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("Exception sending message on closed session {}", ex.what()));
+		result.success_ = true;
+	}
+	return result;
+}
+
+Test DevelopmentTest::test33()
+{
+	Test result({ __func__, "sending messages on closed  producer",false,"" });
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("-------------------step {}-------------------", __func__));
+	mLogger->log(SEVERITY::LOG_INFO, result.desc_);
+
+	try
+	{
+		auto message = mSession->createTextMessage("");
+		mProducer->close();
+		mProducer->send(message);
+		mLogger->log(SEVERITY::LOG_ERROR, "sending message on closed producer ERROR, expected exception thrown");
+		result.error_ = "csending message on closed producer ERROR, expected exception thrown";
+		result.success_ = false;
+	}
+	catch (const std::exception& ex)
+	{
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("Exception sending message on closed connection {}", ex.what()));
+		result.success_ = true;
+	}
+	return result;
+}
+
+
+
 
 void DevelopmentTest::addResult(const Test result)
 {
@@ -640,9 +744,9 @@ void DevelopmentTest::verify()
 }
 
 
-std::thread* DevelopmentTest::produceMessages()
+std::thread* DevelopmentTest::produceMessages(unsigned int messagesToSend)
 {
-	std::thread* senderThread = new std::thread([this]() {
+	std::thread* senderThread = new std::thread([this, messagesToSend]() {
 		cms::MessageProducer* producer = nullptr;
 		cms::Message* message = nullptr;
 		try
@@ -653,7 +757,7 @@ std::thread* DevelopmentTest::produceMessages()
 
 			mLogger->log(SEVERITY::LOG_INFO, "sending 15 messages on stoped connection");
 
-			for (int i = 0; i < 15; i++)
+			for (int i = 0; i < messagesToSend; i++)
 			{
 				//	std::this_thread::sleep_for(std::chrono::seconds(2));
 				message = mSession->createTextMessage(fmt::format("hello {}", i));
@@ -681,6 +785,7 @@ std::thread* DevelopmentTest::produceMessages()
 				message = nullptr;
 			}
 			mProducer_logger->log(SEVERITY::LOG_ERROR, fmt::format("producer thread exception {}", ex.what()));
+			throw;
 		}
 
 	});

@@ -149,9 +149,9 @@ void cms::amqp::MessageProducerImpl::send(const cms::Destination* destination, c
 
 void cms::amqp::MessageProducerImpl::close()
 {
-#if _DEBUG
+
 	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
-#endif
+
 	if (mContext.checkState(ClientState::CLOSED))
 	{
 		mLogger->log(SEVERITY::LOG_WARNING, "trying to close producer that is allready closed");
@@ -216,6 +216,7 @@ void cms::amqp::MessageProducerImpl::on_sender_close(proton::sender& sender)
 	else
 		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} address {} anonymous {} dynamic {} durable {}  {}", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode(), err.what()));
 
+	mContext.mWorkQueue = nullptr;
 	mContext.setState(ClientState::CLOSED);
 	mCv.notify_one();
 }

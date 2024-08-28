@@ -18,8 +18,6 @@
  */
 
 #pragma once
-#include "AsyncCallSynchronizer.h"
-
 #include <condition_variable>
 #include <mutex>
 #include <functional>
@@ -31,24 +29,17 @@
 #include <cms/MessageConsumer.h>
 #include <cms/MessageListener.h>
 
-#include "../API/CMSMessage.h"
+#include <cms/Message.h>
 #include <regex>
 #include "ClientState.h"
-
-#include <logger/StonexLogSource.h>
+#include <logger/StoneXLogger.h>
+#include "ConsumerContext.h"
 
 namespace cms::amqp
 {
-	class MessageConsumerImpl : public proton::messaging_handler, public StonexLogSource
+	class MessageConsumerImpl : public proton::messaging_handler
 	{
-		enum class STATUS 
-		{
-			UNINITIALIZED,
-			OPEN,
-			CLOSED,
-			DETATCHED
-		};
-
+	
 		class DestinationParser
 		{
 		public:
@@ -69,59 +60,50 @@ namespace cms::amqp
 			const std::regex FQQN_regex{ "^VirtualTopic\\.[a-zA-Z0-9_-]+::Consumer(\\.[a-zA-Z0-9_-]+)+" };
 		};
 	public:
-		explicit MessageConsumerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, const std::string& selector = "", std::shared_ptr<StonexLogger> logger = nullptr);
-		explicit MessageConsumerImpl(const ::cms::Destination* destination, const std::string& name, std::shared_ptr<proton::session> session, bool durable = false,  bool shared = false, bool autoAck = true, const std::string& selector = "", std::shared_ptr<StonexLogger> logger = nullptr);
-
+		explicit MessageConsumerImpl(const config::ConsumerContext& context);
 
 		~MessageConsumerImpl();
-		::cms::Message* receive();
-		::cms::Message* receive(int milis);
-		::cms::Message* receiveNoWait();
+		cms::Message* receive();
+		cms::Message* receive(int milis);
+		cms::Message* receiveNoWait();
 
-		void setMessageListener(::cms::MessageListener * listener);
-		::cms::MessageListener* getMessageListener() const;
+		void setMessageListener(cms::MessageListener * listener);
+		cms::MessageListener* getMessageListener() const;
 
 		std::string getMessageSelector() const;
 
-		void setMessageTransformer(::cms::MessageTransformer* transformer) {};
-		::cms::MessageTransformer* getMessageTransformer() const { return nullptr; };
+		void setMessageTransformer(cms::MessageTransformer* transformer) {};
+		cms::MessageTransformer* getMessageTransformer() const { return nullptr; };
 
-		void setMessageAvailableListener(::cms::MessageAvailableListener* listener);
-		::cms::MessageAvailableListener* getMessageAvailableListener() const { return nullptr; };
+		void setMessageAvailableListener(cms::MessageAvailableListener* listener);
+		cms::MessageAvailableListener* getMessageAvailableListener() const { return nullptr; };
 
 		void start();
-		void stop() ;
-		void close() ;
+		void stop();
+		void close();
 
 		void on_receiver_open(proton::receiver& receiver) override;
 		void on_receiver_close(proton::receiver& receiver) override;
 		void on_receiver_detach(proton::receiver& receiver) override;
 		void on_receiver_error(proton::receiver& receiver) override;
+		void on_receiver_drain_finish(proton::receiver& receiver) override;
 
 		void on_message(proton::delivery& delivery, proton::message& message) override;
 
 		const std::string getAddress() const;
-	private:
-		bool syncClose();
-		bool syncStart(const std::string& address, const proton::receiver_options& options, std::shared_ptr<proton::session>  session);
-		bool syncStop();
-		// refctor - duplicate from Producer
-		//::cms::Destination* initializeDestination();
-		//::cms::Destination::DestinationType capabilityToDestinationType(const  std::vector<proton::symbol>& capabilities) const;
 
 	private:
-		ClientState mState;
-		std::unique_ptr<proton::receiver> mProtonReceiver;
-		cms::internal::AsyncCallSynchronizer mEXHandler;
-		::cms::MessageListener *mListener{ nullptr };
-		proton::receiver_options mRopts;
+		StonexLoggerPtr mLogger;
+		cms::MessageListener *mListener{ nullptr };
 		std::string mAddress;
 
-		std::shared_ptr<::cms::Destination> mDestination{ nullptr };
-
-		std::function<void(::cms::Message*)> onMessageCallback = [=](::cms::Message* message) ->void { delete message; };
+		std::function<void(cms::Message*)> onMessageCallback = [=](cms::Message* message) ->void { delete message; };
 
 		DestinationParser destAddressParser;
+		config::ConsumerContext mContext;
+	private:
+		std::mutex mMutex;
+		std::condition_variable mCv;
 	};
 
 };

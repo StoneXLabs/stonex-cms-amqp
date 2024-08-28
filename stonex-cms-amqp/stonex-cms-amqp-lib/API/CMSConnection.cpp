@@ -27,75 +27,61 @@
 #include "ConnectionMetadataImpl.h"
 
 #include <fmt/format.h>
+#include <algorithm>
+#include <vector>
 
-cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, std::shared_ptr<StonexLogger> logger)
-	:mPimpl{ std::make_shared<ConnectionImpl>(*context, logger)}
+cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<ConnectionImpl> impl)
+	:mPimpl(impl),
+	mLogger(LoggerFactory::getInstance().create("com.stonex.cms.CMSConnection"))
 {
-	setLogger(logger);
-	info("com.stonex.cms.CMSConnection", fmt::format("created connection {}", context->broker()));
-	setLogger(nullptr);
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("created connection"));
 }
 
-cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, std::shared_ptr<StonexLogger> logger)
-	: mPimpl{ std::make_shared<ConnectionImpl>((*context).updateUser(username).updatePassword(password), logger) }
-{
-	setLogger(logger);
-	info("com.stonex.cms.CMSConnection", fmt::format("created connection {} user {}", context->broker(), username));
-	setLogger(nullptr);
-}
-
-cms::amqp::CMSConnection::CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId, std::shared_ptr<StonexLogger> logger)
-	: mPimpl{ std::make_shared<ConnectionImpl>(clientId, (*context).updateUser(username).updatePassword(password),logger)}
-{
-	setLogger(logger);
-	info("com.stonex.cms.CMSConnection", fmt::format("created connection {} user {} clientId {}", context->broker(), username, clientId));
-	setLogger(nullptr);
-}
 
 void cms::amqp::CMSConnection::close()
 {
-	info("com.stonex.cms.CMSConnection", "close");
+	mLogger->log(SEVERITY::LOG_INFO, "close");
 	mPimpl->close();
 }
 
 void cms::amqp::CMSConnection::start()
 {
-	info("com.stonex.cms.CMSConnection", "start");
 	mPimpl->start();
 }
 
 void cms::amqp::CMSConnection::stop()
 {
-	info("com.stonex.cms.CMSConnection", "stop");
 	mPimpl->stop();
 }
 
-const ::cms::ConnectionMetaData* cms::amqp::CMSConnection::getMetaData() const
+const cms::ConnectionMetaData* cms::amqp::CMSConnection::getMetaData() const
 {
 	return new ConnectionMetadataImpl();
 }
 
 cms::Session* cms::amqp::CMSConnection::createSession()
 {
-	info("com.stonex.cms.CMSConnection", fmt::format("createSession ACK_MODE {}", cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE));
-	return new CMSSession(ConnectionContext(mPimpl->connection()), cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE,mLogSink);
+	return createSession(cms::Session::AcknowledgeMode::AUTO_ACKNOWLEDGE);
 }
 
-cms::Session* cms::amqp::CMSConnection::createSession(::cms::Session::AcknowledgeMode ackMode)
+cms::Session* cms::amqp::CMSConnection::createSession(cms::Session::AcknowledgeMode ackMode)
 {
-	info("com.stonex.cms.CMSConnection", fmt::format("createSession ACK_MODE {}", ackMode));
-	return new CMSSession(ConnectionContext(mPimpl->connection()), ackMode, mLogSink);
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("createSession ACK_MODE {}", ackMode));
+	config::SessionContext context(mPimpl->mContext, ackMode);
+	std::shared_ptr<SessionImpl> session = std::make_shared<SessionImpl>(context);
+	mPimpl->addSession(session);
+	return new CMSSession(session);
 }
 
 std::string cms::amqp::CMSConnection::getClientID() const
 {
-	throw ::cms::CMSException("illegal use - not implemented");
+	throw cms::CMSException("illegal use - not implemented");
 	return {};// mPimpl->getClientID();
 }
 
 void cms::amqp::CMSConnection::setClientID(const std::string& clientID)
 {
-	info("com.stonex.cms.CMSConnection", fmt::format("set clientId {}", clientID));
+	mLogger->log(SEVERITY::LOG_INFO, fmt::format("set clientId {}", clientID));
 	mPimpl->setClientID(clientID);
 
 }
@@ -105,13 +91,13 @@ cms::ExceptionListener* cms::amqp::CMSConnection::getExceptionListener() const
 	return mPimpl->getExceptionListener();
 }
 
-void cms::amqp::CMSConnection::setExceptionListener(::cms::ExceptionListener* listener)
+void cms::amqp::CMSConnection::setExceptionListener(cms::ExceptionListener* listener)
 {
-	info("com.stonex.cms.CMSConnection", "set Exception Listener");
+	mLogger->log(SEVERITY::LOG_INFO, "set Exception Listener");
 	mPimpl->setExceptionListener(listener);
 }
 
-void cms::amqp::CMSConnection::setMessageTransformer(::cms::MessageTransformer* transformer)
+void cms::amqp::CMSConnection::setMessageTransformer(cms::MessageTransformer* transformer)
 {
 }
 
@@ -120,16 +106,6 @@ cms::MessageTransformer* cms::amqp::CMSConnection::getMessageTransformer() const
 	return mPimpl->getMessageTransformer();
 }
 
-std::shared_ptr <cms::amqp::ConnectionContext> cms::amqp::CMSConnection::connectionContext() const
-{
-	return std::make_shared<cms::amqp::ConnectionContext>(mPimpl->connection());
-}
-
-void cms::amqp::CMSConnection::setLogger(std::shared_ptr<StonexLogger> sink)
-{
-	StonexLogSource::setLogger(sink);
-	mPimpl->setLogger(sink);
-};
 
 
 

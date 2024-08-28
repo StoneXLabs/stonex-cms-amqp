@@ -19,55 +19,53 @@
 
 #pragma once
 
-#include "../activemq-cpp/src/main/cms/Session.h"
-#include "../API/ConnectionContext.h"
+#include <cms/Session.h>
+#include "SessionContext.h"
 #include <proton/connection.hpp>
 #include <proton/messaging_handler.hpp>
 
 #include <condition_variable>
 #include <mutex>
 
-#include "AsyncCallSynchronizer.h"
 #include "ClientState.h"
 
-#include <logger/StonexLogSource.h>
+#include <logger/StoneXLogger.h>
 
 namespace cms::amqp
 {
+	class MessageConsumerImpl;
+	class MessageProducerImpl;
 
-	class SessionImpl : public proton::messaging_handler, public StonexLogSource
+	class SessionImpl : public proton::messaging_handler
 	{
 	public:
-		explicit SessionImpl(std::shared_ptr<proton::connection>  connection, ::cms::Session::AcknowledgeMode ack_mode = ::cms::Session::AUTO_ACKNOWLEDGE, std::shared_ptr<StonexLogger> logger = nullptr);
+		explicit SessionImpl(const config::SessionContext& context);
 		~SessionImpl();
-	
 
+		void start();
+		void stop();
 		void close();
 		void commit();
 		void rollback();
 		void recover();
 
-		void start();
-		void stop();
-
-		::cms::Session::AcknowledgeMode ackMode();
+		cms::Session::AcknowledgeMode ackMode();
 
 		void on_session_open(proton::session& session) override;
 		void on_session_close(proton::session& session) override;
 		void on_session_error(proton::session& session) override;
 
-		std::shared_ptr<proton::session> session();
-
+		void addConsumer(std::shared_ptr<MessageConsumerImpl> consumer);
+		void addProducer(std::shared_ptr<MessageProducerImpl> producer);
+		void check();
+	public:
+		StonexLoggerPtr mLogger;
+		config::SessionContext mContext;
 	private:
-		bool syncClose();
-		bool syncStart(std::shared_ptr<proton::connection>  connection);
-		bool syncStop();
-
-	private:
-		ClientState mState;
-		std::shared_ptr<proton::session> mSession;
-		cms::internal::AsyncCallSynchronizer mEXHandler;
-		const ::cms::Session::AcknowledgeMode mACKMode;
+		std::mutex mMutex;
+		std::condition_variable mCv;
+		std::vector<std::weak_ptr<MessageConsumerImpl>> mConsumers;
+		std::vector<std::weak_ptr<MessageProducerImpl>> mProducers;
 	};
 
 };

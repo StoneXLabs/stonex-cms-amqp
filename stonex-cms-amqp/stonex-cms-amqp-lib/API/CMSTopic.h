@@ -20,14 +20,12 @@
 #pragma once
 #include <cms/Topic.h>
 
-#include <logger/StonexLogSource.h>
-
 #include "stonex-cms-amqp-lib-defines.h"
 
 AMQP_DEFINES
 
 
-	class CMS_API CMSTopic : public ::cms::Topic
+	class CMS_API CMSTopic : public cms::Topic
 	{
     public:
         explicit CMSTopic(const std::string& topicName);
@@ -42,7 +40,7 @@ AMQP_DEFINES
 
         bool equals(const Destination& other) const override;
 
-        const ::cms::CMSProperties& getCMSProperties() const override;
+        const cms::CMSProperties& getCMSProperties() const override;
 
         std::string getTopicName() const override;
 

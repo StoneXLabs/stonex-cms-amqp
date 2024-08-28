@@ -25,9 +25,8 @@
 #include <cms/ConnectionMetaData.h>
 #include <cms/ExceptionListener.h>
 
-#include <logger/StonexLogSource.h>
 
-
+#include <LoggerFactory/LoggerFactory.h>
 #include "stonex-cms-amqp-lib-defines.h"
 
 
@@ -37,21 +36,19 @@ AMQP_DEFINES
 	class ConnectionImpl;
 	class FactoryContext;
 	class ConnectionContext;
+	class SessionImpl;
 
-	class CMS_API CMSConnection : public ::cms::Connection, public StonexLogSource
+	class CMS_API CMSConnection : public cms::Connection
 	{
 	public:
-		explicit CMSConnection(std::shared_ptr<FactoryContext> context, std::shared_ptr<StonexLogger> logger = nullptr);
-		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, std::shared_ptr<StonexLogger> logger = nullptr);
-		CMSConnection(std::shared_ptr<FactoryContext> context, const std::string& username, const std::string& password, const std::string& clientId, std::shared_ptr<StonexLogger> logger = nullptr);
+		explicit CMSConnection(std::shared_ptr<ConnectionImpl> impl);
 
 		~CMSConnection() override = default;
 
 		void close() override;
 		void start() override;
 		void stop() override;
-
-		const ::cms::ConnectionMetaData* getMetaData() const override;
+		const cms::ConnectionMetaData* getMetaData() const override;
 
 
 		//!createSession()
@@ -59,24 +56,20 @@ AMQP_DEFINES
 		* Session creation request is passed to connection work_queue, session
 		* method returns immiediately but created object is blocked until session creation is confirmed by broker
 		*/
-		::cms::Session* createSession() override;
-		::cms::Session* createSession(::cms::Session::AcknowledgeMode ackMode) override;
+		cms::Session* createSession() override;
+		cms::Session* createSession(cms::Session::AcknowledgeMode ackMode) override;
 
 		std::string getClientID() const override;
 		void setClientID(const std::string& clientID) override;
 
-		::cms::ExceptionListener* getExceptionListener() const override;
-		void setExceptionListener(::cms::ExceptionListener* listener) override;
+		cms::ExceptionListener* getExceptionListener() const override;
+		void setExceptionListener(cms::ExceptionListener* listener) override;
 
-		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
-		::cms::MessageTransformer* getMessageTransformer() const override;
-
-		void setLogger(std::shared_ptr<StonexLogger> sink) override;
-
-	protected:
-		std::shared_ptr<ConnectionContext> connectionContext() const;
+		void setMessageTransformer(cms::MessageTransformer* transformer) override;
+		cms::MessageTransformer* getMessageTransformer() const override;
 
 	private:
+		StonexLoggerPtr mLogger;
 		std::shared_ptr<ConnectionImpl> mPimpl;
 
 	};

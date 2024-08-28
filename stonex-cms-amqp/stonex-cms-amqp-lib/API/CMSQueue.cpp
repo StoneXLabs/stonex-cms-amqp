@@ -34,19 +34,19 @@ cms::amqp::CMSQueue::CMSQueue(const CMSQueue& other)
 {
 }
 
-::cms::Destination::DestinationType cms::amqp::CMSQueue::getDestinationType() const
+cms::Destination::DestinationType cms::amqp::CMSQueue::getDestinationType() const
 {
     return mDestinationType;
 }
 
-::cms::Destination* cms::amqp::CMSQueue::clone() const
+cms::Destination* cms::amqp::CMSQueue::clone() const
 {
     return new CMSQueue(*this);
 }
 
 void cms::amqp::CMSQueue::copy(const Destination& source)
 {
-    throw ::cms::CMSException("illegal use - not implemented");
+    throw cms::CMSException("illegal use - not implemented");
 }
 
 bool cms::amqp::CMSQueue::equals(const Destination& other) const
@@ -60,7 +60,7 @@ bool cms::amqp::CMSQueue::equals(const Destination& other) const
     return true;
 }
 
-const ::cms::CMSProperties& cms::amqp::CMSQueue::getCMSProperties() const
+const cms::CMSProperties& cms::amqp::CMSQueue::getCMSProperties() const
 {
     // TODO: insert return statement here
     return CMSMessagePropertiesImpl();

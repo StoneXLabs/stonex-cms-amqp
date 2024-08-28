@@ -24,7 +24,7 @@ class StonexCMSAMQPLib(ConanFile):
     def requirements(self):
         self.requires("red-hat-amq-client/2.10.4@enterprise_messaging/stable")
         self.requires("jsoncpp/1.9.5@enterprise_messaging/test")
-        self.requires("stonex-logger-wrapper/0.0.2@enterprise_messaging/test")
+        self.requires("stonex-logger-wrapper/1.0.0@enterprise_messaging/test")
         self.requires("fmt/9.1.0@enterprise_messaging/test")
 
     def build_requirements(self):
@@ -41,7 +41,6 @@ class StonexCMSAMQPLib(ConanFile):
         cmake = CMake(self)
         cmake.definitions["CONAN_BUILD"] = "ON"
         cmake.definitions["BUILD_TEST"] = "ON"
-        cmake.definitions["BUILD_EXAMPLES"] = "ON"
         cmake.verbose = True
         cmake.configure(source_folder="stonex-cms-amqp")
         cmake.build()

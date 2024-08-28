@@ -40,58 +40,31 @@
 
 #include <fmt/format.h>
 
+#include <LoggerFactory/LoggerFactory.h>
+
 
 constexpr std::string_view QUEUE_CAPABILITY = "queue";
 constexpr std::string_view TOPIC_CAPABILITY = "topic";
 constexpr std::string_view TEMPORARY_QUEUE_CAPABILITY = "temporary-queue";
 constexpr std::string_view TEMPORARY_TOPIC_CAPABILITY = "temporary-topic";
 
-cms::amqp::MessageProducerImpl::MessageProducerImpl(const ::cms::Destination* destination, std::shared_ptr<proton::session> session, std::shared_ptr<StonexLogger> logger)
-	:mEXHandler(logger)
+cms::amqp::MessageProducerImpl::MessageProducerImpl(const config::ProducerContext& context)
+	:mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.MessageProducerImpl")),
+	mContext(context)
 {
-	setLogger(logger);
-	proton::sender_options opts;
-	opts.handler(*this);
-	proton::target_options topts{};
-	std::string address;
-
-	if (destination) 
+	mContext.setLogger(mLogger);
+	std::unique_lock lk(mMutex);
+	auto opts = mContext.config();
+	opts.second.handler(*this);
+	if (mContext.mWorkQueue)
 	{
-		switch (auto destType = destination->getDestinationType())
-		{
-		case ::cms::Destination::DestinationType::QUEUE:
-			address = dynamic_cast<const CMSQueue*>(destination)->getQueueName();
-			topts.capabilities(std::vector<proton::symbol> { "queue" });
-			break;
-		case ::cms::Destination::DestinationType::TOPIC:
-			address = dynamic_cast<const CMSTopic*>(destination)->getTopicName();
-			topts.capabilities(std::vector<proton::symbol> { "topic" });
-			break;
-		case ::cms::Destination::DestinationType::TEMPORARY_QUEUE:
-			address = dynamic_cast<const CMSTemporaryQueue*>(destination)->getQueueName();
-			topts.capabilities(std::vector<proton::symbol> { "temporary-queue", "delete-on-close" });
-			if (address.empty())
-				topts.dynamic(true); //taret or source options
-			topts.expiry_policy(proton::terminus::expiry_policy::LINK_CLOSE); //according to documentation should be link detatch!!!!
-			break;
-		case ::cms::Destination::DestinationType::TEMPORARY_TOPIC:
-			address = dynamic_cast<const CMSTemporaryTopic*>(destination)->getTopicName();
-			topts.capabilities(std::vector<proton::symbol> { "temporary-topic", "delete-on-close" });
-			topts.dynamic(true); //taret or source options
-			topts.expiry_policy(proton::terminus::expiry_policy::LINK_CLOSE); //according to documentation should be link detatch!!!!
-			break;
-
-		}
+		mContext.mWorkQueue->add([=]() {mContext.mSession.open_sender(opts.first,opts.second); });
+		mCv.wait(lk, [this]() {return !mContext.checkState(ClientState::UNNINITIALIZED); });
 	}
-	else 
+	else
 	{
-		topts.capabilities(std::vector<proton::symbol> { "queue" });
+		throw CMSException("Session uninitiaized");
 	}
-
-	opts.target(topts);	
-	mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncStart, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), address, opts, session);
-	
-	setLogger(nullptr);
 }
 
 cms::amqp::MessageProducerImpl::~MessageProducerImpl()
@@ -99,37 +72,35 @@ cms::amqp::MessageProducerImpl::~MessageProducerImpl()
 	close();
 }
 
-void cms::amqp::MessageProducerImpl::send(::cms::Message* message)
+void cms::amqp::MessageProducerImpl::send(cms::Message* message)
 {
 	send(nullptr, message, mDeliveryMode, mPriority, mTTL, nullptr);
 }
 
-void cms::amqp::MessageProducerImpl::send(::cms::Message* message, ::cms::AsyncCallback* onComplete)
+void cms::amqp::MessageProducerImpl::send(cms::Message* message, cms::AsyncCallback* onComplete)
 {
 	send(nullptr, message, mDeliveryMode, mPriority, mTTL, onComplete);
 }
 
-void cms::amqp::MessageProducerImpl::send(::cms::Message* message, int deliveryMode, int priority, long long timeToLive)
+void cms::amqp::MessageProducerImpl::send(cms::Message* message, int deliveryMode, int priority, long long timeToLive)
 {
 	send(nullptr, message, deliveryMode, priority, timeToLive, nullptr);
 }
 
-void cms::amqp::MessageProducerImpl::send(::cms::Message* message, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* onComplete)
+void cms::amqp::MessageProducerImpl::send(cms::Message* message, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* onComplete)
 {
 	send(nullptr, message, deliveryMode, priority, timeToLive, onComplete);
 }
 
-void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, ::cms::Message* message, int deliveryMode, int priority, long long timeToLive)
+void cms::amqp::MessageProducerImpl::send(const cms::Destination* destination, cms::Message* message, int deliveryMode, int priority, long long timeToLive)
 {
 	send(destination, message, deliveryMode, priority, timeToLive, nullptr);
 }
 
-void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, ::cms::Message* message, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* onComplete)
+void cms::amqp::MessageProducerImpl::send(const cms::Destination* destination, cms::Message* message, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* onComplete)
 {
 	auto message_copy = message->clone();
-
-	mEXHandler.waitForResource();
-
+	std::unique_lock lk(mMutex);
 
 	message_copy->setCMSDeliveryMode(deliveryMode);
 	message_copy->setCMSPriority(priority);
@@ -139,7 +110,7 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 			message_copy->setCMSDestination(destination);
 		else
 		{
-			auto sender_default_destination = AMQPCMSMessageConverter::createCMSDestination(mProtonSender.get());
+			auto sender_default_destination = AMQPCMSMessageConverter::createCMSDestination(&mContext.mSender);
 			message_copy->setCMSDestination(sender_default_destination);
 			delete sender_default_destination;
 		}
@@ -154,12 +125,23 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 
 	auto mess = mConverter.from_cms_message(message_copy);
 	if(!mess)
-		error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} {}", __func__, "could not convert message to any of implemented types"));
+		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, "could not convert message to any of implemented types"));
 	delete message_copy;
-	if(onComplete) [[unlikely]]
-		mProtonSender->connection().work_queue().add([this, mess, onComplete] {mProtonSender->send(*mess); onComplete->onSuccess(); });
+	
+	if (mContext.mWorkQueue) //TO DO break by close called on send
+	{
+		mSendable.wait(lk, [this]() { return mCanSend; });
+		mCanSend = false;
+		if (onComplete) [[unlikely]]
+			mContext.mWorkQueue->add([this, mess, onComplete] {mContext.mSender.send(*mess); onComplete->onSuccess(); });
+		else
+			mContext.mWorkQueue->add([this, mess] {mContext.mSender.send(*mess); });
+	}
 	else
-		mProtonSender->connection().work_queue().add([this, mess] {mProtonSender->send(*mess); });
+	{
+		throw CMSException("Session uninitiaized");
+	}
+
 
 	
 	
@@ -167,19 +149,34 @@ void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, 
 
 void cms::amqp::MessageProducerImpl::close()
 {
-#if _DEBUG
-	trace("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{}", __func__));
-#endif
-	if(mState == ClientState::STARTED)
-		mEXHandler.SynchronizeCall(std::bind(&MessageProducerImpl::syncClose, this));
+
+	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
+
+	if (mContext.checkState(ClientState::CLOSED))
+	{
+		mLogger->log(SEVERITY::LOG_WARNING, "trying to close producer that is allready closed");
+		return;
+	}
+
+	if (mContext.mWorkQueue)
+	{
+		std::unique_lock lk(mMutex);
+		mContext.mWorkQueue->add([=]() {mContext.mSender.close(); }); //check draining
+		mCv.wait(lk, [this]() {return mContext.checkState(ClientState::CLOSED); });
+	}
+	else
+	{
+		throw CMSException("Session uninitiaized");
+	}
 }
 
 void cms::amqp::MessageProducerImpl::on_sendable(proton::sender& sender)
 {
 #if _DEBUG
-	trace("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{}", __func__));
+	mLogger->log(SEVERITY::LOG_TRACE, fmt::format("{}", __func__));
 #endif
-	mEXHandler.onResourceInitialized();
+	mCanSend = true;
+	mSendable.notify_one();
 }
 
 void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)
@@ -187,62 +184,44 @@ void cms::amqp::MessageProducerImpl::on_sender_open(proton::sender& sender)
 	auto t1 = sender.target();
 
 	if (auto err = sender.error(); err.empty())
-		info("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
 	else
-		error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} {}", __func__, err.what()));
+		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, err.what()));
 
-	mProtonSender = std::make_unique<proton::sender>(sender);
-	if (sender.error().empty())
+
+	mContext.mSender = sender;
+	mContext.mWorkQueue = &mContext.mSender.work_queue();
+	mContext.mDestination = AMQPCMSMessageConverter::createCMSDestination(&mContext.mSender);
+	if (mContext.checkState(ClientState::UNNINITIALIZED))
 	{
-		
-		//add comment
-		mDestination.reset(AMQPCMSMessageConverter::createCMSDestination(mProtonSender.get()));
-
-		mState = ClientState::STARTED;
-		mEXHandler.onResourceInitialized();
+		mContext.setState(ClientState::STOPPED);
 	}
-	
+	else
+	{
+		mContext.setState(ClientState::STARTED);
+	}
+	mCv.notify_one();	
 }
 
 void cms::amqp::MessageProducerImpl::on_sender_error(proton::sender & sender)
 {
-	error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} {}", __func__, sender.error().what()));
+	mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} {}", __func__, sender.error().what()));
 }
 
 void cms::amqp::MessageProducerImpl::on_sender_close(proton::sender& sender)
 {
 	auto t1 = sender.target();
 	if (auto err = sender.error(); err.empty())
-		info("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
+		mLogger->log(SEVERITY::LOG_INFO, fmt::format("{} address {} anonymous {} dynamic {} durable {} ", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode()));
 	else
-		error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("{} address {} anonymous {} dynamic {} durable {}  {}", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode(), err.what()));
-	mState = ClientState::CLOSED;
-	mEXHandler.onResourceUninitialized(sender.error());
+		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("{} address {} anonymous {} dynamic {} durable {}  {}", __func__, t1.address(), t1.anonymous(), t1.dynamic(), t1.durability_mode(), err.what()));
+
+	mContext.mWorkQueue = nullptr;
+	mContext.setState(ClientState::CLOSED);
+	mCv.notify_one();
 }
 
-bool cms::amqp::MessageProducerImpl::syncClose()
-{
-	if (mState == ClientState::STARTED)
-		return  mProtonSender->session().connection().work_queue().add([this] {mProtonSender->close(); });
-	else 
-		return true;
-}
-
-bool cms::amqp::MessageProducerImpl::syncStart(const std::string& address, const proton::sender_options& options, std::shared_ptr<proton::session> session)
-{
-	if (mState != ClientState::STARTED)
-		return  session->connection().work_queue().add([session, address, options] {session->open_sender(address, options); });
-	else
-		return true;
-	
-}
-
-bool cms::amqp::MessageProducerImpl::syncStop()
-{
-	return false;
-}
-
-void cms::amqp::MessageProducerImpl::send(const::cms::Destination* destination, ::cms::Message* message)
+void cms::amqp::MessageProducerImpl::send(const cms::Destination* destination, cms::Message* message)
 {
 	send(destination, message, mDeliveryMode, mPriority, mTTL, nullptr);
 }
@@ -251,15 +230,14 @@ void cms::amqp::MessageProducerImpl::setDeliveryMode(int mode)
 {
 	switch (mode) 
 	{
-	case ::cms::DeliveryMode::PERSISTENT:
-	case ::cms::DeliveryMode::NON_PERSISTENT:
-		mDeliveryMode = (::cms::DeliveryMode::DELIVERY_MODE)mode;
+	case cms::DeliveryMode::PERSISTENT:
+	case cms::DeliveryMode::NON_PERSISTENT:
+		mDeliveryMode = (cms::DeliveryMode::DELIVERY_MODE)mode;
 		break;
 	default:
-		error("com.stonex.cms.amqp.MessageProducerImpl", fmt::format("EXCEPTION {} {}", __func__, "Illegal delivery mode value"));
-		throw ::cms::CMSException("Illegal delivery mode value");
+		mLogger->log(SEVERITY::LOG_ERROR, fmt::format("EXCEPTION {} {}", __func__, "Illegal delivery mode value"));
+		throw cms::CMSException("Illegal delivery mode value");
 	}
-	
 }
 
 int cms::amqp::MessageProducerImpl::getDeliveryMode() const
@@ -271,9 +249,9 @@ void cms::amqp::MessageProducerImpl::setDisableMessageID(bool value)
 {
 	mMessageIdDisabed = value;
 	if(mMessageIdDisabed)
-		mMessageIdSetter = []([[maybe_unused]] const ::cms::Message*){};
+		mMessageIdSetter = []([[maybe_unused]] const cms::Message*){};
 	else
-		mMessageIdSetter = [](::cms::Message* message){
+		mMessageIdSetter = [](cms::Message* message){
 		if (message->getCMSMessageID().empty() == true)
 		{
 			message->setCMSMessageID(AMQPIDGenerator::generateMessageId());
@@ -291,9 +269,9 @@ void cms::amqp::MessageProducerImpl::setDisableMessageTimeStamp(bool value)
 {
 	mTimestampDisabed = value;
 	if(mTimestampDisabed)
-		mTimestampSetter = []([[maybe_unused]] const ::cms::Message*){};
+		mTimestampSetter = []([[maybe_unused]] const cms::Message*){};
 	else
-		mTimestampSetter = [](::cms::Message* message){message->setCMSTimestamp(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()); };
+		mTimestampSetter = [](cms::Message* message){message->setCMSTimestamp(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()); };
 	
 }
 
@@ -322,7 +300,7 @@ long long cms::amqp::MessageProducerImpl::getTimeToLive() const
 	return mTTL;
 }
 
-std::shared_ptr <proton::message> cms::amqp::MessageProducerImpl::MessageConverter::from_cms_message(::cms::Message* message)
+std::shared_ptr <proton::message> cms::amqp::MessageProducerImpl::MessageConverter::from_cms_message(cms::Message* message)
 {
 	
 	if (auto obj = dynamic_cast<CMSMessage*>(message))

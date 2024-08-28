@@ -41,12 +41,12 @@ cms::Destination* cms::amqp::CMSTemporaryTopic::clone() const
     return new CMSTemporaryTopic(*this);
 }
 
-void cms::amqp::CMSTemporaryTopic::copy(const ::cms::Destination& source)
+void cms::amqp::CMSTemporaryTopic::copy(const cms::Destination& source)
 {
-    throw ::cms::CMSException("illegal use - not implemented");
+    throw cms::CMSException("illegal use - not implemented");
 }
 
-bool cms::amqp::CMSTemporaryTopic::equals(const ::cms::Destination& other) const
+bool cms::amqp::CMSTemporaryTopic::equals(const cms::Destination& other) const
 {
     if (mDestinationType != other.getDestinationType())
         return false;
@@ -71,7 +71,7 @@ std::string cms::amqp::CMSTemporaryTopic::getTopicName() const
 
 void cms::amqp::CMSTemporaryTopic::destroy()
 {
-    throw ::cms::CMSException("illegal use - not implemented");
+    throw cms::CMSException("illegal use - not implemented");
 }
 
 std::ostream & operator<<(std::ostream & os, const cms::amqp::CMSTemporaryTopic & ob)

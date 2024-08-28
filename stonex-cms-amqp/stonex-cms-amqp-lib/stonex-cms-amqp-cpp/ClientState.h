@@ -18,6 +18,10 @@
  */
 
 #pragma once
+#include <iostream>
+#include <fmt/format.h>
+#include <logger/StoneXLogger.h>
+
 namespace cms::amqp
 {
 	enum class ClientState
@@ -27,5 +31,51 @@ namespace cms::amqp
 		STOPPED,
 		CLOSED,
 		DETATCHED
+
+	};
+
+	class StateMachine
+	{
+	public:
+		bool checkState(ClientState state);
+		ClientState getState() const;
+		void setState(ClientState state);
+		void setLogger(StonexLoggerPtr logger);
+
+	private:
+		ClientState mState{ ClientState::UNNINITIALIZED };
+		StonexLoggerPtr mLogger;
 	};
 }
+
+template <>
+class fmt::formatter<cms::amqp::ClientState> {
+public:
+	constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+	template <typename Context>
+	constexpr auto format(cms::amqp::ClientState const& state, Context& ctx) const {
+		switch (state)
+		{
+		case cms::amqp::ClientState::UNNINITIALIZED:
+			return format_to(ctx.out(), "UNNINITIALIZED");
+			break;
+		case cms::amqp::ClientState::STARTED:
+			return format_to(ctx.out(), "STARTED");
+			break;
+		case cms::amqp::ClientState::STOPPED:
+			return format_to(ctx.out(), "STOPPED");
+			break;
+		case cms::amqp::ClientState::CLOSED:
+			return format_to(ctx.out(), "CLOSED");
+			break;
+		case cms::amqp::ClientState::DETATCHED:
+			return format_to(ctx.out(), "DETATCHED");
+			break;
+		default:
+			return format_to(ctx.out(), "UNKNOWN");
+			break;
+
+		}
+	}
+};

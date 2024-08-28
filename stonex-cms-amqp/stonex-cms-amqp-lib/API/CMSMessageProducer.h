@@ -25,33 +25,31 @@
 #include <cms/Destination.h>
 #include <cms/MessageProducer.h>
 
-#include <logger/StonexLogSource.h>
-
+#include <LoggerFactory/LoggerFactory.h>
 
 #include "stonex-cms-amqp-lib-defines.h"
 
 AMQP_DEFINES
 
 
-	class SessionContext;
 	class MessageProducerImpl;
 
-	class CMS_API CMSMessageProducer : public ::cms::MessageProducer, public StonexLogSource
+	class CMS_API CMSMessageProducer : public cms::MessageProducer
 	{
 	public:
-		CMSMessageProducer(const ::cms::Destination* destination, std::shared_ptr<SessionContext> context, std::shared_ptr<StonexLogger> logger = nullptr);
+		CMSMessageProducer(std::shared_ptr<MessageProducerImpl> impl);
 		~CMSMessageProducer() override = default;
 
-		void send(::cms::Message* mes) override;
-		void send(::cms::Message* mes, ::cms::AsyncCallback* callback) override;
-		void send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive) override;
-		void send(::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback) override;
+		void send(cms::Message* mes) override;
+		void send(cms::Message* mes, cms::AsyncCallback* callback) override;
+		void send(cms::Message* mes, int deliveryMode, int priority, long long timeToLive) override;
+		void send(cms::Message* mes, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* callback) override;
 
-		void send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive) override;
+		void send(const cms::Destination* destination, cms::Message* mes, int deliveryMode, int priority, long long timeToLive) override;
 														 
-		void send(const ::cms::Destination* destination, ::cms::Message* mes, int deliveryMode, int priority, long long timeToLive, ::cms::AsyncCallback* callback) override;
-		void send(const ::cms::Destination* destination, ::cms::Message* mes, ::cms::AsyncCallback* callback) override;
-		void send(const ::cms::Destination* destination, ::cms::Message* mes) override;
+		void send(const cms::Destination* destination, cms::Message* mes, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* callback) override;
+		void send(const cms::Destination* destination, cms::Message* mes, cms::AsyncCallback* callback) override;
+		void send(const cms::Destination* destination, cms::Message* mes) override;
 
 		/// <summary>
 		/// set message durability
@@ -73,14 +71,13 @@ AMQP_DEFINES
 		void setTimeToLive(long long time) override;
 		long long getTimeToLive() const override;
 
-		void setMessageTransformer(::cms::MessageTransformer* transformer) override;
-		::cms::MessageTransformer* getMessageTransformer() const override;
+		void setMessageTransformer(cms::MessageTransformer* transformer) override;
+		cms::MessageTransformer* getMessageTransformer() const override;
 
 		void close() override;
 
-		void setLogger(std::shared_ptr<StonexLogger> sink) override;
-
 	private:
+		StonexLoggerPtr mLogger;
 		std::shared_ptr<MessageProducerImpl> mPimpl;
 	};
 

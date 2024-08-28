@@ -63,26 +63,26 @@ namespace cms::amqp
 	{
 	public:
 		~AMQPCMSMessageConverter() = default;
-		static ::cms::Destination* createCMSDestination(const proton::sender* sender);
-		static ::cms::Destination* createCMSDestination(const proton::receiver* receiver);
-		static ::cms::Destination* createCMSDestination(const std::shared_ptr<proton::message> message);
-		static ::cms::Destination* createCMSDestinationUsingMessageDestination(const proton::sender* sender, const std::shared_ptr<proton::message> message);
-		static ::cms::Destination* createCMSDestinationUsingMessageDestination(const proton::receiver* receiver, const std::shared_ptr<proton::message> message);
+		static cms::Destination* createCMSDestination(const proton::sender* sender);
+		static cms::Destination* createCMSDestination(const proton::receiver* receiver);
+		static cms::Destination* createCMSDestination(const std::shared_ptr<proton::message> message);
+		static cms::Destination* createCMSDestinationUsingMessageDestination(const proton::sender* sender, const std::shared_ptr<proton::message> message);
+		static cms::Destination* createCMSDestinationUsingMessageDestination(const proton::receiver* receiver, const std::shared_ptr<proton::message> message);
 
-		static ::cms::Destination* createCMSReplyToUsingMessageDestination(const std::shared_ptr<proton::message> message);
+		static cms::Destination* createCMSReplyToUsingMessageDestination(const std::shared_ptr<proton::message> message);
 
-		static std::string destinationAddress(const ::cms::Message* message);
-		static std::string replyToAddress(const ::cms::Message* message);
+		static std::string destinationAddress(const cms::Message* message);
+		static std::string replyToAddress(const cms::Message* message);
 
-		static std::string destinationToAddress(const ::cms::Destination* destintion);
+		static std::string destinationToAddress(const cms::Destination* destintion);
 
-		static ::cms::Message::ValueType type_id_to_ValueType(proton::type_id t_id);
+		static cms::Message::ValueType type_id_to_ValueType(proton::type_id t_id);
 		static std::tuple<proton::type_id, int, bool> prefixToType(const std::string& s);
 		static std::array<char, 16> hexStringToArray(const std::string& s);
 		static std::string hexStringToBinaryArray(const std::string& s);
 		static std::string binaryArrayToHexString(const std::vector<uint8_t>& b);
-		static std::string destinationTypeToString(::cms::Destination::DestinationType dest_type);
-		static int8_t destinationTypeToJMSType(::cms::Destination::DestinationType dest_type);
+		static std::string destinationTypeToString(cms::Destination::DestinationType dest_type);
+		static int8_t destinationTypeToJMSType(cms::Destination::DestinationType dest_type);
 
 		static std::vector<std::string> getPropertyNames(const std::shared_ptr<proton::message> message);
 		static bool propertyExists(const std::string& name, const std::shared_ptr<proton::message> message);
@@ -111,7 +111,7 @@ namespace cms::amqp
 		static int getCMSDeliveryMode(const std::shared_ptr<proton::message> message);
 		static void setAMQPDeliveryMode(int mode, std::shared_ptr<proton::message> message);
 		
-		static void setAMQPDestination(const ::cms::Destination* destination, std::shared_ptr<proton::message> message);
+		static void setAMQPDestination(const cms::Destination* destination, std::shared_ptr<proton::message> message);
 		
 		static long long getCMSExpiration(const std::shared_ptr<proton::message> message);
 		static void setAMQPExpiration(long long expireTime, std::shared_ptr<proton::message> message);
@@ -125,7 +125,7 @@ namespace cms::amqp
 		static bool getCMSRedelivered(const std::shared_ptr<proton::message> message);
 		static void setAMQPRedelivered(bool redelivered, std::shared_ptr<proton::message> message);
 		
-		static void setAMQPReplyTo(const ::cms::Destination* destination, std::shared_ptr<proton::message> message);
+		static void setAMQPReplyTo(const cms::Destination* destination, std::shared_ptr<proton::message> message);
 		
 		static long long getCMSTimestamp(const std::shared_ptr<proton::message> message);
 		static void setAMQPTimestamp(long long timeStamp, std::shared_ptr<proton::message> message);
@@ -133,10 +133,10 @@ namespace cms::amqp
 		static std::string getCMSType(const std::shared_ptr<proton::message> message);
 		static void setAMQPType(const std::string& type, std::shared_ptr<proton::message> message);
 	private:
-		static ::cms::Destination::DestinationType capabilityToDestinationType(const std::vector<proton::symbol>& capabilities);
-		static ::cms::Destination::DestinationType annotationsToDestinationType(const proton::message::annotation_map& annotations, const proton::symbol& annotation_key);
-		static ::cms::Destination::DestinationType JMSTypeToDestinationType(const uint8_t type);
-		static ::cms::Destination::DestinationType JMSTypeToDestinationType(const int8_t type);
+		static cms::Destination::DestinationType capabilityToDestinationType(const std::vector<proton::symbol>& capabilities);
+		static cms::Destination::DestinationType annotationsToDestinationType(const proton::message::annotation_map& annotations, const proton::symbol& annotation_key);
+		static cms::Destination::DestinationType JMSTypeToDestinationType(const uint8_t type);
+		static cms::Destination::DestinationType JMSTypeToDestinationType(const int8_t type);
 
 	};
 

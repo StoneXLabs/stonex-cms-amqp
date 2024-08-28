@@ -35,7 +35,7 @@ AMQP_DEFINES
 
 	class  AMQPCMSMessageConverter;
 
-	class CMS_API CMSTextMessage :public ::cms::TextMessage
+	class CMS_API CMSTextMessage :public cms::TextMessage
 	{
 		friend class MessageProducerImpl;
 	public:
@@ -85,8 +85,8 @@ AMQP_DEFINES
 		int getCMSDeliveryMode() const override;
 		void setCMSDeliveryMode(int mode) override;
 
-		const ::cms::Destination* getCMSDestination() const override;
-		void setCMSDestination(const ::cms::Destination * destination) override;
+		const cms::Destination* getCMSDestination() const override;
+		void setCMSDestination(const cms::Destination * destination) override;
 
 		long long getCMSExpiration() const override;
 		void setCMSExpiration(long long expireTime) override;
@@ -100,8 +100,8 @@ AMQP_DEFINES
 		bool getCMSRedelivered() const override;
 		void setCMSRedelivered(bool redelivered) override;
 
-		const ::cms::Destination* getCMSReplyTo() const override;
-		void setCMSReplyTo(const ::cms::Destination * destination) override;
+		const cms::Destination* getCMSReplyTo() const override;
+		void setCMSReplyTo(const cms::Destination * destination) override;
 
 		long long getCMSTimestamp() const override;
 		void setCMSTimestamp(long long timeStamp) override;
@@ -117,8 +117,8 @@ AMQP_DEFINES
 		std::shared_ptr <proton::delivery> mMessageDelivery{nullptr};
 
 	private:
-		std::shared_ptr<const ::cms::Destination> mDestination{ nullptr };
-		std::shared_ptr<const ::cms::Destination> mReplyTo{ nullptr };
+		std::shared_ptr<const cms::Destination> mDestination{ nullptr };
+		std::shared_ptr<const cms::Destination> mReplyTo{ nullptr };
 	};
 
 AMQP_DEFINES_CLOSE

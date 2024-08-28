@@ -26,16 +26,15 @@
 
 #include <cms/Connection.h>
 
-#include <logger/StonexLogSource.h>
-
-#include "../API/ConnectionContext.h"
-#include "AsyncCallSynchronizer.h"
+#include "ConnectionContext.h"
 #include "ClientState.h"
 
 #include <memory>
+#include <logger/StoneXLogger.h>
 
 namespace cms::amqp
 {
+	class SessionImpl;
 	//!ProtonConnection
 	/*!
 	* Object representing CMS connection.
@@ -43,33 +42,10 @@ namespace cms::amqp
 	* Proton connection is responsible for creating sessions for this connection by implementing proton::message_handler methods
 	* Allow Metrics <TO DO>
 	*/
-	class ConnectionImpl : public proton::messaging_handler, public StonexLogSource {
-
+	class ConnectionImpl : public proton::messaging_handler
+	{
 	public:
-		ConnectionImpl(const FactoryContext& context, std::shared_ptr<StonexLogger> logger = nullptr);
-
-		ConnectionImpl(const std::string& id, const FactoryContext& context, std::shared_ptr<StonexLogger> logger = nullptr);
-
-		//!Constructor
-		/*!Create instance of CMS connection
-			\param id connection id <not used>
-			\param url CMS broker address
-			\param user
-			\param password
-			\param container reference to proton::container
-		*/
-		//ConnectionImpl(const std::string& id, const std::string& url, const std::string user, const std::string password, proton::container& container);
-
-		////!Constructor
-		///*!Create instance of CMS connection
-		//	\param id connection id <not used>
-		//	\param url CMS broker address
-		//	\param user
-		//	\param password
-		//	\param container shared pointer to proton::container
-		//*/
-		//ConnectionImpl(const std::string& id, const std::string& url, const std::string user, const std::string password, std::shared_ptr<proton::container> container);
-
+		ConnectionImpl(const config::ConnectionContext& context);
 
 		ConnectionImpl(const ConnectionImpl&) = delete;
 		ConnectionImpl(ConnectionImpl&&) = delete;
@@ -78,31 +54,20 @@ namespace cms::amqp
 		ConnectionImpl& operator = (ConnectionImpl&&) = delete;
 
 		~ConnectionImpl() override;
-
-		void close();
 		void start();
 		void stop();
-
-		//	const ConnectionMetaData* getMetaData() const;
-
-
-			//!createSession()
-			/*! instantienate new session for connection
-			* Session creation request is passed to connection work_queue, session
-			* method returns immiediately but created object is blocked until session creation is confirmed by broker
-			*/
-			//Session* createSession();
-			//Session* createSession(Session::AcknowledgeMode ackMode);
+		void close();
 
 		std::string getClientID() const;
 		void setClientID(const std::string& clientID);
 
-		::cms::ExceptionListener* getExceptionListener() const;
-		void setExceptionListener(::cms::ExceptionListener* listener);
+		cms::ExceptionListener* getExceptionListener() const;
+		void setExceptionListener(cms::ExceptionListener* listener);
 
-		void setMessageTransformer(::cms::MessageTransformer* transformer);
-		::cms::MessageTransformer* getMessageTransformer() const;
+		void setMessageTransformer(cms::MessageTransformer* transformer);
+		cms::MessageTransformer* getMessageTransformer() const;
 
+		void addSession(std::shared_ptr<SessionImpl> session);
 
 		void on_transport_open(proton::transport& transport) override;
 		void on_transport_close(proton::transport& transport) override;
@@ -110,21 +75,17 @@ namespace cms::amqp
 		void on_connection_open(proton::connection& connection) override;
 		void on_connection_close(proton::connection& connection) override;
 		void on_connection_error(proton::connection& connection) override;
-
-		std::shared_ptr<proton::connection> connection() const { return mConnection; }
-
-	private:
-		bool syncClose();
-		bool syncStart();
-		bool syncStop();
-	private:
-		ClientState mState;
-		cms::internal::AsyncCallSynchronizer mEXHandler;
+	public:
+		StonexLoggerPtr mLogger;
 		const std::string mConnectionId;
 		std::string mBrokerUrl;
-		std::shared_ptr<proton::connection> mConnection;
-		::cms::ExceptionListener* mExceptionListener{ nullptr };
-		FactoryContext mContext;
+		cms::ExceptionListener* mExceptionListener{ nullptr };
+		config::ConnectionContext mContext;
+
+	private:
+		std::mutex mMutex;
+		std::condition_variable mCv;
+		std::vector<std::weak_ptr<SessionImpl>> mSessions;
 
 	};
 

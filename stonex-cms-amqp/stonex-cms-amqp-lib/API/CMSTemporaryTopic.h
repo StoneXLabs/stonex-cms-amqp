@@ -20,8 +20,6 @@
 #pragma once
 #include "cms/TemporaryTopic.h"
 
-#include <logger/StonexLogSource.h>
-
 #include "stonex-cms-amqp-lib-defines.h"
 
 AMQP_DEFINES
@@ -30,7 +28,7 @@ AMQP_DEFINES
     class CMSMessageConsumer;
     class CMSMessageProducer;
 
-    class CMS_API CMSTemporaryTopic : public ::cms::TemporaryTopic
+    class CMS_API CMSTemporaryTopic : public cms::TemporaryTopic
     {
         friend class MessageConsumerImpl;//remove
         friend class MessageProducerImpl;//remove
@@ -40,15 +38,15 @@ AMQP_DEFINES
         CMSTemporaryTopic(const CMSTemporaryTopic& other);
         CMSTemporaryTopic(CMSTemporaryTopic&& other) = delete;
 
-        ::cms::Destination::DestinationType getDestinationType() const override;
+        cms::Destination::DestinationType getDestinationType() const override;
 
-        ::cms::Destination* clone() const override;
+        cms::Destination* clone() const override;
 
-        void copy(const ::cms::Destination& source) override;
+        void copy(const cms::Destination& source) override;
 
-        bool equals(const ::cms::Destination& other) const override;
+        bool equals(const cms::Destination& other) const override;
 
-        const ::cms::CMSProperties& getCMSProperties() const override;
+        const cms::CMSProperties& getCMSProperties() const override;
 
         std::string getTopicName() const override;
 
@@ -56,7 +54,7 @@ AMQP_DEFINES
 
     private:
         mutable std::string mTopicName;
-        const ::cms::Destination::DestinationType mDestinationType;
+        const cms::Destination::DestinationType mDestinationType;
         void destroy() override;
     };
 

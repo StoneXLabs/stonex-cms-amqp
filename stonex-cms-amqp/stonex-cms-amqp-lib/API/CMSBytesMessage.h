@@ -35,7 +35,7 @@ AMQP_DEFINES
 
 	class AMQPCMSMessageConverter;
 
-	class CMS_API CMSBytesMessage :public ::cms::BytesMessage
+	class CMS_API CMSBytesMessage :public cms::BytesMessage
 	{
 		friend class MessageProducerImpl;
 
@@ -82,8 +82,8 @@ AMQP_DEFINES
 		int getCMSDeliveryMode() const override;
 		void setCMSDeliveryMode(int mode) override;
 
-		const ::cms::Destination* getCMSDestination() const override;
-		void setCMSDestination(const ::cms::Destination* destination) override;
+		const cms::Destination* getCMSDestination() const override;
+		void setCMSDestination(const cms::Destination* destination) override;
 
 		long long getCMSExpiration() const override;
 		void setCMSExpiration(long long expireTime) override;
@@ -97,8 +97,8 @@ AMQP_DEFINES
 		bool getCMSRedelivered() const override;
 		void setCMSRedelivered(bool redelivered) override;
 
-		const ::cms::Destination* getCMSReplyTo() const override;
-		void setCMSReplyTo(const ::cms::Destination* destination) override;
+		const cms::Destination* getCMSReplyTo() const override;
+		void setCMSReplyTo(const cms::Destination* destination) override;
 
 		long long getCMSTimestamp() const override;
 		void setCMSTimestamp(long long timeStamp) override;
@@ -166,7 +166,7 @@ AMQP_DEFINES
 			}
 			catch (const std::out_of_range&)
 			{
-				throw ::cms::MessageEOFException();
+				throw cms::MessageEOFException();
 			}
 		}
 
@@ -180,7 +180,7 @@ AMQP_DEFINES
 		std::string get() const
 		{
 			if (mMessageBody.size() <= read_position)
-				throw ::cms::MessageEOFException();
+				throw cms::MessageEOFException();
 
 			std::string output;
 			std::copy(std::next(std::cbegin(mMessageBody), read_position), std::cend(mMessageBody), std::back_inserter(output));
@@ -193,8 +193,8 @@ AMQP_DEFINES
 		mutable long long read_position{ 0 };
 
 	private:
-		std::shared_ptr<const ::cms::Destination> mDestination{ nullptr };
-		std::shared_ptr<const ::cms::Destination> mReplyTo{ nullptr };
+		std::shared_ptr<const cms::Destination> mDestination{ nullptr };
+		std::shared_ptr<const cms::Destination> mReplyTo{ nullptr };
 	};
 
 AMQP_DEFINES_CLOSE

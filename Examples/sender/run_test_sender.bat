@@ -1,0 +1,1 @@
+message_sender.bat topic Transaction ./trade_statement_messages.log 180 700 sender_logger.xml 

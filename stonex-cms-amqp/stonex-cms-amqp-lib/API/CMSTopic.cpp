@@ -43,12 +43,12 @@ cms::Destination* cms::amqp::CMSTopic::clone() const
     return new CMSTopic(*this);
 }
 
-void cms::amqp::CMSTopic::copy(const ::cms::Destination& source)
+void cms::amqp::CMSTopic::copy(const cms::Destination& source)
 {
-    throw ::cms::CMSException("illegal use - not implemented");
+    throw cms::CMSException("illegal use - not implemented");
 }
 
-bool cms::amqp::CMSTopic::equals(const ::cms::Destination& other) const
+bool cms::amqp::CMSTopic::equals(const cms::Destination& other) const
 {
     if (mDestinationType != other.getDestinationType())
         return false;

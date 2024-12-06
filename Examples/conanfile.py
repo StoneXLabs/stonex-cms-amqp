@@ -16,7 +16,7 @@ class StonexCMSAMQExamples(ConanFile):
     exports_sources = ["include/activemq-cpp/src/main/*"]
 
     def requirements(self):
-        self.requires("stonex-cms-amqp-lib/dev_0.3.4@enterprise_messaging/test")
+        self.requires("stonex-cms-amqp-lib/1.0.1@enterprise_messaging/test")
 
     def config_options(self):
         if self.settings.os == "Windows":

@@ -17,7 +17,7 @@ if(WIN32)
   target_link_libraries(tests Secur32 Ws2_32 Crypt32)
 endif()
 
-target_link_libraries(tests CONAN_PKG::stonex-cms-amqp-lib common)
+target_link_libraries(tests CONAN_PKG::stonex-cms-amqp-lib common Dbghelp)
 
 set_property(TARGET tests PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(LOGS_ROOT "Test")

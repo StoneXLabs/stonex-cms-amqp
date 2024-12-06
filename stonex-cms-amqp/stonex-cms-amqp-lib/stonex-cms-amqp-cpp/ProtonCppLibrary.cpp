@@ -23,10 +23,60 @@
 #include <fmt/format.h>
 #include <iostream>
 
+#include <dbghelp.h>
+#include <fstream>
+
+void WriteMiniDump(EXCEPTION_POINTERS* pExceptionPointers)
+{
+
+    SYSTEMTIME st;
+    GetSystemTime(&st);
+    char dumpFileName[MAX_PATH];
+    sprintf_s(dumpFileName, MAX_PATH, "CrashDump_amq_lib%04d-%02d-%02d_%02d-%02d-%02d.dmp",
+        st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+
+    HANDLE hFile = CreateFileA(
+        dumpFileName,
+        GENERIC_WRITE,
+        0,
+        nullptr,
+        CREATE_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr
+    );
+
+    if (hFile != INVALID_HANDLE_VALUE) {
+        MINIDUMP_EXCEPTION_INFORMATION dumpInfo;
+        dumpInfo.ThreadId = GetCurrentThreadId();
+        dumpInfo.ExceptionPointers = pExceptionPointers;
+        dumpInfo.ClientPointers = TRUE;
+
+        // Write the dump
+        MiniDumpWriteDump(
+            GetCurrentProcess(),
+            GetCurrentProcessId(),
+            hFile,
+            MiniDumpWithFullMemory,
+            &dumpInfo,
+            nullptr,
+            nullptr
+        );
+
+        CloseHandle(hFile);
+        std::wcout << L"Crash dump saved to CrashDump.dmp\n";
+    }
+    else {
+        std::wcerr << L"Failed to create dump file\n";
+    }
+}
+
+
+
 
 cms::amqp::ProtonCppLibrary::ProtonCppLibrary()
     :mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.ProtonContainer"))
 {
+    SetUnhandledExceptionFilter(UnhandledExceptionHandler);
     mContainer = std::make_shared<proton::container>(*this);
     mContainer->auto_stop(false);
     mContainerThread = std::make_unique<std::thread>(std::thread([this] {
@@ -58,6 +108,11 @@ std::shared_ptr<proton::container> cms::amqp::ProtonCppLibrary::getContainer()
     return ProtonCppLibrary::getInstance().mContainer;
 }
 
+
+LONG WINAPI cms::amqp::ProtonCppLibrary::UnhandledExceptionHandler(EXCEPTION_POINTERS* pExceptionPointers) {
+    WriteMiniDump(pExceptionPointers);
+    return EXCEPTION_CONTINUE_SEARCH;
+}
 
 cms::amqp::ProtonCppLibrary &cms::amqp::ProtonCppLibrary::getInstance()
 {

@@ -17,7 +17,7 @@ if(WIN32)
   target_link_libraries(thread-sender Secur32 Ws2_32 Crypt32)
 endif()
 
-target_link_libraries(thread-sender CONAN_PKG::stonex-cms-amqp-lib common)
+target_link_libraries(thread-sender CONAN_PKG::stonex-cms-amqp-lib common Dbghelp)
 	
 message(${CMAKE_CURRENT_BINARY_DIR}/../../bin/sender_logger.xml)
 set_property(TARGET thread-sender PROPERTY VS_DEBUGGER_COMMAND_ARGUMENTS "interactive=true url=failover:(localhost:5672,localhost:5673) user=CMSTEST password=CMSTEST destination_type=topic destination=Transaction data_file=./trade_statement_messages.log  logger_config=sender_logger.xml message_count=180")

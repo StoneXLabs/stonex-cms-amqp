@@ -63,10 +63,12 @@ void WriteMiniDump(EXCEPTION_POINTERS* pExceptionPointers)
         );
 
         CloseHandle(hFile);
-        std::wcout << L"Crash dump saved to CrashDump.dmp\n";
+		auto logger = LoggerFactory::getInstance().create("com.stonex.cms.amqp.ProtonContainer");
+		logger->log(SEVERITY::LOG_ERROR, fmt::format("crash dump created {}", dumpFileName));
     }
     else {
-        std::wcerr << L"Failed to create dump file\n";
+		auto logger = LoggerFactory::getInstance().create("com.stonex.cms.amqp.ProtonContainer");
+		logger->log(SEVERITY::LOG_ERROR, "Failed to create dump file");
     }
 }
 

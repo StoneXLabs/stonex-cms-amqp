@@ -17,7 +17,7 @@ if(WIN32)
   target_link_libraries(receiver Secur32 Ws2_32 Crypt32)
 endif()
 
-target_link_libraries(receiver CONAN_PKG::stonex-cms-amqp-lib common)
+target_link_libraries(receiver CONAN_PKG::stonex-cms-amqp-lib common Dbghelp)
 
 set_property(TARGET receiver PROPERTY VS_DEBUGGER_COMMAND_ARGUMENTS "url=failover:(localhost:5672,localhost:5673)?maxReconnectAttempts=3 user=CMSTEST password=CMSTEST destination_type=topic destination=Transaction::Transaction/consumer1 iddle_timeout=0, logger_config=bin/receiver_logger.xml")
 set_property(TARGET receiver PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

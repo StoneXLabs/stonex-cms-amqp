@@ -49,13 +49,6 @@ int main(int argc, char* argv[])
 		}
 	});
 
-	std::thread senderThread2([&]() {
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-	//	processor.Cleanup();
-		raise(SIGSEGV);
-	});
-
-	senderThread2.join();
 	senderThread.join();
 
 	return 0;

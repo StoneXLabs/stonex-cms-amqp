@@ -20,6 +20,7 @@
 #pragma once
 
 #include <thread>
+#include <windows.h>
 
 #include <proton/container.hpp>
 #include <proton/messaging_handler.hpp>
@@ -46,6 +47,8 @@ namespace cms::amqp
 
 		static std::shared_ptr<proton::container> getContainer();
 		static ProtonCppLibrary& getInstance();
+
+		static LONG WINAPI UnhandledExceptionHandler(EXCEPTION_POINTERS* pExceptionPointers);
 
 		void on_container_start(proton::container& container) override;
 		void on_container_stop(proton::container& container) override;

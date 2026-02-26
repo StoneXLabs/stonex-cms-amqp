@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 #include <teamcity_gtest.h>
 #include <teamcity_messages.h>
-#include <LoggerFactory/LoggerFactory.h>
+
 
 int main(int argc, char* argv[])
 {

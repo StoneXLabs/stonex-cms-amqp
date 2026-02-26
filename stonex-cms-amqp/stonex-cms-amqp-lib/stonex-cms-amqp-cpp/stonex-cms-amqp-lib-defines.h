@@ -16,16 +16,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #pragma once
-#include <gtest/gtest.h>
-#include "ConnectionFactory.h"
 
-class ConnectionFactory_UT : public ::testing::Test
-{
-public:
-	void SetUp() override;
-	void TearDown() override;
+#include "cms/Config.h"
 
-	cms::ConnectionFactory* mUUT{ nullptr };
-};
+#ifndef AMQP_DEFINES
+#if __cplusplus > 201703L
+#define AMQP_DEFINES namespace stonex::amqp {
+#define AMQP_DEFINES_CLOSE  }
+#else
+#define AMQP_DEFINES namespace stonex{ namespace amqp {
+#define AMQP_DEFINES_CLOSE  }}
+#endif
+#endif
 
+
+#ifdef STX_EXPORTS
+#define STX_API __declspec(dllexport)
+#else
+#define STX_API __declspec(dllimport)
+#endif

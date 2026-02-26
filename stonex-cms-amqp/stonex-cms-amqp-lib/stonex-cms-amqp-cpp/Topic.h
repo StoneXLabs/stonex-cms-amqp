@@ -16,16 +16,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #pragma once
-#include <gtest/gtest.h>
-#include "ConnectionFactory.h"
+#include <cms/Topic.h>
 
-class ConnectionFactory_UT : public ::testing::Test
-{
-public:
-	void SetUp() override;
-	void TearDown() override;
+#include "stonex-cms-amqp-lib-defines.h"
 
-	cms::ConnectionFactory* mUUT{ nullptr };
-};
+AMQP_DEFINES
+
+
+	class CMS_API Topic : public cms::Topic
+	{
+    public:
+        explicit Topic(const std::string& topicName);
+        Topic(const Topic& other);
+        Topic(Topic&& topicName) = delete;
+
+        DestinationType getDestinationType() const override;
+
+        Destination* clone() const override;
+
+        void copy(const Destination& source) override;
+
+        bool equals(const Destination& other) const override;
+
+        const cms::CMSProperties& getCMSProperties() const override;
+
+        std::string getTopicName() const override;
+
+    private:
+        const std::string mTopicName;
+        const Destination::DestinationType mDestinationType;
+	};
+
+
+
+AMQP_DEFINES_CLOSE
 

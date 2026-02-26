@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+message Address {
+    string country = 1;
+    string city = 2;
+    string street = 3;
+    string postalCode = 4;
+}
+
+message UserData {
+    string name = 1;
+    string surname = 2;
+    int32 age = 3;
+    Address address = 4;
+}

@@ -33,47 +33,47 @@ constexpr int CMSProviderVersionMajor = 0;
 constexpr int CMSProviderVersionMinor = 0;
 constexpr int CMSProviderVersionPatch = 0;
 
-std::string cms::amqp::ConnectionMetadataImpl::getCMSVersion() const
+std::string stonex::amqp::ConnectionMetadataImpl::getCMSVersion() const
 {
 	return std::to_string(CMSVersionMajor) + "." + std::to_string(CMSVersionMinor);
 }
 
-int cms::amqp::ConnectionMetadataImpl::getCMSMajorVersion() const
+int stonex::amqp::ConnectionMetadataImpl::getCMSMajorVersion() const
 {
 	return  CMSVersionMajor;
 }
 
-int cms::amqp::ConnectionMetadataImpl::getCMSMinorVersion() const
+int stonex::amqp::ConnectionMetadataImpl::getCMSMinorVersion() const
 {
 	return CMSVersionMinor;
 }
 
-std::string cms::amqp::ConnectionMetadataImpl::getCMSProviderName() const
+std::string stonex::amqp::ConnectionMetadataImpl::getCMSProviderName() const
 {
 	return std::string(CMSAPIProviderName);
 }
 
-std::string cms::amqp::ConnectionMetadataImpl::getProviderVersion() const
+std::string stonex::amqp::ConnectionMetadataImpl::getProviderVersion() const
 {
 	return std::to_string(CMSProviderVersionMajor) + "." + std::to_string(CMSProviderVersionMinor)+"." + std::to_string(CMSProviderVersionPatch);
 }
 
-int cms::amqp::ConnectionMetadataImpl::getProviderMajorVersion() const
+int stonex::amqp::ConnectionMetadataImpl::getProviderMajorVersion() const
 {
 	return CMSProviderVersionMajor;
 }
 
-int cms::amqp::ConnectionMetadataImpl::getProviderMinorVersion() const
+int stonex::amqp::ConnectionMetadataImpl::getProviderMinorVersion() const
 {
 	return CMSProviderVersionMinor;
 }
 
-int cms::amqp::ConnectionMetadataImpl::getProviderPatchVersion() const
+int stonex::amqp::ConnectionMetadataImpl::getProviderPatchVersion() const
 {
 	return CMSProviderVersionPatch;
 }
 
-std::vector<std::string> cms::amqp::ConnectionMetadataImpl::getCMSXPropertyNames() const
+std::vector<std::string> stonex::amqp::ConnectionMetadataImpl::getCMSXPropertyNames() const
 {
 	return std::vector<std::string>();
 }

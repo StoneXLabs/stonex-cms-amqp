@@ -26,14 +26,13 @@
 #include <proton/source.hpp>
 #include <proton/annotation_key.hpp>
 
-#include "CMSMessage.h"
-#include "..\API\CMSQueue.h"
-#include "..\API\CMSTopic.h"
-#include "..\API\CMSTemporaryQueue.h"
-//#include "..\API\CMSTemporaryTopic.h"
-#include <AMQPCMSMessageConverter.h>
+#include "Message.h"
+#include "Queue.h"
+#include "Topic.h"
+#include "TemporaryQueue.h"
+#include "TemporaryTopic.h"
 
-using namespace cms::amqp;
+using namespace stonex::amqp;
 
 
 
@@ -44,20 +43,20 @@ using namespace cms::amqp;
 /// 3 cases of 3
 /// 
 /// brief:
-/// set MessageIdID using proton::message->id(message_id), verify if correlationID is set properly using CMSMessage metghod getCMSCorrelationId()
+/// set MessageIdID using proton::message->id(message_id), verify if correlationID is set properly using Message metghod getCMSCorrelationId()
 /// 
 	/// <summary>
-	/// setting AMQMessageID on proton::message object that is passed to create CMSMessage object.
+	/// setting AMQMessageID on proton::message object that is passed to create Message object.
 	/// AMQMessageID of proton::message is set to tested value [testData]
 	/// CorrelationID value is verified using getCMSCorrelationId(). 
 	/// 
-	/// getCMSMessageID validation rules:
+	/// getMessageID validation rules:
 	/// 
-	/// 1. AMQP message-id string type with ID: prefix AND without AMQP_<type>: prefix should be converted to string by getCMSMessageID
+	/// 1. AMQP message-id string type with ID: prefix AND without AMQP_<type>: prefix should be converted to string by getMessageID
 	/// 
 	///		ex. proton::message->id("ID:my-string-id") -> getCMSMessageID() returns "ID:my-string-id"
 	/// 
-	/// 2. AMQP message-id string type without AMQP_<type>: and ID: prefix should be converted to string by getCMSMessageID without changes
+	/// 2. AMQP message-id string type without AMQP_<type>: and ID: prefix should be converted to string by getMessageID without changes
 	/// 
 	///		ex. proton::message->id("non-prefixed-string-id") -> getCMSMessageID() returns "ID:AMQP_NO_PREFIX:non-prefixed-string-id"
 	/// 
@@ -99,7 +98,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_messageID_String)
 	auto message = std::make_shared<proton::message>();
 	message->id(testData);
 
-	CMSMessage* testMsg = new CMSMessage(message.get());
+	Message* testMsg = new Message(message.get());
 
 	EXPECT_EQ(testMsg->getCMSMessageID(), testData);
 }
@@ -111,7 +110,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_non_prefixed_messageID_String)
 	auto message = std::make_shared<proton::message>();
 	message->id(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSMessageID(), "ID:AMQP_NO_PREFIX:" + testData);
 }
@@ -123,7 +122,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_messageID_UUID)
 	auto message = std::make_shared<proton::message>();
 	message->id(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSMessageID(), "ID:AMQP_UUID:" + testData.str());
 }
@@ -135,7 +134,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_messageID_Ulong)
 	auto message = std::make_shared<proton::message>();
 	message->id(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSMessageID(), "ID:AMQP_ULONG:" + std::to_string(testData));
 }
@@ -150,7 +149,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_messageID_Byte)
 	auto message = std::make_shared<proton::message>();
 	message->id(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSMessageID(), "ID:AMQP_BINARY:0102030405060708090A0B0C0D0E0F1011121314151718191A1B1C1D1E1F");
 }
@@ -162,7 +161,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_amqp_type_string_messageID_string)
 	auto message = std::make_shared<proton::message>();
 	message->id(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSMessageID(), "ID:AMQP_STRING:" + testData);
 }
@@ -180,7 +179,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_amqp_type_string_MessageID_string_t
 	auto message = std::make_shared<proton::message>();
 	message->correlation_id(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(), testData);
 }
@@ -198,7 +197,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_ID_only_prefixed_JSM_messageID_string)
 
 	const std::string testData{ "ID:my-string-id" };
 
-	CMSMessage* testMsg = new CMSMessage;
+	Message* testMsg = new Message;
 	testMsg->setCMSMessageID(testData);
 
 	EXPECT_EQ(testMsg->getCMSMessageID(), testData);
@@ -209,7 +208,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_non_prefixed_JSM_messageID_string)
 
 	const std::string testData{ "non-prefixed-string-id" };
 
-	CMSMessage* testMsg = new CMSMessage;
+	Message* testMsg = new Message;
 	testMsg->setCMSMessageID(testData);
 
 	EXPECT_EQ(testMsg->getCMSMessageID(), "ID:AMQP_NO_PREFIX:" + testData);
@@ -220,7 +219,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_ID_binary_prefixed_JSM_messageID_string)
 
 	const std::string testData{ "ID:AMQP_BINARY:01ABCDEF0F3E" };
 
-	CMSMessage* testMsg = new CMSMessage;
+	Message* testMsg = new Message;
 	testMsg->setCMSMessageID(testData);
 
 	EXPECT_EQ(testMsg->getCMSMessageID(), testData);
@@ -232,7 +231,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_ID_uuid_prefixed_JSM_messageID_string)
 	std::string testData{ "ID:AMQP_UUID:" };
 	testData.append(proton::uuid::random().str());
 
-	CMSMessage* testMsg = new CMSMessage;
+	Message* testMsg = new Message;
 	testMsg->setCMSMessageID(testData);
 
 	EXPECT_EQ(testMsg->getCMSMessageID(), testData);
@@ -243,7 +242,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_ID_ulong_prefixed_JSM_messageID_string)
 
 	std::string testData{ "ID:AMQP_ULONG:12345678" };
 
-	CMSMessage* testMsg = new CMSMessage;
+	Message* testMsg = new Message;
 	testMsg->setCMSMessageID(testData);
 
 	EXPECT_EQ(testMsg->getCMSMessageID(), testData);
@@ -254,7 +253,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_ID_no_prefix_JSM_messageID_string)
 
 	std::string testData{ "ID:AMQP_NO_PREFIX:no-prefix-corrid" };
 
-	CMSMessage* testMsg = new CMSMessage;
+	Message* testMsg = new Message;
 	testMsg->setCMSMessageID(testData);
 
 	EXPECT_EQ(testMsg->getCMSMessageID(), testData);
@@ -265,7 +264,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_ID_string_prefix_JSM_messageID_string)
 
 	std::string testData{ "ID:AMQP_STRING:ID:AMQP_ULONG:string-prefix-corrid" };
 
-	CMSMessage* testMsg = new CMSMessage;
+	Message* testMsg = new Message;
 	testMsg->setCMSMessageID(testData);
 
 	EXPECT_EQ(testMsg->getCMSMessageID(), testData);
@@ -282,7 +281,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_messageID_UUID_set_get_conversion_ex
 
 
 
-	CMSMessage testMsg;
+	Message testMsg;
 
 	EXPECT_ANY_THROW(testMsg.setCMSMessageID(testData));
 
@@ -292,7 +291,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_messageID_Ulong_set_get_conversion_e
 {
 	std::string testData("ID:AMQP_ULONG:corrid");
 
-	CMSMessage testMsg;
+	Message testMsg;
 
 	EXPECT_ANY_THROW(testMsg.setCMSMessageID(testData));
 
@@ -303,7 +302,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_messageID_Byte_set_get_conversion_ex
 {
 	std::string testData("ID:AMQP_BINARY:nonhexstring");
 
-	CMSMessage testMsg;
+	Message testMsg;
 
 	EXPECT_ANY_THROW(testMsg.setCMSMessageID(testData));
 }
@@ -313,7 +312,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_messageID_ulong_with_leading_zeros_s
 {
 	std::string testData("ID:AMQP_BINARY:nonhexstring");
 
-	CMSMessage testMsg;
+	Message testMsg;
 
 	EXPECT_ANY_THROW(testMsg.setCMSMessageID(testData));
 }
@@ -322,7 +321,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_messageID__Byte_with_odd_number_of_c
 {
 	std::string testData("ID:AMQP_BINARY:ab13f");
 
-	CMSMessage testMsg;
+	Message testMsg;
 
 	EXPECT_ANY_THROW(testMsg.setCMSMessageID(testData));
 }
@@ -335,7 +334,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_messageID__Byte_with_odd_number_of_c
 /// 3 cases of 3
 /// 
 /// brief:
-/// set CorrelationID using CMSMessage::setCMSCorrelationID(string), verify if correlationID is set properly using CMSMessage metghod getCMSCorrelationId()
+/// set CorrelationID using Message::setCMSCorrelationID(string), verify if correlationID is set properly using Message metghod getCMSCorrelationId()
 /// 
 
 	/// <summary>
@@ -361,7 +360,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_non_ID_prefixed_JSM_correlationID_applic
 
 	const std::string testData{ "application-specific" };
 
-	CMSMessage* testMsg = new CMSMessage;
+	Message* testMsg = new Message;
 	testMsg->setCMSCorrelationID(testData);
 
 	EXPECT_EQ(testMsg->getCMSCorrelationID(), testData);
@@ -371,7 +370,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_non_ID_prefixed_JMS_correlationID_AMQP_p
 {
 	const std::string testData{ "AMQP_ULONG:42" };
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSCorrelationID(testData);
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(), testData);
@@ -381,7 +380,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_non_ID_prefixed_JMS_correlationID_AMQP_p
 {
 	const std::string testData{ "AMQP_ULONG:foo" };
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSCorrelationID(testData);
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(), testData);
@@ -396,11 +395,11 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_non_ID_prefixed_JMS_correlationID_AMQP_p
 /// 7 cases of 7
 /// 
 /// :brief
-/// set correltaion id on proton::message object that is part of CMSMessage, verify conversion between AMQP correlation-id and CMSCorrelationID
+/// set correltaion id on proton::message object that is part of Message, verify conversion between AMQP correlation-id and CMSCorrelationID
 /// 
 
 	/// <summary>
-	/// setting AMQPCorrelationId on proton::message object that is passed to create CMSMessage object.
+	/// setting AMQPCorrelationId on proton::message object that is passed to create Message object.
 	/// AMQPCorrelationID of proton::message is set to tested value [testData]
 	/// CorrelationID value is verified using getCMSCorrelationId(). 
 	/// 
@@ -454,7 +453,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_correlationID_String)
 	auto message = std::make_shared<proton::message>();
 	message->correlation_id(testData);
 
-	CMSMessage* testMsg = new CMSMessage(message.get());
+	Message* testMsg = new Message(message.get());
 
 	EXPECT_EQ(testMsg->getCMSCorrelationID(), testData);
 }
@@ -468,7 +467,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_non_prefixed_correlationID_String)
 	auto message = std::make_shared<proton::message>();
 	message->correlation_id(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(),testData);
 }
@@ -482,7 +481,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_correlationID_UUID)
 	auto message = std::make_shared<proton::message>();
 	message->correlation_id(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(), "ID:AMQP_UUID:" + testData.str());
 }
@@ -496,7 +495,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_correlationID_Ulong)
 	auto message = std::make_shared<proton::message>();
 	message->correlation_id(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(), "ID:AMQP_ULONG:" + std::to_string(testData));
 }
@@ -513,7 +512,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_correlationID_Byte)
 	auto message = std::make_shared<proton::message>();
 	message->correlation_id(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(), "ID:AMQP_BINARY:0102030405060708090A0B0C0D0E0F1011121314151718191A1B1C1D1E1F");
 }
@@ -527,7 +526,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_amqp_type_string_correlationID_stri
 	auto message = std::make_shared<proton::message>();
 	message->correlation_id(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(), "ID:AMQP_AMQP_STRING:" + testData);
 }
@@ -542,7 +541,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_amqp_type_string_correlationID_stri
 	auto message = std::make_shared<proton::message>();
 	message->correlation_id(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(), testData);
 }
@@ -556,7 +555,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_correlationID_AMQP_string_id_data)
 {
 	const std::string testData{ "ID:my-string-id" };
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSCorrelationID(testData);
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(), testData);
@@ -566,7 +565,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_correlationID_AMQP_non_prefixed_stri
 {
 	const std::string testData{ "non-prefixed-string-id" };
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSCorrelationID(testData);
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(), testData);
@@ -581,7 +580,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_correlationID_UUID_set_get)
 
 
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSCorrelationID(testData);
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(), testData);
@@ -594,7 +593,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_correlationID_Ulong_set_get)
 
 	testData.append(std::to_string((unsigned long)123456));
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSCorrelationID(testData);
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(), testData);
@@ -612,7 +611,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_correlationID_Byte_set_get)
 	auto message = std::make_shared<proton::message>();
 	message->correlation_id(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSCorrelationID(), "ID:AMQP_BINARY:0102030405060708090A0B0C0D0E0F1011121314151718191A1B1C1D1E1F");
 
@@ -622,7 +621,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_correlationID_Byte_set_get)
 TEST_F(Message_JMS_AMQ_Mapping_UT, Test_correlationID_JMSString_STRING_to_AMQP)
 {
 	const std::string JMSCorrelationId{ "ID:AMQP_STRING:string-correlation-id" };
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSCorrelationID(JMSCorrelationId);
 }
 
@@ -636,7 +635,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_correlationID_UUID_set_get_conversio
 
 
 
-	CMSMessage testMsg;
+	Message testMsg;
 
 	EXPECT_ANY_THROW(testMsg.setCMSCorrelationID(testData));
 
@@ -646,7 +645,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_correlationID_Ulong_set_get_conversi
 {
 	std::string testData("ID:AMQP_ULONG:corrid");
 
-	CMSMessage testMsg;
+	Message testMsg;
 
 	EXPECT_ANY_THROW(testMsg.setCMSCorrelationID(testData));
 
@@ -657,7 +656,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_correlationID_Byte_set_get_conversio
 {
 	std::string testData("ID:AMQP_BINARY:nonhexstring");
 
-	CMSMessage testMsg;
+	Message testMsg;
 
 	EXPECT_ANY_THROW(testMsg.setCMSCorrelationID(testData));
 }
@@ -672,7 +671,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_PERSISTENT_DeliveryMode_from_AMQP_me
 	auto message = std::make_shared<proton::message>();
 	message->durable(true);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSDeliveryMode(),cms::DeliveryMode::PERSISTENT);
 }
@@ -682,7 +681,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_PERSISTENT_DeliveryMode_from_AMQP_me
 	auto message = std::make_shared<proton::message>();
 	message->durable(false);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSDeliveryMode(), cms::DeliveryMode::NON_PERSISTENT);
 }
@@ -692,7 +691,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_set_DeliveryMode_PERSISTENT)
 {
 
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSDeliveryMode(cms::DeliveryMode::PERSISTENT);
 
 	EXPECT_EQ(testMsg.getCMSDeliveryMode(), cms::DeliveryMode::PERSISTENT);
@@ -702,7 +701,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_set_DeliveryMode_NON_PERSISTENT)
 {
 
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSDeliveryMode(cms::DeliveryMode::NON_PERSISTENT);
 
 	EXPECT_EQ(testMsg.getCMSDeliveryMode(), cms::DeliveryMode::NON_PERSISTENT);
@@ -712,7 +711,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_default_DeliveryMode_PERSISTENT)
 {
 
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSDeliveryMode(cms::DeliveryMode::PERSISTENT);
 
 	EXPECT_EQ(testMsg.getCMSDeliveryMode(), cms::DeliveryMode::PERSISTENT);
@@ -728,7 +727,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_timestamp_set_get)
 	//delay to check if creation time is set by set method or in creation om msg;
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSTimestamp(time);
 
 	EXPECT_EQ(time, testMsg.getCMSTimestamp());
@@ -744,7 +743,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_message_from_AMQP_message_without_ad
 	auto message = std::make_shared<proton::message>();
 	message->message_annotations().put("x-opt-jms-dest", testCapabilityData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSDestination(),nullptr);
 }
@@ -756,7 +755,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_message_from_AMQP_message_with_addre
 	auto message = std::make_shared<proton::message>();
 	message->to(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSDestination(), nullptr);
 }
@@ -765,7 +764,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_message_from_AMQP_message_without_ad
 {
 	auto message = std::make_shared<proton::message>();
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSDestination(), nullptr);
 }
@@ -775,13 +774,13 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_message_destination_Queue_from_AMQP_
 	const std::string testData = "test_address";
 	const uint8_t testCapabilityData{0};
 	//const std::string testCapabilityData = "queue";
-	const CMSQueue compareDestination(testData);
+	const Queue compareDestination(testData);
 
 	auto message = std::make_shared<proton::message>();
 	message->to(testData);
 	message->message_annotations().put("x-opt-jms-dest", testCapabilityData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	GTEST_ASSERT_NE(testMsg.getCMSDestination(), nullptr);
 	EXPECT_TRUE(testMsg.getCMSDestination()->equals(compareDestination));
@@ -792,13 +791,13 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_message_destination_from_AMQP_messag
 	const std::string testData = "test_address";
 	const uint8_t testCapabilityData { 5 };
 	//const std::string testCapabilityData = "oncorrect_capability";
-	const CMSQueue compareDestination(testData);
+	const Queue compareDestination(testData);
 
 	auto message = std::make_shared<proton::message>();
 	message->to(testData);
 	message->message_annotations().put("x-opt-jms-dest", testCapabilityData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSDestination(), nullptr);
 }
@@ -808,13 +807,13 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_message_destination_Topic_from_AMQP_
 	const std::string testData = "test_address";
 	const uint8_t testCapabilityData{ 1 };
 	//const std::string testCapabilityData = "topic";
-	const CMSTopic compareDestination(testData);
+	const Topic compareDestination(testData);
 
 	auto message = std::make_shared<proton::message>();
 	message->to(testData);
 	message->message_annotations().put("x-opt-jms-dest", testCapabilityData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	GTEST_ASSERT_NE(testMsg.getCMSDestination(), nullptr);
 	EXPECT_TRUE(testMsg.getCMSDestination()->equals(compareDestination));
@@ -824,8 +823,8 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_CMS_Queue_equality_identical_queues)
 {
 	const std::string testData{ "test_address" };
 
-	CMSQueue item1(testData);
-	CMSQueue item2(testData);
+	Queue item1(testData);
+	Queue item2(testData);
 
 	EXPECT_TRUE(item1.equals(item2));
 }
@@ -834,8 +833,8 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_CMS_Topic_equality_identical_topics)
 {
 	const std::string testData{ "test_address" };
 
-	CMSTopic item1(testData);
-	CMSTopic item2(testData);
+	Topic item1(testData);
+	Topic item2(testData);
 
 	EXPECT_TRUE(item1.equals(item2));
 }
@@ -844,8 +843,8 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_CMS_Queue_equality_non_identical_queues)
 {
 	const std::string testData{ "test_address" };
 
-	CMSQueue item1(testData);
-	CMSQueue item2("other_address");
+	Queue item1(testData);
+	Queue item2("other_address");
 
 	EXPECT_FALSE(item1.equals(item2));
 }
@@ -854,8 +853,8 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_CMS_Topic_equality_non_identical_topics)
 {
 	const std::string testData{ "test_address" };
 
-	CMSTopic item1(testData);
-	CMSTopic item2("other_address");
+	Topic item1(testData);
+	Topic item2("other_address");
 
 	EXPECT_FALSE(item1.equals(item2));
 }
@@ -864,8 +863,8 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_CMS_compare_queue_to_topic_with_identica
 {
 	const std::string testData{ "test_address" };
 
-	CMSQueue item1(testData);
-	CMSTopic item2(testData);
+	Queue item1(testData);
+	Topic item2(testData);
 
 	EXPECT_FALSE(item1.equals(item2));
 }
@@ -874,8 +873,8 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_CMS_compare_topic_to_queue_with_identica
 {
 	const std::string testData{ "test_address" };
 
-	CMSTopic item1(testData);
-	CMSQueue item2(testData);
+	Topic item1(testData);
+	Queue item2(testData);
 
 	EXPECT_FALSE(item1.equals(item2));
 }
@@ -884,8 +883,8 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_CMS_compare_queue_to_topic_with_non_iden
 {
 	const std::string testData{ "test_address" };
 
-	CMSQueue item1(testData);
-	CMSTopic item2("other_address");;
+	Queue item1(testData);
+	Topic item2("other_address");;
 
 	EXPECT_FALSE(item1.equals(item2));
 }
@@ -894,8 +893,8 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_CMS_compare_topic_to_queue_with_non_iden
 {
 	const std::string testData{ "test_address" };
 
-	CMSTopic item1(testData);
-	CMSQueue item2("other_address");;
+	Topic item1(testData);
+	Queue item2("other_address");;
 
 	EXPECT_FALSE(item1.equals(item2));
 }
@@ -905,9 +904,9 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_destination_to_Queue)
 	const std::string testData{ "test_address" };
 
 
-	auto item1 = new CMSQueue(testData);
+	auto item1 = new Queue(testData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSDestination(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSDestination(), nullptr);
@@ -919,9 +918,9 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_destination_to_Topic)
 	const std::string testData{ "test_address" };
 
 
-	auto item1 = new CMSTopic(testData);
+	auto item1 = new Topic(testData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSDestination(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSDestination(), nullptr);
@@ -934,10 +933,10 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_destination_to_Queue_and_com
 	const std::string compareData{ "compared_address" };
 
 
-	auto item1 = new CMSQueue(testData);
-	auto item2 = new CMSQueue(compareData);
+	auto item1 = new Queue(testData);
+	auto item2 = new Queue(compareData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSDestination(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSDestination(), nullptr);
@@ -949,10 +948,10 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_destination_to_Queue_and_com
 	const std::string testData{ "test_address" };
 
 
-	auto item1 = new CMSQueue(testData);
-	auto item2 = new CMSTopic(testData);
+	auto item1 = new Queue(testData);
+	auto item2 = new Topic(testData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSDestination(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSDestination(), nullptr);
@@ -964,10 +963,10 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_destination_to_Topic_and_com
 	const std::string testData{ "test_address" };
 
 
-	auto item1 = new CMSTopic(testData);
-	auto item2 = new CMSQueue(testData);
+	auto item1 = new Topic(testData);
+	auto item2 = new Queue(testData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSDestination(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSDestination(), nullptr);
@@ -980,10 +979,10 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_destination_to_Queue_and_com
 	const std::string compareData{ "compared_address" };
 
 
-	auto item1 = new CMSQueue(testData);
-	auto item2 = new CMSTopic(compareData);
+	auto item1 = new Queue(testData);
+	auto item2 = new Topic(compareData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSDestination(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSDestination(), nullptr);
@@ -996,10 +995,10 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_destination_to_Topic_and_com
 	const std::string compareData{ "compared_address" };
 
 
-	auto item1 = new CMSTopic(testData);
-	auto item2 = new CMSQueue(compareData);
+	auto item1 = new Topic(testData);
+	auto item2 = new Queue(compareData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSDestination(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSDestination(), nullptr);
@@ -1011,13 +1010,13 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_message_reply_to_Queue_from_AMQP_mes
 	const std::string testData = "test_address";
 	const uint8_t testCapabilityData{ 0 };
 	//const std::string testCapabilityData = "queue";
-	const CMSQueue compareDestination(testData);
+	const Queue compareDestination(testData);
 
 	auto message = std::make_shared<proton::message>();
 	message->reply_to(testData);
 	message->message_annotations().put("x-opt-jms-reply-to", testCapabilityData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	GTEST_ASSERT_NE(testMsg.getCMSReplyTo(), nullptr);
 	EXPECT_TRUE(testMsg.getCMSReplyTo()->equals(compareDestination));
@@ -1028,13 +1027,13 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_message_reply_to_Topic_from_AMQP_mes
 	const std::string testData = "test_address";
 	const uint8_t testCapabilityData{ 1 };
 	//const std::string testCapabilityData = "topic";
-	const CMSTopic compareDestination(testData);
+	const Topic compareDestination(testData);
 
 	auto message = std::make_shared<proton::message>();
 	message->reply_to(testData);
 	message->message_annotations().put("x-opt-jms-reply-to", testCapabilityData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	GTEST_ASSERT_NE(testMsg.getCMSReplyTo(), nullptr);
 	EXPECT_TRUE(testMsg.getCMSReplyTo()->equals(compareDestination));
@@ -1047,7 +1046,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_message_reply_to_from_AMQP_message_w
 	auto message = std::make_shared<proton::message>();
 	message->reply_to(testData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSReplyTo(),nullptr);
 }
@@ -1062,7 +1061,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_message_reply_to_from_AMQP_message_w
 	message->reply_to(testData);
 	message->message_annotations().put("x-opt-jms-reply-to", testCapabilityData);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSReplyTo(), nullptr);
 }
@@ -1072,9 +1071,9 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_reply_to_to_Queue)
 	const std::string testData{ "test_address" };
 
 
-	auto item1 = new CMSQueue(testData);
+	auto item1 = new Queue(testData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSReplyTo(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSReplyTo(), nullptr);
@@ -1086,9 +1085,9 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_reply_to_to_Topic)
 	const std::string testData{ "test_address" };
 
 
-	auto item1 = new CMSTopic(testData);
+	auto item1 = new Topic(testData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSReplyTo(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSReplyTo(), nullptr);
@@ -1101,10 +1100,10 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_reply_to_to_Queue_and_compar
 	const std::string compareData{ "compared_address" };
 
 
-	auto item1 = new CMSQueue(testData);
-	auto item2 = new CMSQueue(compareData);
+	auto item1 = new Queue(testData);
+	auto item2 = new Queue(compareData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSReplyTo(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSReplyTo(), nullptr);
@@ -1116,10 +1115,10 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_reply_to_to_Queue_and_compar
 	const std::string testData{ "test_address" };
 
 
-	auto item1 = new CMSQueue(testData);
-	auto item2 = new CMSTopic(testData);
+	auto item1 = new Queue(testData);
+	auto item2 = new Topic(testData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSReplyTo(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSReplyTo(), nullptr);
@@ -1131,10 +1130,10 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_reply_to_to_Topic_and_compar
 	const std::string testData{ "test_address" };
 
 
-	auto item1 = new CMSTopic(testData);
-	auto item2 = new CMSQueue(testData);
+	auto item1 = new Topic(testData);
+	auto item2 = new Queue(testData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSReplyTo(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSReplyTo(), nullptr);
@@ -1147,10 +1146,10 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_reply_to_to_Queue_and_compar
 	const std::string compareData{ "compared_address" };
 
 
-	auto item1 = new CMSQueue(testData);
-	auto item2 = new CMSTopic(compareData);
+	auto item1 = new Queue(testData);
+	auto item2 = new Topic(compareData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSReplyTo(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSReplyTo(), nullptr);
@@ -1163,10 +1162,10 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_set_message_reply_to_to_Topic_and_compar
 	const std::string compareData{ "compared_address" };
 
 
-	auto item1 = new CMSTopic(testData);
-	auto item2 = new CMSQueue(compareData);
+	auto item1 = new Topic(testData);
+	auto item2 = new Queue(compareData);
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSReplyTo(item1);
 
 	GTEST_ASSERT_NE(testMsg.getCMSReplyTo(), nullptr);
@@ -1183,7 +1182,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_expiration_to_CMSExpiration_ttl_and
 	message->expiry_time(expected_expiration);
 	message->ttl(proton::duration(100));
 	
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(expected_expiration.milliseconds() - testMsg.getCMSExpiration(),  0);
 
@@ -1195,7 +1194,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_expiration_to_CMSExpiration_expirat
 
 	message->ttl(proton::duration(100));
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSExpiration(), 0);
 
@@ -1208,7 +1207,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_expiration_to_CMSExpiration_expirat
 	auto expected_expiration = proton::timestamp::now() + proton::duration(100);
 	message->expiry_time(expected_expiration);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 
 	EXPECT_EQ(message->ttl().milliseconds(),0);
@@ -1220,7 +1219,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_AMQP_expiration_to_CMSExpiration)
 {
 	auto message = std::make_shared<proton::message>();
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSExpiration(), 0);
 
@@ -1234,7 +1233,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_lowest_Priority_from_AMQP_message_wi
 	auto message = std::make_shared<proton::message>();
 	message->priority(std::numeric_limits<uint8_t>::min());
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSPriority(), 0);
 }
@@ -1244,14 +1243,14 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_highest_Priority_from_AMQP_message_w
 	auto message = std::make_shared<proton::message>();
 	message->priority(std::numeric_limits<uint8_t>::max());
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSPriority(), 9);
 }
 
 TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_lowest_Priority_set)
 {
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSPriority(std::numeric_limits<int>::min());
 
 
@@ -1260,7 +1259,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_lowest_Priority_set)
 
 TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_highest_Priority_set)
 {
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSPriority(std::numeric_limits<int>::max());
 
 	EXPECT_EQ(testMsg.getCMSPriority(), 9);
@@ -1274,7 +1273,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_Redelivered_from_AMQP_redelivered_me
 	auto message = std::make_shared<proton::message>();
 	message->delivery_count(deliveryCount);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_TRUE(testMsg.getCMSRedelivered());
 }
@@ -1286,7 +1285,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_Redelivered_from_AMQP_non_redelivere
 	auto message = std::make_shared<proton::message>();
 	message->delivery_count(deliveryCount);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_FALSE(testMsg.getCMSRedelivered());
 }
@@ -1297,7 +1296,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_Redelivered_from_AMQP_default_messag
 
 	auto message = std::make_shared<proton::message>();
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_FALSE(testMsg.getCMSRedelivered());
 }
@@ -1306,7 +1305,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_Redelivered_message)
 {
 	bool redelivered{ true };
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSRedelivered(redelivered);
 
 	EXPECT_TRUE(testMsg.getCMSRedelivered());
@@ -1316,7 +1315,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_non_redelivered_message)
 {
 	bool redelivered{ false };
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSRedelivered(redelivered);
 
 	EXPECT_FALSE(testMsg.getCMSRedelivered());
@@ -1326,7 +1325,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_default_message)
 {
 	bool redelivered{ false };
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSRedelivered(redelivered);
 
 	EXPECT_FALSE(testMsg.getCMSRedelivered());
@@ -1341,7 +1340,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_Type_from_AMQP_message_subject)
 	auto message = std::make_shared<proton::message>();
 	message->subject(subject);
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_EQ(testMsg.getCMSType(), subject);
 }
@@ -1350,7 +1349,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_Type_from_AMQP_message_default_subje
 {
 	auto message = std::make_shared<proton::message>();
 
-	CMSMessage testMsg(message.get());
+	Message testMsg(message.get());
 
 	EXPECT_TRUE(testMsg.getCMSType().empty());
 }
@@ -1359,7 +1358,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_Type)
 {
 	const std::string subject{ "user_definde_subject" };
 
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setCMSType(subject);
 
 	EXPECT_EQ(testMsg.getCMSType(), subject);
@@ -1369,13 +1368,13 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMS_default_Type)
 {
 	const std::string subject{};
 
-	CMSMessage testMsg;
+	Message testMsg;
 
 	EXPECT_TRUE(testMsg.getCMSType().empty());
 }
 
 
-//JMS-defined ’JMSX’ Properties  3.2.2
+//JMS-defined ï¿½JMSXï¿½ Properties  3.2.2
 
 TEST_F(Message_JMS_AMQ_Mapping_UT, Test_JMSXUserID)
 {
@@ -1389,7 +1388,7 @@ TEST_F(Message_JMS_AMQ_Mapping_UT, JMSXDeliveryCount)
 
 TEST_F(Message_JMS_AMQ_Mapping_UT, JMSXGroupID)
 {
-	CMSMessage testMsg;
+	Message testMsg;
 	testMsg.setStringProperty("JMSXGroupID","Group-0");
 
 	EXPECT_EQ(testMsg.getStringProperty("JMSXGroupID"), "Group-0");

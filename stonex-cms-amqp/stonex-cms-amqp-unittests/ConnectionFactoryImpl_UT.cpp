@@ -16,38 +16,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "ConnectionFactoryImpl_UT.h"
+#include "ConnectionFactory_UT.h"
 
 #include "../API/CMSConnectionFactory.h"
 
 #include "MOCK/ExceptionListenerMock.h"
 #include "MOCK/MessageTransformerMock.h"
 
-using namespace cms::amqp;
+using namespace stonex::amqp;
 
-void ConnectionFactoryImpl_UT::SetUp()
+void ConnectionFactory_UT::SetUp()
 {
 	mUUT = CMSConnectionFactory::createCMSConnectionFactory("localhost:5675?maxReconnectAttempts=3");
 }
 
-void ConnectionFactoryImpl_UT::TearDown()
+void ConnectionFactory_UT::TearDown()
 {
 	delete mUUT;
 	mUUT = nullptr;
 }
 
 
-TEST_F(ConnectionFactoryImpl_UT, test_default_exception_listener) {
+TEST_F(ConnectionFactory_UT, test_default_exception_listener) {
 
 	EXPECT_EQ(mUUT->getExceptionListener(), nullptr);
 }
 
-TEST_F(ConnectionFactoryImpl_UT, test_default_message_transformer) {
+TEST_F(ConnectionFactory_UT, test_default_message_transformer) {
 
 	EXPECT_EQ(mUUT->getMessageTransformer(), nullptr);
 }
 
-TEST_F(ConnectionFactoryImpl_UT, test_set_exception_listener) {
+TEST_F(ConnectionFactory_UT, test_set_exception_listener) {
 
 	ExceptionListenerMock mock;
 	mUUT->setExceptionListener(&mock);

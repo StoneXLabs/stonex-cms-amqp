@@ -1,4 +1,5 @@
 from conans import ConanFile, CMake, tools
+import os
 
 def get_verion_tag():
     git = tools.Git("stonex-cms-amqp")
@@ -20,15 +21,17 @@ class StonexCMSAMQPLib(ConanFile):
     default_options = {"shared": False, "fPIC": True}  
     generators = "cmake"
     exports_sources = ["include/activemq-cpp/src/main/*"]
+    
 
     def requirements(self):
-        self.requires("red-hat-amq-client/2.10.4@enterprise_messaging/stable")
-        self.requires("jsoncpp/1.9.5@enterprise_messaging/test")
-        self.requires("stonex-logger-wrapper/1.0.0@enterprise_messaging/test")
-        self.requires("fmt/9.1.0@enterprise_messaging/test")
+        self.requires("amq-clients/2.11.0")
+        self.requires("fmt/9.1.0")
+        self.requires("spdlog/1.14.1")
+        self.requires("spdlog_setup/0.3.2")        
 
     def build_requirements(self):
         self.build_requires("gtest/1.10.0")
+        self.build_requires("protobuf/3.21.12")
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -38,6 +41,13 @@ class StonexCMSAMQPLib(ConanFile):
         pass
         
     def build(self):
+        protoc_exec = os.path.join(self.deps_cpp_info["protobuf"].bin_paths[0], "protoc")
+        for root, _, files in os.walk(os.path.join(self.source_folder,"stonex-cms-amqp","Test","schema")):
+            for file in files:
+                if file.endswith(".proto"):
+                    proto_file = os.path.join(root, file)
+                    self.run(f'"{protoc_exec}" --cpp_out="{os.path.join(self.source_folder,"stonex-cms-amqp","Test","schema")}" --proto_path="{os.path.join(self.source_folder,"stonex-cms-amqp","Test","schema")}"  "{proto_file}"')
+
         cmake = CMake(self)
         cmake.definitions["CONAN_BUILD"] = "ON"
         cmake.definitions["BUILD_TEST"] = "ON"
@@ -50,7 +60,6 @@ class StonexCMSAMQPLib(ConanFile):
 
 
     def package(self):
-        self.copy("API\*.h", dst="include",src="stonex-cms-amqp\stonex-cms-amqp-lib")
         self.copy("activemq-cpp\src\main\cms\*", dst="include",src="stonex-cms-amqp\stonex-cms-amqp-lib",keep_path=True)
         self.copy("stonex-cms-amqp-lib.lib", dst="lib",src="lib", keep_path=False)
         self.copy("stonex-cms-amqp-lib.pdb", dst="lib",src="lib", keep_path=False)

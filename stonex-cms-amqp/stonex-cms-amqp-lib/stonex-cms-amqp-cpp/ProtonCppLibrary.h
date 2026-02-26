@@ -24,14 +24,14 @@
 
 #include <proton/container.hpp>
 #include <proton/messaging_handler.hpp>
-#include <logger/StoneXLogger.h>
+
 
 namespace activemq::library::ActiveMQCPP
 {
 	void initialize_library();
 };
 
-namespace cms::amqp
+namespace stonex::amqp
 {
 
 	//!ProtonCppLibrary
@@ -54,7 +54,7 @@ namespace cms::amqp
 		void on_container_stop(proton::container& container) override;
 
 	private:
-		StonexLoggerPtr mLogger;
+	
 		static ProtonCppLibrary* mInstance;
 
 		std::shared_ptr<proton::container> mContainer;

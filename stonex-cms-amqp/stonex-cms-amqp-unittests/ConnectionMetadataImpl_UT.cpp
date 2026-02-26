@@ -18,7 +18,7 @@
  */
 #include "ConnectionMetadataImpl_UT.h"
 #include <regex>
-using namespace cms::amqp;
+using namespace stonex::amqp;
 
 void ConnectionMetadataImpl_UT::SetUp()
 {

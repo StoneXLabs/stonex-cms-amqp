@@ -18,7 +18,7 @@
  */
 
 #include "ProtonCppLibrary.h"
-#include <LoggerFactory/LoggerFactory.h>
+
 
 #include <fmt/format.h>
 #include <iostream>
@@ -63,20 +63,14 @@ void WriteMiniDump(EXCEPTION_POINTERS* pExceptionPointers)
         );
 
         CloseHandle(hFile);
-		auto logger = LoggerFactory::getInstance().create("com.stonex.cms.amqp.ProtonContainer");
-		logger->log(SEVERITY::LOG_ERROR, fmt::format("crash dump created {}", dumpFileName));
-    }
-    else {
-		auto logger = LoggerFactory::getInstance().create("com.stonex.cms.amqp.ProtonContainer");
-		logger->log(SEVERITY::LOG_ERROR, "Failed to create dump file");
+
     }
 }
 
 
 
 
-cms::amqp::ProtonCppLibrary::ProtonCppLibrary()
-    :mLogger(LoggerFactory::getInstance().create("com.stonex.cms.amqp.ProtonContainer"))
+stonex::amqp::ProtonCppLibrary::ProtonCppLibrary()
 {
     SetUnhandledExceptionFilter(UnhandledExceptionHandler);
     mContainer = std::make_shared<proton::container>(*this);
@@ -84,57 +78,57 @@ cms::amqp::ProtonCppLibrary::ProtonCppLibrary()
     mContainerThread = std::make_unique<std::thread>(std::thread([this] {
         try
         {
-            mLogger->log(SEVERITY::LOG_INFO, fmt::format("starting proton container"));
+
             mContainer->run();
-            mLogger->log(SEVERITY::LOG_INFO, fmt::format("proton container work done"));
+
             std::cout << "proton container work done" << std::endl;
         }
         catch (const std::exception& ex)
         {
-            mLogger->log(SEVERITY::LOG_ERROR, fmt::format("container exception : {}", ex.what()));
+
         }
         }));
 }
 
-cms::amqp::ProtonCppLibrary::~ProtonCppLibrary()
+stonex::amqp::ProtonCppLibrary::~ProtonCppLibrary()
 {
 
-    mLogger->log(SEVERITY::LOG_INFO, fmt::format("stopping proton container"));
+
     mContainer->stop();
     mContainerThread->join();
 }
 
-std::shared_ptr<proton::container> cms::amqp::ProtonCppLibrary::getContainer()
+std::shared_ptr<proton::container> stonex::amqp::ProtonCppLibrary::getContainer()
 {
 
     return ProtonCppLibrary::getInstance().mContainer;
 }
 
 
-LONG WINAPI cms::amqp::ProtonCppLibrary::UnhandledExceptionHandler(EXCEPTION_POINTERS* pExceptionPointers) {
+LONG WINAPI stonex::amqp::ProtonCppLibrary::UnhandledExceptionHandler(EXCEPTION_POINTERS* pExceptionPointers) {
     WriteMiniDump(pExceptionPointers);
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
-cms::amqp::ProtonCppLibrary &cms::amqp::ProtonCppLibrary::getInstance()
+stonex::amqp::ProtonCppLibrary &stonex::amqp::ProtonCppLibrary::getInstance()
 {
     static ProtonCppLibrary sInstance;
 
     return sInstance;
 }
 
-void cms::amqp::ProtonCppLibrary::on_container_start(proton::container& container)
+void stonex::amqp::ProtonCppLibrary::on_container_start(proton::container& container)
 {
-    mLogger->log(SEVERITY::LOG_INFO, fmt::format("{}", __func__));
+
 }
 
-void cms::amqp::ProtonCppLibrary::on_container_stop(proton::container& container)
+void stonex::amqp::ProtonCppLibrary::on_container_stop(proton::container& container)
 {
-    mLogger->log(SEVERITY::LOG_INFO, fmt::format("{}", __func__));
+
 }
 
 void activemq::library::ActiveMQCPP::initialize_library()
 {
-    cms::amqp::ProtonCppLibrary::getInstance();
+    stonex::amqp::ProtonCppLibrary::getInstance();
 
 }

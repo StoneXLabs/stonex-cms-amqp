@@ -16,16 +16,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #pragma once
-#include <gtest/gtest.h>
-#include "ConnectionFactory.h"
+#include "MessageProperties.h" 
 
-class ConnectionFactory_UT : public ::testing::Test
-{
-public:
-	void SetUp() override;
-	void TearDown() override;
+#include <cms/Queue.h>
 
-	cms::ConnectionFactory* mUUT{ nullptr };
-};
+#include "stonex-cms-amqp-lib-defines.h"
+
+AMQP_DEFINES
+
+
+    class CMS_API Queue : public cms::Queue
+    {
+    public:
+        explicit Queue(const std::string& queueName);
+        Queue(const Queue& other);
+        Queue(Queue&& other) = delete;
+
+        cms::Destination::DestinationType getDestinationType() const override;
+
+        cms::Destination* clone() const override;
+
+        void copy(const cms::Destination& source) override;
+
+        bool equals(const cms::Destination& other) const override;
+
+        const cms::CMSProperties& getCMSProperties() const override;
+
+        std::string getQueueName() const override;
+
+    private:
+        const std::string mQueueName;
+        const cms::Destination::DestinationType mDestinationType;
+    };
+
+
+AMQP_DEFINES_CLOSE
+
 

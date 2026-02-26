@@ -1,1 +1,0 @@
-message_receiver.bat topic Transaction::Transaction/consumer1 180 receiver_logger.xml

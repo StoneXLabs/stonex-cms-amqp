@@ -18,9 +18,9 @@
  */
 #include "MessageDefaultProperties_UT.h"
 #include "cms/MessageFormatException.h"
-#include "CMSMessage.h"
-#include "CMSBytesMessage.h"
-#include "CMSTextMessage.h"
+#include "Message.h"
+#include "BytesMessage.h"
+#include "TextMessage.h"
 
 
 #include <chrono>
@@ -33,9 +33,9 @@
 
 #include <gtest/gtest-param-test.h>
 
-using namespace cms::amqp;
+using namespace stonex::amqp;
 
-INSTANTIATE_TEST_SUITE_P(Message_testing, MessageDefaultProperties_UT, ::testing::Values(new CMSMessage(), new CMSTextMessage("message body"), new CMSBytesMessage()));
+INSTANTIATE_TEST_SUITE_P(Message_testing, MessageDefaultProperties_UT, ::testing::Values(new Message(), new TextMessage("message body"), new BytesMessage()));
 
 MessageDefaultProperties_UT::MessageDefaultProperties_UT()
 {

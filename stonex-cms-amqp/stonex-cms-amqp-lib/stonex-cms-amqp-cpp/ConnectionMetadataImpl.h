@@ -19,9 +19,9 @@
 
 #pragma once
 #include <cms/ConnectionMetaData.h>
-#include "..\API\stonex-cms-amqp-lib-defines.h"
+#include "stonex-cms-amqp-lib-defines.h"
 
-namespace cms::amqp 
+namespace stonex::amqp 
 {
     class CMS_API ConnectionMetadataImpl : public cms::ConnectionMetaData
     {

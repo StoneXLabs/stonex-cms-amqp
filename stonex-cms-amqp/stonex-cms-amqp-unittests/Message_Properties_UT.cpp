@@ -21,15 +21,15 @@
 #include <limits>
 
 #include "cms/MessageFormatException.h"
-#include "CMSMessage.h"
-#include "CMSBytesMessage.h"
-#include "CMSTextMessage.h"
+#include "Message.h"
+#include "BytesMessage.h"
+#include "TextMessage.h"
 
 #include <gtest/gtest-param-test.h>
 
-using namespace cms::amqp;
+using namespace stonex::amqp;
 
-INSTANTIATE_TEST_SUITE_P(Message_testing, Message_Properties_UT,	::testing::Values(new CMSMessage(),	new CMSTextMessage("message body"), new CMSBytesMessage()));
+INSTANTIATE_TEST_SUITE_P(Message_testing, Message_Properties_UT,	::testing::Values(new Message(),	new TextMessage("message body"), new BytesMessage()));
 
 Message_Properties_UT::Message_Properties_UT()
 {
@@ -602,7 +602,7 @@ TEST_P(Message_Properties_UT, Test_message_properties_clear)
 
 TEST_P(Message_Properties_UT, Test_message_body_clear)
 {
-	if (auto obj = dynamic_cast<CMSBytesMessage*>(mUUT))
+	if (auto obj = dynamic_cast<BytesMessage*>(mUUT))
 	{
 
 		const unsigned char BytesMessageBody[5]{ 0x01, 0x02, 0x03, 0x04, 0x05 };
@@ -612,11 +612,11 @@ TEST_P(Message_Properties_UT, Test_message_body_clear)
 		obj->clearBody();
 		EXPECT_EQ(obj->getBodyLength(), 0);
 	}
-	else if (auto obj = dynamic_cast<CMSTextMessage*>(mUUT))
+	else if (auto obj = dynamic_cast<TextMessage*>(mUUT))
 	{
 		auto body = obj->getText();
 		EXPECT_FALSE(body.empty());
-		obj = dynamic_cast<CMSTextMessage*>(mUUT);
+		obj = dynamic_cast<TextMessage*>(mUUT);
 		obj->clearBody();
 		body = obj->getText();
 		EXPECT_TRUE(body.empty());

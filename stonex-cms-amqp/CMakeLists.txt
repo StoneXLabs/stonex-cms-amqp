@@ -26,7 +26,7 @@ endif()
     
 add_subdirectory(stonex-cms-amqp-lib)
 
+add_subdirectory(UnitTest)
+add_subdirectory(Test)
+add_subdirectory(QPID)
 
-if(BUILD_TEST)
-	add_subdirectory(stonex-cms-amqp-unittests)
-endif()

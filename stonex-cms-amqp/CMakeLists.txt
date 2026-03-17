@@ -28,5 +28,5 @@ add_subdirectory(stonex-cms-amqp-lib)
 
 add_subdirectory(UnitTest)
 add_subdirectory(Test)
-add_subdirectory(QPID)
+#add_subdirectory(QPID)
 

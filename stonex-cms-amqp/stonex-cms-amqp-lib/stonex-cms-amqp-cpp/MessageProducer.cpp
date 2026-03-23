@@ -27,6 +27,8 @@
 #include <proton/sender_options.hpp>
 #include <proton/target_options.hpp>
 #include <proton/work_queue.hpp>
+#include <proton/message_id.hpp>
+#include <proton/annotation_key.hpp>
 
 #include "Message.h"
 #include "TextMessage.h"
@@ -35,12 +37,79 @@
 #include "Topic.h"
 #include "TemporaryQueue.h"
 #include "TemporaryTopic.h"
+#include "Protocol/utils.h"
 
-#include <fmt/format.h>
+namespace {
+	void setMessageBody(proton::message& dest, cms::Message* src)
+	{
+		if (auto msg = dynamic_cast<cms::TextMessage*>(src))
+		{
+			dest.body(msg->getText());
+			dest.message_annotations().put(internal::annotation::JMS_MESSAGE_TYPE, static_cast<int8_t>(internal::annotation::MESSAGE_TYPE::TEXT_MESSAGE));
 
+		}
+		else if (auto msg = dynamic_cast<cms::BytesMessage*>(src))
+		{
 
-////
-#include "TextMessage.h"
+			std::vector<unsigned char> buf;
+			buf.reserve(msg->getBodyLength());
+
+			auto body = msg->getBodyBytes();
+
+			buf.insert(buf.begin(), body, body + msg->getBodyLength());
+			delete body;
+
+			dest.body(proton::binary(buf));
+			dest.message_annotations().put(internal::annotation::JMS_MESSAGE_TYPE, static_cast<int8_t>(internal::annotation::MESSAGE_TYPE::BYTES_MESSAGE));
+		}
+	}
+
+	void setMessageProperties(proton::message& dest, cms::Message* src)
+	{
+		for (const auto& propertyName : src->getPropertyNames())
+		{
+			switch (src->getPropertyValueType(propertyName))
+			{
+			case cms::Message::ValueType::NULL_TYPE:
+				break;
+			case cms::Message::ValueType::BOOLEAN_TYPE:
+				dest.properties().put(propertyName, src->getBooleanProperty(propertyName));
+				break;
+			case cms::Message::ValueType::BYTE_TYPE:
+				dest.properties().put(propertyName, src->getByteProperty(propertyName));
+				break;
+			case cms::Message::ValueType::CHAR_TYPE:
+				dest.properties().put(propertyName, src->getByteProperty(propertyName));
+				break;
+			case cms::Message::ValueType::SHORT_TYPE:
+				dest.properties().put(propertyName, src->getShortProperty(propertyName));
+				break;
+			case cms::Message::ValueType::INTEGER_TYPE:
+				dest.properties().put(propertyName, src->getIntProperty(propertyName));
+				break;
+			case cms::Message::ValueType::LONG_TYPE:
+				dest.properties().put(propertyName, src->getLongProperty(propertyName));
+				break;
+			case cms::Message::ValueType::DOUBLE_TYPE:
+				dest.properties().put(propertyName, src->getDoubleProperty(propertyName));
+				break;
+			case cms::Message::ValueType::FLOAT_TYPE:
+				dest.properties().put(propertyName, src->getFloatProperty(propertyName));
+				break;
+			case cms::Message::ValueType::STRING_TYPE:
+				if (propertyName == internal::properties::JMSX_GROUP_ID || propertyName == internal::properties::CMSX_GROUP_ID)
+					dest.group_id(src->getStringProperty(propertyName));
+
+				dest.properties().put(propertyName, src->getStringProperty(propertyName));
+				break;
+			case cms::Message::ValueType::BYTE_ARRAY_TYPE:
+				break;
+			case cms::Message::ValueType::UNKNOWN_TYPE:
+				break;
+			}
+		}
+	}
+}
 
 
 stonex::amqp::MessageProducer::MessageProducer(proton::session& session, const cms::Destination* destination)
@@ -49,12 +118,9 @@ stonex::amqp::MessageProducer::MessageProducer(proton::session& session, const c
 
 	if (destination)
 	{
+		mDefaultDestination.reset(internal::DestinationConverter::createProtonDestination(destination));
 		auto capabilities = internal::DestinationConverter::capabilities(destination);
 		const auto address = internal::DestinationConverter::address(destination);
-
-		mDestination.valid = true;
-		mDestination.type = destination->getDestinationType();
-		mDestination.address = address;
 
 		proton::sender_options opts;
 		proton::target_options target_options;
@@ -67,8 +133,6 @@ stonex::amqp::MessageProducer::MessageProducer(proton::session& session, const c
 
 	std::unique_lock lk(mMutex);
 	mCv.wait(lk, [this]() { return mWorkQueue; });
-
-
 }
 
 
@@ -122,13 +186,17 @@ void stonex::amqp::MessageProducer::send(const cms::Destination *destination, cm
 
 void stonex::amqp::MessageProducer::send(const cms::Destination* destination, cms::Message* message, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* onComplete)
 {
-	if (destination)
+	
+	std::unique_lock lk(mMutex);
+	mReadyToSend = false;
+
+	if(destination)
 	{
 		message->setCMSDestination(destination);
 	}
 	else
 	{
-		message->setCMSDestination(internal::DestinationConverter::createCMSDestination(mDestination));
+		message->setCMSDestination(internal::DestinationConverter::createCMSDestination(*mDefaultDestination));
 	}
 
 	//JMSDeliveryMode
@@ -142,69 +210,82 @@ void stonex::amqp::MessageProducer::send(const cms::Destination* destination, cm
 	message->setCMSExpiration(timeToLive);
 	message->setCMSPriority(priority);
 
-	auto castMessage = dynamic_cast<const stonex::amqp::BytesMessage*>(message);
-	mWorkQueue->add([=] {mSender.send(castMessage->mMessage); });
-	
-	
+
+	proton::message protonMessage;
+
+	setMessageProperties(protonMessage, message);
+
+	if (!mMessageIdDisabed)
+	{
+		protonMessage.id(message->getCMSMessageID());
+		protonMessage.properties().put(internal::properties::JMSX_MESSAGE_ID, message->getCMSMessageID());
+		protonMessage.properties().put(internal::properties::AMQP_MESSAGE_ID, message->getCMSMessageID());
+	}
+
+	if (!mTimestampDisabed)
+		protonMessage.creation_time(proton::timestamp(message->getCMSTimestamp()));
+
+	if (const auto dest = message->getCMSDestination(); dest != nullptr)
+	{
+		protonMessage.to(internal::DestinationConverter::address(dest));
+		protonMessage.address(internal::DestinationConverter::address(dest));
+		protonMessage.message_annotations().put(internal::annotation::JMS_DESTINATION_TYPE, static_cast<int8_t>(internal::DestinationConverter::jmsDestinationType(dest)));
+	}
+
+	if (const auto dest = message->getCMSReplyTo(); dest != nullptr)
+	{
+		protonMessage.reply_to(internal::DestinationConverter::address(dest));
+		protonMessage.message_annotations().put(internal::annotation::JMS_REPLY_TO_TYPE, static_cast<int8_t>(internal::DestinationConverter::jmsDestinationType(dest)));
+	}
+
+	setMessageBody(protonMessage, message);
+
+	mWorkQueue->add([=] {mSender.send(protonMessage); });
+	mCv.wait(lk, [this]() { return mReadyToSend; });
 }
 
 void stonex::amqp::MessageProducer::close()
 {
+	std::unique_lock lk(mMutex);
+	mWorkQueue->add([=] {mSender.close(); });
+	mCv.wait(lk, [this]() { return !mWorkQueue; });
 }
 
 void stonex::amqp::MessageProducer::on_sendable(proton::sender& sender)
 {
+	std::unique_lock lk(mMutex);
+	mReadyToSend = true;
+	if(sender.credit() == 0)
+		LOG4CXX_INFO(mLogger, std::format("producer credits {}", sender.credit()));
+	mCv.notify_all();
 }
 
 void stonex::amqp::MessageProducer::on_sender_open(proton::sender& sender)
 {
+	std::unique_lock lk(mMutex);
 	mWorkQueue = &sender.work_queue();
 	mSender = sender;
+	LOG4CXX_INFO(mLogger, std::format("producer open credits {}", sender.credit()));
 	mCv.notify_all();
 }
 
 void stonex::amqp::MessageProducer::on_sender_error(proton::sender & sender)
 {
-
+	LOG4CXX_ERROR(mLogger, std::format("producer error {}", sender.error().what()));
 }
 
 void stonex::amqp::MessageProducer::on_sender_close(proton::sender& sender)
 {
-
+	std::unique_lock lk(mMutex);
+	mWorkQueue = nullptr;
+	LOG4CXX_INFO(mLogger, std::format("producer close"));
+	mCv.notify_all();
 }
-
-
-void  stonex::amqp::MessageProducer::on_sender_detach(proton::sender& sender)
-{
-
-}
-
 
 void stonex::amqp::MessageProducer::on_error(const proton::error_condition& error)
 {
+	LOG4CXX_ERROR(mLogger, std::format("producer error {}", error.what()));
 }
-
-
-void stonex::amqp::MessageProducer::on_tracker_accept(proton::tracker& tracker)
-{
-}
-
-void stonex::amqp::MessageProducer::on_tracker_reject(proton::tracker& tracker)
-{
-}
-
-void stonex::amqp::MessageProducer::on_tracker_release(proton::tracker& tracker)
-{
-}
-
-void stonex::amqp::MessageProducer::on_tracker_settle(proton::tracker& tracker)
-{
-}
-
-// void stonex::amqp::MessageProducer::send(const cms::Destination* destination, cms::Message* message)
-// {
-// 	send(destination, message, mDeliveryMode, mPriority, mTTL, nullptr);
-// }
 
 void stonex::amqp::MessageProducer::setDeliveryMode(int mode)
 {

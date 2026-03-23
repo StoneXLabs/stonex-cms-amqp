@@ -31,7 +31,8 @@
 #include <cms/MessageListener.h>
 #include <cms/Message.h>
 
-#include <spdlog/spdlog.h>
+#include <log4cxx/logger.h>
+
 #include <regex>
 
 namespace stonex::amqp
@@ -94,7 +95,7 @@ namespace stonex::amqp
 
 
 	private:
-		std::shared_ptr<spdlog::logger> mLogger;
+		log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("CMS") };
 		proton::session mSession;
 		proton::receiver mReceiver;
 		cms::MessageListener *mListener{ nullptr };

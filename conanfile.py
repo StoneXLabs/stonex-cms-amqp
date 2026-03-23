@@ -25,9 +25,7 @@ class StonexCMSAMQPLib(ConanFile):
 
     def requirements(self):
         self.requires("amq-clients/2.11.0")
-        self.requires("fmt/9.1.0")
-        self.requires("spdlog/1.14.1")
-        self.requires("spdlog_setup/0.3.2")        
+        self.requires("log4cxx/1.2.0")  
 
     def build_requirements(self):
         self.build_requires("gtest/1.10.0")

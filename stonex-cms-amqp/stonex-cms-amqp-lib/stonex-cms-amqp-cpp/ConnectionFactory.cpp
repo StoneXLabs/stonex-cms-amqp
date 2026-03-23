@@ -38,13 +38,7 @@
 #include <regex>
 #include <memory>
 #include <iterator>
-
-
-#include <proton/connection_options.hpp>
-#include <proton/reconnect_options.hpp>
-#include "Connection.h"
-
-#include "ProtonCppLibrary.h"
+#include <format>
 
 namespace
 {
@@ -150,6 +144,8 @@ mFailoverUrl{getFailoverUrls(getBrokerURI(brokerURI))}
 {
 	if(brokerURI.empty())
 		throw cms::CMSException("Connection factory creation with EMPTY broker URL is forbidden");
+
+    LOG4CXX_INFO(mLogger, std::format("Creating connection factory {}", brokerURI));
 }
 
 
@@ -166,7 +162,18 @@ cms::Connection* stonex::amqp::ConnectionFactory::createConnection(const std::st
 
 cms::Connection* stonex::amqp::ConnectionFactory::createConnection(const std::string& username, const std::string& password, const std::string& clientId)
 {
-    return new stonex::amqp::Connection(mPrimaryUrl,getConnectionOptions(username, password, clientId, mFailoverUrl));
+    auto connectionOptions = getConnectionOptions(username, password, clientId, mFailoverUrl);
+    
+    std::string failoverHosts(mPrimaryUrl);
+
+    for (const auto& url : mFailoverUrl)
+    {
+        failoverHosts += ",";
+        failoverHosts += url;
+    }
+
+	LOG4CXX_INFO(mLogger, std::format("Creating connection to brokers: {} with username: {}", failoverHosts, username));
+    return new stonex::amqp::Connection(mPrimaryUrl,connectionOptions);
 }
 
 void stonex::amqp::ConnectionFactory::setExceptionListener(cms::ExceptionListener* listener)

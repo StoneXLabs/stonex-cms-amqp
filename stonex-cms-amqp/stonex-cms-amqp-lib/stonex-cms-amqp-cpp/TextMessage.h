@@ -23,6 +23,7 @@
 
 #include "stonex-cms-amqp-lib-defines.h"
 #include <proton/message.hpp>
+#include "Protocol/utils.h"
 
 
 AMQP_DEFINES
@@ -100,6 +101,8 @@ AMQP_DEFINES
 		void setText(const std::string& msg) override;
 
 	public:
+		std::string mTextMessage;
+		internal::MessageProperties mProperties;
 		proton::message mMessage;
 	};
 

@@ -29,6 +29,7 @@
 
 #include <condition_variable>
 
+#include <log4cxx/logger.h>
 
 namespace stonex::amqp
 {
@@ -76,6 +77,7 @@ namespace stonex::amqp
 		cms::MessageTransformer* mMessageTransformer{ nullptr };
 
 	private:
+		log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("CMS") };
 		std::mutex mMutex;
 		std::condition_variable mCv;
 		proton::connection mConnection;

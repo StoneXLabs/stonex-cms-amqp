@@ -8,6 +8,10 @@
 #include "BytesMessage.h"
 
 #include <proton/annotation_key.hpp>
+#include <proton/types.hpp>
+#include <proton/message_id.hpp>
+
+#include <cms/DeliveryMode.h>
 
 namespace internal
 {
@@ -67,6 +71,33 @@ namespace internal
 	}
 
 	
+	internal::annotation::DESTINATION_TYPE internal::DestinationConverter::jmsDestinationType(const cms::Destination::DestinationType& destinationType)
+	{
+		
+		annotation::DESTINATION_TYPE destType;
+
+		switch (destinationType)
+		{
+		case cms::Destination::QUEUE:
+			destType = annotation::DESTINATION_TYPE::QUEUE;
+			break;
+		case cms::Destination::TEMPORARY_QUEUE:
+			destType = annotation::DESTINATION_TYPE::TEMPORARY_QUEUE;
+			break;
+		case cms::Destination::TOPIC:
+			destType = annotation::DESTINATION_TYPE::TOPIC;
+			break;
+		case cms::Destination::TEMPORARY_TOPIC:
+			destType = annotation::DESTINATION_TYPE::TEMPORARY_TOPIC;
+			break;
+		default:
+			throw cms::CMSException("Unknown destination type");
+			break;
+		}
+
+		return destType;
+	}
+	
 	std::string DestinationConverter::address(const cms::Destination *destination)
 	{
 		switch (destination->getDestinationType())
@@ -86,27 +117,22 @@ namespace internal
 	
 	cms::Destination* DestinationConverter::createCMSDestination(const internal::Destination& destination)
 	{
-		if(destination.valid)
+		switch(destination.type)
 		{
-			switch(destination.type)
-			{
-			case cms::Destination::DestinationType::QUEUE:
-				return new stonex::amqp::Queue(destination.address);
-				break;
-			case cms::Destination::DestinationType::TOPIC:
-				return new stonex::amqp::Topic(destination.address);
-				break;
-			case cms::Destination::DestinationType::TEMPORARY_QUEUE:
-				return new stonex::amqp::TemporaryQueue(destination.address);
-				break;
-			case cms::Destination::DestinationType::TEMPORARY_TOPIC:
-				return new stonex::amqp::TemporaryTopic(destination.address);
-			default:
-				return nullptr;
-			}
+		case cms::Destination::DestinationType::QUEUE:
+			return new stonex::amqp::Queue(destination.address);
+			break;
+		case cms::Destination::DestinationType::TOPIC:
+			return new stonex::amqp::Topic(destination.address);
+			break;
+		case cms::Destination::DestinationType::TEMPORARY_QUEUE:
+			return new stonex::amqp::TemporaryQueue(destination.address);
+			break;
+		case cms::Destination::DestinationType::TEMPORARY_TOPIC:
+			return new stonex::amqp::TemporaryTopic(destination.address);
+		default:
+			return nullptr;
 		}
-	
-		return nullptr;
 	}
 	
 	cms::Destination* DestinationConverter::createCMSDestination(const std::string& address ,const proton::target& target)
@@ -222,6 +248,31 @@ namespace internal
 		}
 
 		return destination;
+	}
+	
+	internal::Destination* internal::DestinationConverter::createProtonDestination(const cms::Destination* destination)
+	{
+		internal::Destination* dest{ nullptr };
+
+		switch (destination->getDestinationType())
+		{
+		case cms::Destination::DestinationType::QUEUE:
+			dest = new internal::Destination{ cms::Destination::DestinationType::QUEUE, dynamic_cast<const cms::Queue*>(destination)->getQueueName() };
+			break;
+		case cms::Destination::DestinationType::TOPIC:
+			dest = new internal::Destination{ cms::Destination::DestinationType::TOPIC, dynamic_cast<const cms::Topic*>(destination)->getTopicName() };
+			break;
+		case cms::Destination::DestinationType::TEMPORARY_QUEUE:
+			dest = new internal::Destination{ cms::Destination::DestinationType::TEMPORARY_QUEUE, dynamic_cast<const cms::TemporaryQueue*>(destination)->getQueueName() };
+			break;
+		case cms::Destination::DestinationType::TEMPORARY_TOPIC:
+			dest = new internal::Destination{ cms::Destination::DestinationType::TEMPORARY_TOPIC, dynamic_cast<const cms::TemporaryTopic*>(destination)->getTopicName() };
+			break;
+		default:
+			break;
+		}
+
+		return dest;
 	}
 
 	cms::Message::ValueType ValueTypeConverter::amqpToCms(proton::type_id t_id)
@@ -342,20 +393,201 @@ namespace internal
 			
 		}
 
+		if(cmsMessage)
+			transformProperties(message, cmsMessage);
+
 		return cmsMessage;
 	}
-	//proton::message MessageConverter::fromCmsMessage(const cms::Message *message)
-	//{
- //    
-	//}
+	
+	void MessageConverter::transformProperties(const proton::message& message, cms::Message* cmsMessage)
+	{
+		
+		std::map<std::string, proton::scalar> properties;
+		proton::get(message.properties(), properties);
+		
+		for (const auto& [property, value] : properties)
+		{
 
-	//proton::message MessageConverter::fromCmsMessage(const cms::TextMessage *destination)
-	//{
+			switch (value.type())
+			{
+			case proton::type_id::NULL_TYPE:
+				break;
+			case proton::type_id::BOOLEAN:
+				cmsMessage->setBooleanProperty(property, proton::get<bool>(value));
+				break;
+			case proton::type_id::UBYTE:
+			case proton::type_id::BYTE:
+				cmsMessage->setByteProperty(property, proton::get<unsigned char>(value));
+				break;
+			case proton::type_id::USHORT:
+			case proton::type_id::SHORT:
+				cmsMessage->setShortProperty(property, proton::get<short>(value));
+				break;
+			case proton::type_id::UINT:
+			case proton::type_id::INT:
+				cmsMessage->setIntProperty(property, proton::get<int>(value));
+				break;
+			case proton::type_id::CHAR:
+				cmsMessage->setShortProperty(property, proton::get<unsigned char>(value));
+				break;
+			case proton::type_id::ULONG:
+			case proton::type_id::LONG:
+				cmsMessage->setLongProperty(property, proton::get<long long>(value));
+				break;
+			case proton::type_id::TIMESTAMP:
+				break;
+			case proton::type_id::FLOAT:
+				cmsMessage->setFloatProperty(property, proton::get<float>(value));
+				break;
+			case proton::type_id::DOUBLE:
+				cmsMessage->setDoubleProperty(property, proton::get<double>(value));
+				break;
+			case proton::type_id::DECIMAL32:
+			case proton::type_id::DECIMAL64:
+			case proton::type_id::DECIMAL128:
+				cmsMessage->setFloatProperty(property, proton::get<float>(value));
+			case proton::type_id::UUID:
+				break;
+			case proton::type_id::BINARY:
+				break;
+			case proton::type_id::STRING:
+				cmsMessage->setStringProperty(property, proton::get<std::string>(value));
+				break;
+			case proton::type_id::SYMBOL:
+				break;
+			case proton::type_id::DESCRIBED:
+				break;
+			case proton::type_id::ARRAY:
+				break;
+			case proton::type_id::MAP:
+				break;
+			default:
+				break;
+			}
+		}
 
-	//}
+		try
+		{
+			cmsMessage->setCMSCorrelationID(proton::get<std::string>(message.correlation_id()));
+		}
+		catch (const std::exception&)
+		{
 
-	//proton::message MessageConverter::fromCmsMessage(const cms::BytesMessage *destination)
-	//{
-	//	return {};
-	//}
+		}
+
+		//delivery mode
+		cmsMessage->setCMSDeliveryMode(message.durable() ? cms::DeliveryMode::DELIVERY_MODE::PERSISTENT : cms::DeliveryMode::DELIVERY_MODE::NON_PERSISTENT);
+
+		if (auto destination = DestinationConverter::createCMSDestination(message))
+		{
+			cmsMessage->setCMSDestination(destination);
+			delete destination;
+		}
+
+		//expiration
+		cmsMessage->setCMSExpiration(message.expiry_time().milliseconds());
+
+		try
+		{
+			cmsMessage->setCMSMessageID(proton::get<std::string>(message.id()));
+		}
+		catch (const std::exception&)
+		{
+
+		}
+
+		//priority
+		cmsMessage->setCMSPriority(message.priority());
+
+		// redelivered ??
+		cmsMessage->setCMSRedelivered(message.delivery_count() > 1);
+
+
+		if (auto replyTo = DestinationConverter::createCMSReplyTo(message))
+		{
+			cmsMessage->setCMSDestination(replyTo);
+			delete replyTo;
+		}
+
+		//timestamp
+		cmsMessage->setCMSTimestamp(message.creation_time().milliseconds());
+		//type
+		try
+		{
+			cmsMessage->setCMSType(message.subject());
+		}
+		catch (const std::exception&)
+		{
+
+		}
+	}
+	
+	MessageProperties::MessageProperties(const MessageProperties& other)
+	:	correlationId(other.correlationId),
+		deliveryMode(other.deliveryMode),
+		expiration(other.expiration),
+		messageId(other.messageId),
+		priority(other.priority),
+		redelivered(other.redelivered),
+		timeStamp(other.timeStamp),
+		type(other.type)
+	{
+		if(other.destination)
+			destination = std::make_unique<internal::Destination>(*other.destination);
+
+		if (other.replyTo)
+			replyTo = std::make_unique<internal::Destination>(*other.replyTo);
+	}
+	
+	void MessageProperties::clear()
+	{
+		mProperties.clear();
+	}
+
+	std::vector<std::string> MessageProperties::getNames() const
+	{
+		std::vector<std::string> names;
+		for (const auto& pair : mProperties)
+			names.push_back(pair.first);
+
+		return names;
+	}
+
+	cms::Message::ValueType MessageProperties::getType(const std::string& name) const
+	{
+		auto it = mProperties.find(name);
+		if (it == mProperties.end())
+			return cms::Message::UNKNOWN_TYPE;
+		return std::visit([](auto&& arg) -> cms::Message::ValueType {
+			using T = std::decay_t<decltype(arg)>;
+			if constexpr (std::is_same_v<T, bool>)
+				return cms::Message::BOOLEAN_TYPE;
+			else if constexpr (std::is_same_v<T, unsigned char>)
+				return cms::Message::BYTE_TYPE;
+			else if constexpr (std::is_same_v<T, double>)
+				return cms::Message::DOUBLE_TYPE;
+			else if constexpr (std::is_same_v<T, float>)
+				return cms::Message::FLOAT_TYPE;
+			else if constexpr (std::is_same_v<T, int>)
+				return cms::Message::INTEGER_TYPE;
+			else if constexpr (std::is_same_v<T, long long>)
+				return cms::Message::LONG_TYPE;
+			else if constexpr (std::is_same_v<T, short>)
+				return cms::Message::SHORT_TYPE;
+			else if constexpr (std::is_same_v<T, std::string>)
+				return cms::Message::STRING_TYPE;
+			else
+				return cms::Message::UNKNOWN_TYPE;
+		}, it->second);
+	}
+
+	bool MessageProperties::exists(const std::string& name) const
+	{
+		return mProperties.find(name) != mProperties.end();
+	}
+
+	void MessageProperties::set(const std::string& name, property value)
+	{
+		mProperties[name] = std::move(value);
+	}
 }

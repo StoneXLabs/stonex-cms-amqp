@@ -26,6 +26,8 @@
 #include <condition_variable>
 #include <mutex>
 
+#include <log4cxx/logger.h>
+
 
 
 
@@ -73,6 +75,7 @@ namespace stonex::amqp
 		void on_session_error(proton::session& session) override;
 
 	private:
+        log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("CMS") };
 		proton::connection mConnection;
 		proton::session mSession;
 		proton::work_queue* mWorkQueue{nullptr};

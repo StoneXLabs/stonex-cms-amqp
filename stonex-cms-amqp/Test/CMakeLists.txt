@@ -5,10 +5,10 @@ cmake_minimum_required(VERSION 3.16)
 project(stonex-cms-amqp-test LANGUAGES CXX)
 
 
-set(CMAKE_CXX_STANDARD 17)
+#set(CMAKE_CXX_STANDARD 17)
 
 
-file(GLOB sourceFiles ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/*.h ${PROJECT_SOURCE_DIR}/schema/*.cc)
+file(GLOB sourceFiles ${PROJECT_SOURCE_DIR}/src/*.cpp  ${PROJECT_SOURCE_DIR}/schema/*.cc)
 file(GLOB headerFiles ${PROJECT_SOURCE_DIR}/include/*.h  ${PROJECT_SOURCE_DIR}/schema/*.h)
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${sourceFiles} ${headerFiles})

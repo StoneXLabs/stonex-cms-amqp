@@ -25,6 +25,11 @@
 #include <proton/container.hpp>
 #include <proton/messaging_handler.hpp>
 
+#include <log4cxx/logmanager.h>
+#include <log4cxx/logger.h>
+
+static auto logger = log4cxx::LogManager::getLogger("CMS");
+
 
 namespace activemq::library::ActiveMQCPP
 {
@@ -59,6 +64,7 @@ namespace stonex::amqp
 
 		std::shared_ptr<proton::container> mContainer;
 		std::unique_ptr<std::thread> mContainerThread;
+		log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("CMS") };
 
 	};
 }

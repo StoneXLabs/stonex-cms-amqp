@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(stonex-cms-amqp LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+#set(CMAKE_CXX_STANDARD 20)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 

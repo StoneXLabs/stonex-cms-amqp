@@ -35,9 +35,6 @@
 #include "MessageConsumer.h"
 
 
-#include <fmt/format.h>
-
-
 
 
 stonex::amqp::Session::Session::Session(proton::connection& connection, cms::Session::AcknowledgeMode ackMode)
@@ -70,6 +67,9 @@ void stonex::amqp::Session::Session::stop()
 
 void stonex::amqp::Session::Session::close()
 {
+	mWorkQueue->add([=] {mSession.close(); });
+	std::unique_lock lk(mMutex);
+	mCv.wait(lk, [this]() { return !mWorkQueue; });
 }
 
 void stonex::amqp::Session::Session::commit()
@@ -209,14 +209,20 @@ void stonex::amqp::Session::Session::on_session_open(proton::session& session)
 	std::unique_lock<std::mutex> lk(mMutex);
 	mSession = session;
 	mWorkQueue = &session.work_queue();
+
+	LOG4CXX_INFO(mLogger, std::format("Session open"));
 	mCv.notify_all();
 }
 
 void stonex::amqp::Session::Session::on_session_close(proton::session& session)
 {
+	std::unique_lock lk(mMutex);
+	mWorkQueue = nullptr;
+	LOG4CXX_INFO(mLogger, std::format("Session close"));
+	mCv.notify_one();
 }
 
 void stonex::amqp::Session::Session::on_session_error(proton::session& session)
 {
-
+	LOG4CXX_ERROR(mLogger, std::format("Session error {}", session.error().what()));
 }

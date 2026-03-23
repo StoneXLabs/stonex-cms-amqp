@@ -19,8 +19,8 @@
 
 #include "ProtonCppLibrary.h"
 
+#include <proton/log.h>
 
-#include <fmt/format.h>
 #include <iostream>
 
 #include <dbghelp.h>
@@ -73,6 +73,11 @@ void WriteMiniDump(EXCEPTION_POINTERS* pExceptionPointers)
 stonex::amqp::ProtonCppLibrary::ProtonCppLibrary()
 {
     SetUnhandledExceptionFilter(UnhandledExceptionHandler);
+
+    auto logger = pn_default_logger();
+
+    pn_logger_reset_mask(logger, PN_SUBSYSTEM_ALL, PN_LEVEL_ALL);
+
     mContainer = std::make_shared<proton::container>(*this);
     mContainer->auto_stop(false);
     mContainerThread = std::make_unique<std::thread>(std::thread([this] {
@@ -92,8 +97,6 @@ stonex::amqp::ProtonCppLibrary::ProtonCppLibrary()
 
 stonex::amqp::ProtonCppLibrary::~ProtonCppLibrary()
 {
-
-
     mContainer->stop();
     mContainerThread->join();
 }

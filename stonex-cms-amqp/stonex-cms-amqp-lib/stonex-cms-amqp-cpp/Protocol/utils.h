@@ -8,6 +8,10 @@
 
 #include <cms/Message.h>
 
+
+#include <variant>
+#include <map>
+
 #include "Destination.h"
 
 namespace internal {
@@ -21,6 +25,13 @@ namespace internal {
 		constexpr const char *DELETE_ON_CLOSE = "delete-on-close";
 	}
 
+	namespace properties
+	{
+		constexpr const char* JMSX_GROUP_ID = "JMSXGroupID";
+		constexpr const char* CMSX_GROUP_ID = "CMSXGroupID";
+		constexpr const char* JMSX_MESSAGE_ID = "JMSMessageId";
+		constexpr const char* AMQP_MESSAGE_ID = "message-id-string";
+	}
 
 	namespace annotation
 	{
@@ -54,12 +65,14 @@ namespace internal {
 	public:
 		static std::vector<proton::symbol> capabilities(const cms::Destination *destination);
 		static internal::annotation::DESTINATION_TYPE jmsDestinationType(const cms::Destination* destination);
+		static internal::annotation::DESTINATION_TYPE jmsDestinationType(const cms::Destination::DestinationType& destinationType);
 		static std::string address(const cms::Destination *destination);
 		static cms::Destination* createCMSDestination(const internal::Destination& destination);
 		static cms::Destination* createCMSDestination(const std::string& address ,const proton::target& target);
 		static cms::Destination* createCMSDestination(const std::string& address ,const proton::source& target);
 		static cms::Destination* createCMSDestination(const proton::message& message);
 		static cms::Destination* createCMSReplyTo(const proton::message& message);
+		static internal::Destination* createProtonDestination(const cms::Destination* destination);
 
 	};
 
@@ -73,6 +86,9 @@ namespace internal {
 	{
 	public:
 		static cms::Message* fromProtonMessage(const proton::message& message);
+	
+	private:
+		static void transformProperties(const proton::message& message, cms::Message* cmsMessage);
 	//	static proton::message fromCmsMessage(const cms::Message* message);
 
 	//	private:
@@ -80,4 +96,60 @@ namespace internal {
 	//	static proton::message fromCmsMessage(const cms::BytesMessage *destination);
 	};
 
+	
+	class MessageProperties
+	{
+		using property = std::variant<bool, unsigned char, double, float, int, long long, short, std::string>;
+
+	public:
+		MessageProperties() = default;
+		MessageProperties(const MessageProperties& other);
+		
+		void clear();
+		std::vector<std::string> getNames() const;
+		cms::Message::ValueType getType(const std::string& name) const;
+		bool exists(const std::string& name) const;
+		void set(const std::string& name, property value);
+		
+
+		template<typename T>
+		T get(const std::string& name) const
+		{
+			auto it = mProperties.find(name);
+			if (it == mProperties.end())
+				throw std::out_of_range("Property not found");
+
+			return std::visit([](auto&& arg) -> T {
+				if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, T>)
+					return arg;
+				else
+					throw std::bad_variant_access();
+			}, it->second);
+		}
+
+		property get(const std::string& name) const
+		{
+			auto it = mProperties.find(name);
+			if (it == mProperties.end())
+				throw std::out_of_range("Property not found");
+
+			return it->second;
+		}
+
+		std::string correlationId;
+		int deliveryMode{cms::Message::DEFAULT_DELIVERY_MODE};
+		//destination
+		std::unique_ptr<internal::Destination> destination;
+		long long expiration{0};
+		std::string messageId;
+		int priority{cms::Message::DEFAULT_MSG_PRIORITY};
+		bool redelivered{false};
+		//replyTo
+		std::unique_ptr<internal::Destination> replyTo;
+		long long timeStamp{0};
+		std::string type;
+
+	private:
+		std::map<std::string, property> mProperties;
+	};
 }

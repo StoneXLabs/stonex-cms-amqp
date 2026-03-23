@@ -19,7 +19,10 @@
 
 #pragma once
 
+#pragma once
+
 #include <cms/ConnectionFactory.h>
+#include <log4cxx/logger.h>
 #include <vector>
 
 namespace stonex::amqp
@@ -42,6 +45,7 @@ namespace stonex::amqp
 	private:
 		const std::string mPrimaryUrl;
 		const std::vector<std::string> mFailoverUrl;
+		log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("CMS") };
 	};
 };
 

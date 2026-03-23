@@ -32,7 +32,6 @@
 
 #include "MessageProducer.h"
 
-
 cms::Message* stonex::amqp::Message::clone() const
 {
 	return new Message(*this);
@@ -45,36 +44,25 @@ void stonex::amqp::Message::clearBody()
 
 void stonex::amqp::Message::clearProperties()
 {
-	mMessage.properties().clear();
+	mProperties.clear();
 }
 
 std::vector<std::string> stonex::amqp::Message::getPropertyNames() const
 {
-	std::map<std::string, proton::scalar> properties;
-	proton::get(mMessage.properties(), properties);
-
-	std::vector<std::string> propertyVector;
-	propertyVector.reserve(properties.size());
-	
-	for(const auto& [key, value] : properties)
-	{
-		propertyVector.emplace_back(key);
-	}
-
-	return propertyVector;
+	return mProperties.getNames();
 }
 
 bool stonex::amqp::Message::propertyExists(const std::string& name) const
 {
-	return mMessage.properties().exists(name);
+	return mProperties.exists(name);
 }
 
 cms::Message::ValueType stonex::amqp::Message::getPropertyValueType(const std::string& name) const
 {
-	if (!propertyExists(name))
+	if (!mProperties.exists(name))
 		throw cms::CMSException("property name " + name + "does not exist");
 
-	return internal::ValueTypeConverter::amqpToCms(mMessage.properties().get(name).type());
+	return mProperties.getType(name);
 }
 
 //getters
@@ -82,9 +70,9 @@ bool stonex::amqp::Message::getBooleanProperty(const std::string& name) const
 {
 	try
 	{
-		return proton::get<bool>(mMessage.properties().get(name));
+		return mProperties.get<bool>(name);
 	}
-	catch(const std::exception& e)
+	catch (const std::exception& e)
 	{
 		throw cms::MessageFormatException(e.what());
 	}
@@ -92,12 +80,12 @@ bool stonex::amqp::Message::getBooleanProperty(const std::string& name) const
 
 unsigned char stonex::amqp::Message::getByteProperty(const std::string& name) const
 {
-	
+
 	try
 	{
-		return proton::get<unsigned char>(mMessage.properties().get(name));
+		return mProperties.get<unsigned char>(name);
 	}
-	catch(const std::exception& e)
+	catch (const std::exception& e)
 	{
 		throw cms::MessageFormatException(e.what());
 	}
@@ -105,12 +93,12 @@ unsigned char stonex::amqp::Message::getByteProperty(const std::string& name) co
 
 double stonex::amqp::Message::getDoubleProperty(const std::string& name) const
 {
-	
+
 	try
 	{
-		return proton::get<double>(mMessage.properties().get(name));
+		return mProperties.get<double>(name);
 	}
-	catch(const std::exception& e)
+	catch (const std::exception& e)
 	{
 		throw cms::MessageFormatException(e.what());
 	}
@@ -118,12 +106,12 @@ double stonex::amqp::Message::getDoubleProperty(const std::string& name) const
 
 float stonex::amqp::Message::getFloatProperty(const std::string& name) const
 {
-	
+
 	try
 	{
-		return proton::get<float>(mMessage.properties().get(name));
+		return mProperties.get<float>(name);
 	}
-	catch(const std::exception& e)
+	catch (const std::exception& e)
 	{
 		throw cms::MessageFormatException(e.what());
 	}
@@ -131,12 +119,12 @@ float stonex::amqp::Message::getFloatProperty(const std::string& name) const
 
 int stonex::amqp::Message::getIntProperty(const std::string& name) const
 {
-	
+
 	try
 	{
-		return proton::get<int>(mMessage.properties().get(name));
+		return mProperties.get<int>(name);
 	}
-	catch(const std::exception& e)
+	catch (const std::exception& e)
 	{
 		throw cms::MessageFormatException(e.what());
 	}
@@ -144,12 +132,12 @@ int stonex::amqp::Message::getIntProperty(const std::string& name) const
 
 long long stonex::amqp::Message::getLongProperty(const std::string& name) const
 {
-	
+
 	try
 	{
-		return proton::get<long long>(mMessage.properties().get(name));
+		return mProperties.get<long long>(name);
 	}
-	catch(const std::exception& e)
+	catch (const std::exception& e)
 	{
 		throw cms::MessageFormatException(e.what());
 	}
@@ -157,12 +145,12 @@ long long stonex::amqp::Message::getLongProperty(const std::string& name) const
 
 short stonex::amqp::Message::getShortProperty(const std::string& name) const
 {
-	
+
 	try
 	{
-		return proton::get<short>(mMessage.properties().get(name));
+		return mProperties.get<short>(name);
 	}
-	catch(const std::exception& e)
+	catch (const std::exception& e)
 	{
 		throw cms::MessageFormatException(e.what());
 	}
@@ -170,161 +158,146 @@ short stonex::amqp::Message::getShortProperty(const std::string& name) const
 
 std::string stonex::amqp::Message::getStringProperty(const std::string& name) const
 {
-	
+
 	try
 	{
-		return proton::get<std::string>(mMessage.properties().get(name));
+		return mProperties.get<std::string>(name);
 	}
-	catch(const std::exception& e)
+	catch (const std::exception& e)
 	{
 		throw cms::MessageFormatException(e.what());
 	}
 }
 
+
 //setters
 void stonex::amqp::Message::setBooleanProperty(const std::string& name, bool value)
 {
-	if(name.empty())
+	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
-		
-	mMessage.properties().put(name, value);
+	mProperties.set(name, value);
 }
 
 void stonex::amqp::Message::setByteProperty(const std::string& name, unsigned char value)
 {
-	
-	if(name.empty())
+
+	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
-		
-	mMessage.properties().put(name, value);
+
+	mProperties.set(name, value);
 }
 
 void stonex::amqp::Message::setDoubleProperty(const std::string& name, double value)
 {
-	
-	if(name.empty())
+
+	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
-		
-	mMessage.properties().put(name, value);
+
+	mProperties.set(name, value);
 }
 
 void stonex::amqp::Message::setFloatProperty(const std::string& name, float value)
 {
-	
-	if(name.empty())
+
+	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
-		
-	mMessage.properties().put(name, value);
+
+	mProperties.set(name, value);
 }
 
 void stonex::amqp::Message::setIntProperty(const std::string& name, int value)
 {
-	
-	if(name.empty())
+
+	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
-		
-	mMessage.properties().put(name, value);
+
+	mProperties.set(name, value);
 }
 
 void stonex::amqp::Message::setLongProperty(const std::string& name, long long value)
 {
-	
-	if(name.empty())
+
+	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
-		
-	mMessage.properties().put(name, value);
+
+	mProperties.set(name, value);
 }
 
 void stonex::amqp::Message::setShortProperty(const std::string& name, short value)
 {
-	
-	if(name.empty())
+
+	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
-		
-	mMessage.properties().put(name, value);
+
+	mProperties.set(name, value);
 }
 
 void stonex::amqp::Message::setStringProperty(const std::string& name, const std::string& value)
 {
-	
-	if(name.empty())
+
+	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
-		
-	mMessage.properties().put(name, value);
+
+	mProperties.set(name, value);
 }
+
+///////
 
 std::string stonex::amqp::Message::getCMSCorrelationID() const
 {
-	try
-	{
-		return proton::get<std::string>(mMessage.correlation_id());
-	}
-	catch (const std::exception&)
-	{
-		return "";
-	}
+	return mProperties.correlationId;
 }
 
 void stonex::amqp::Message::setCMSCorrelationID(const std::string& correlationId)
 {
-	mMessage.correlation_id(correlationId);
+	mProperties.correlationId = correlationId;
 }
 
 int stonex::amqp::Message::getCMSDeliveryMode() const
 {
-	return mMessage.durable() ? cms::DeliveryMode::PERSISTENT : cms::DeliveryMode::NON_PERSISTENT;
+	return mProperties.deliveryMode;
 }
 
 void stonex::amqp::Message::setCMSDeliveryMode(int mode)
 {
-	if (mode == cms::DeliveryMode::DELIVERY_MODE::NON_PERSISTENT)
-	{
-		mMessage.durable(false);
-	}
-	else if (mode == cms::DeliveryMode::DELIVERY_MODE::PERSISTENT)
-	{
-		mMessage.durable(true);
-	}
+	mProperties.deliveryMode = mode;
 }
 
 const cms::Destination* stonex::amqp::Message::getCMSDestination() const
 {
-	return internal::DestinationConverter::createCMSDestination(mMessage);
+	if(mProperties.destination)
+		return internal::DestinationConverter::createCMSDestination(*mProperties.destination);
 }
 
 void stonex::amqp::Message::setCMSDestination(const cms::Destination* destination)
 {
-	mMessage.to(internal::DestinationConverter::address(destination));
-	mMessage.message_annotations().put(internal::annotation::JMS_DESTINATION_TYPE, static_cast<int8_t>(internal::DestinationConverter::jmsDestinationType(destination)));
-
+	mProperties.destination.reset(internal::DestinationConverter::createProtonDestination(destination));
 }
 
 long long stonex::amqp::Message::getCMSExpiration() const
 {
-	return mMessage.expiry_time().milliseconds();
+	return mProperties.expiration;
 }
 
 void stonex::amqp::Message::setCMSExpiration(long long expireTime)
 {
-	mMessage.expiry_time(proton::timestamp(expireTime));
+	mProperties.expiration = expireTime;
 }
 
 std::string stonex::amqp::Message::getCMSMessageID() const
 {
-	return proton::get<std::string>(mMessage.id());
+	return mProperties.messageId;
 }
 
 
 void stonex::amqp::Message::setCMSMessageID(const std::string& id)
 {
-	mMessage.id(id);
-	mMessage.properties().put("message-id-string", "ID:"+id);
-	mMessage.properties().put("JMSMessageID", "ID:AMQP_STRING:" + id);
+	mProperties.messageId = id;
 }
 
 int stonex::amqp::Message::getCMSPriority() const
 {
-	return static_cast<int>(mMessage.priority());
+	return mProperties.priority;
 }
 
 void stonex::amqp::Message::setCMSPriority(int priority)
@@ -332,50 +305,49 @@ void stonex::amqp::Message::setCMSPriority(int priority)
 	if (priority > std::numeric_limits<uint8_t>::max())
 		throw cms::CMSException("Priority value cannot be greater than 255");
 
-	mMessage.priority(static_cast<uint8_t>(priority));
+	mProperties.priority = priority;
 }
 
 bool stonex::amqp::Message::getCMSRedelivered() const
 {
 	//should use delivery annotations?
-	return mMessage.delivery_count() > 0;
+	return mProperties.redelivered;
 }
 
 void stonex::amqp::Message::setCMSRedelivered(bool redelivered)
 {
-	if (redelivered)
-		mMessage.delivery_count(mMessage.delivery_count() + 1);
-	else
-		mMessage.delivery_count(0);
+	mProperties.redelivered = redelivered;
 }
 
 const cms::Destination* stonex::amqp::Message::getCMSReplyTo() const
 {
-	return internal::DestinationConverter::createCMSReplyTo(mMessage);
+	if (mProperties.replyTo)
+		return internal::DestinationConverter::createCMSDestination(*mProperties.replyTo);
 }
 
 void stonex::amqp::Message::setCMSReplyTo(const cms::Destination* destination)
 {
-	mMessage.reply_to(internal::DestinationConverter::address(destination));
-	mMessage.message_annotations().put(internal::annotation::JMS_REPLY_TO_TYPE, static_cast<int8_t>(internal::DestinationConverter::jmsDestinationType(destination)));
+	mProperties.replyTo.reset(internal::DestinationConverter::createProtonDestination(destination));
 }
 
 long long stonex::amqp::Message::getCMSTimestamp() const
 {
-	return mMessage.creation_time().milliseconds();
+	return mProperties.timeStamp;
 }
 
 void stonex::amqp::Message::setCMSTimestamp(long long timeStamp)
 {
-	mMessage.creation_time(proton::timestamp(timeStamp));
+	mProperties.timeStamp = timeStamp;
 }
 
 std::string stonex::amqp::Message::getCMSType() const
 {
-	return mMessage.subject();
+	return mProperties.type;
 }
+
 
 void stonex::amqp::Message::setCMSType(const std::string& type)
 {
-	mMessage.subject(type);
+	mProperties.type = type;
 }
+

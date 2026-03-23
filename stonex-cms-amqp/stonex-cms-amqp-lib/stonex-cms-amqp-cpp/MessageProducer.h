@@ -28,11 +28,12 @@
 #include <proton/messaging_handler.hpp>
 #include <proton/tracker.hpp>
 
+#include <log4cxx/logger.h>
+
 #include <cms/MessageProducer.h>
 #include "Message.h"
 #include <functional>
 #include <chrono>
-
 
 #include "Protocol/utils.h"
 
@@ -76,31 +77,23 @@ namespace stonex::amqp
 		cms::MessageTransformer* getMessageTransformer() const override { return nullptr; };
 		
 		void close();
-
+	
+	private:
 		void on_sendable(proton::sender& sender) override;
 		void on_sender_open(proton::sender& sender) override;
 		void on_sender_error(proton::sender& sender) override;
 		void on_sender_close(proton::sender& sender) override;
-		void on_sender_detach(proton::sender& sender) override;
 	    void on_error(const proton::error_condition& error) override;
-		
-    	void on_tracker_accept(proton::tracker& tracker) override;
-    	void on_tracker_reject(proton::tracker& tracker) override;
-    	void on_tracker_release(proton::tracker& tracker) override;
-    	void on_tracker_settle(proton::tracker& tracker) override;
-	
-	// private:
-	// 	void send(const cms::Destination* destination, cms::Message* message, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* onComplete);
 
 	private:
-		internal::Destination mDestination;
-
-	private:
+		log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("CMS") };
+		bool mReadyToSend{false};
 		proton::session mSession;
 		proton::sender mSender;
 		proton::work_queue* mWorkQueue{ nullptr };
 		std::mutex mMutex;
 		std::condition_variable mCv;
+		std::unique_ptr<internal::Destination> mDefaultDestination{ nullptr };
 
 		cms::DeliveryMode::DELIVERY_MODE mDeliveryMode = (cms::DeliveryMode::DELIVERY_MODE)cms::Message::DEFAULT_DELIVERY_MODE;
 		bool mMessageIdDisabed{ false };

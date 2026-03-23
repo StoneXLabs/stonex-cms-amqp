@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(stonex-cms-amqp-unittests)
 
-set(CMAKE_CXX_STANDARD 17)
+#set(CMAKE_CXX_STANDARD 17)
 
 file(GLOB sourceFiles ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB headerFiles ${PROJECT_SOURCE_DIR}/*.h)

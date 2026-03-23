@@ -35,14 +35,12 @@
 #include "TemporaryQueue.h"
 #include "TemporaryTopic.h"
 
-#include <fmt/format.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
+#include <format>
 
 #include "Protocol/utils.h"
 
 stonex::amqp::MessageConsumer::MessageConsumer(proton::session& session, const cms::Destination* destination, const std::string& selector)
-	:mLogger(spdlog::stdout_color_mt("console")),
-	mSession(session)
+	:mSession(session)
 {
 	if (!destination)
 		throw cms::IllegalStateException("destination must not be null");
@@ -90,6 +88,9 @@ void stonex::amqp::MessageConsumer::stop()
 
 void stonex::amqp::MessageConsumer::close()
 {
+	mWorkQueue->add([=] {mReceiver.close(); });
+	std::unique_lock lk(mMutex);
+	mCv.wait(lk, [this]() { return !mWorkQueue; });
 }
 
 stonex::amqp::MessageConsumer::~MessageConsumer()
@@ -158,58 +159,42 @@ cms::MessageAvailableListener* stonex::amqp::MessageConsumer::getMessageAvailabl
 
 void stonex::amqp::MessageConsumer::on_receiver_open(proton::receiver& receiver)
 {
+	std::unique_lock lk(mMutex);
 	mWorkQueue = &receiver.work_queue();
 	mReceiver = receiver;
+	LOG4CXX_INFO(mLogger, std::format("Consumer open {}", receiver.source().address()));
 	mCv.notify_one();
 }
 
 void stonex::amqp::MessageConsumer::on_receiver_close(proton::receiver& receiver)
 {
-
+	std::unique_lock lk(mMutex);
+	mWorkQueue = nullptr;
+	LOG4CXX_INFO(mLogger, std::format("Consumer close {}", receiver.source().address()));
+	mCv.notify_one();
 }
 
 void stonex::amqp::MessageConsumer::on_receiver_detach(proton::receiver& receiver)
 {
+	LOG4CXX_INFO(mLogger, std::format("Consumer detatch {}", receiver.source().address()));
 }
 
 void stonex::amqp::MessageConsumer::on_receiver_error(proton::receiver& receiver)
 {
+	LOG4CXX_ERROR(mLogger, std::format("Consumer error {} {}", receiver.source().address(), receiver.error().what()));
 
 }
 
 void stonex::amqp::MessageConsumer::on_receiver_drain_finish(proton::receiver& receiver)
 {
+	LOG4CXX_INFO(mLogger, std::format("Consumer drain finish {}", receiver.source().address()));
 }
 
 
 void stonex::amqp::MessageConsumer::on_message(proton::delivery& delivery, proton::message& message)
 {
-
-	//mLogger->info(
-	//	"Received message: {}\nCorrelationId: {}\nMessageId: {}\nto: {}\nreplyTo: {}\n"
-	//	"subject: {}\ncontent_type: {}\ncontent_encoding: {}\nexpiry_time: {}\ncreation_time: {}\n"
-	//	"inferred: {}\ndurable: {}\nttl: {}\npriority: {}\nfirst_acquirer: {}\ndelivery_count: {}\ngroup_id: {}\n"
-	//	"reply_to_group_id: {}\ngroup_sequence: {}",
-	//	proton::get<std::string>(message.body()), message.correlation_id().empty() ? "" : proton::get<std::string>(message.correlation_id()), message.id().empty() ? "" : proton::get<std::string>(message.id()), message.to(), message.reply_to(), message.subject(),
-	//	message.content_type(), message.content_encoding(), message.expiry_time().milliseconds(), message.creation_time().milliseconds(),
-	//	message.inferred(), message.durable(), message.ttl().milliseconds(), message.priority(), message.first_acquirer(),
-	//	message.delivery_count(), message.group_id(), message.reply_to_group_id(), message.group_sequence()
-	//);
-
 	if (!onMessageCallback)
 		return;
 
 	onMessageCallback(internal::MessageConverter::fromProtonMessage(message));
-	//// Print all properties
-	//std::vector<std::string> propertyNames = cmsMessage->getPropertyNames();
-	//std::ostringstream propsStream;
-	//propsStream << "cmsMessage properties:\n";
-	//for (const auto& propName : propertyNames) {
-	//	try {
-	//		propsStream << propName << ": " << cmsMessage->getStringProperty(propName) << "\n";
-	//	} catch (const cms::CMSException& ex) {
-	//		propsStream << propName << ": <error reading property>\n";
-	//	}
-	//}
-	//mLogger->info(propsStream.str());	
 }

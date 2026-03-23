@@ -23,13 +23,7 @@
 #include <proton/message.hpp>
 
 #include "stonex-cms-amqp-lib-defines.h"
-
-namespace proton
-{
-	class message;
-	class sender;
-	class receiver;
-} 
+#include <Protocol/utils.h>
 
 AMQP_DEFINES
 
@@ -98,6 +92,7 @@ AMQP_DEFINES
 
 	private:
 		proton::message mMessage;
+		internal::MessageProperties mProperties;
 	};
 
 

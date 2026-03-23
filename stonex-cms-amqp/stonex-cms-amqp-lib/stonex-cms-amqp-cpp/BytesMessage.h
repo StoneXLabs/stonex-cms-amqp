@@ -24,6 +24,9 @@
 
 #include <proton/message.hpp>
 #include "stonex-cms-amqp-lib-defines.h"
+#include <Protocol/utils.h>
+
+
 
 AMQP_DEFINES
 
@@ -136,10 +139,7 @@ AMQP_DEFINES
 		void set(T value)
 		{
 			constexpr size_t size{ sizeof(T) };
-			auto body = proton::get<proton::binary>(mMessage.body());
-			std::copy_n((uint8_t*)&value, size, std::back_inserter(body));
-
-			mMessage.body(std::move(body));
+			std::copy_n((uint8_t*)&value, size, std::back_inserter(mBody));
 		}
 
 		template <typename T>
@@ -147,10 +147,9 @@ AMQP_DEFINES
 		{
 			 try
 			 {
-				const auto body = proton::get<proton::binary>(mMessage.body());
 			 	constexpr size_t size{ sizeof(T) };
 				T value;
-				memcpy(&value, &body.at(read_position), size);
+				memcpy(&value, &mBody.at(read_position), size);
 				read_position += size;
 			 	return value;
 			 }
@@ -167,11 +166,8 @@ AMQP_DEFINES
 		template<>
 		void set(const std::string s)
 		{
-			auto body = proton::get<proton::binary>(mMessage.body());
-			std::copy_n(s.c_str(), s.size(), std::back_inserter(body));
-			body.push_back('\0');
-
-			mMessage.body(std::move(body));
+			std::copy_n(s.c_str(), s.size(), std::back_inserter(mBody));
+			mBody.push_back('\0');
 		}
 
 		template<>
@@ -180,16 +176,11 @@ AMQP_DEFINES
 			std::string value;
 			try
 			{
-				const auto body = proton::get<proton::binary>(mMessage.body());
-
-
-				for (auto it = body.cbegin() += read_position; it != body.cend(); it++)
+				for (auto it = mBody.cbegin() += read_position; it != mBody.cend(); it++)
 				{
 					if (*it == '\0')
 					{
-						proton::binary stringChunk(body.cbegin() += read_position, it);
-						value = stringChunk;
-
+						value.insert(value.begin(), mBody.cbegin() += read_position, it);
 					}
 				}
 
@@ -210,8 +201,8 @@ AMQP_DEFINES
 			}
 		}
 	protected:
-		proton::message mMessage;
-		std::vector<unsigned char> mMessageBody;
+		std::vector<unsigned char> mBody;
+		internal::MessageProperties mProperties;
 		mutable long long read_position{ 0 };
 	};
 

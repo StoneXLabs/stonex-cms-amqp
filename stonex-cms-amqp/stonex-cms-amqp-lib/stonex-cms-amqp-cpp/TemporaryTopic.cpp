@@ -44,7 +44,7 @@ cms::Destination* stonex::amqp::TemporaryTopic::clone() const
 
 void stonex::amqp::TemporaryTopic::copy(const cms::Destination& source)
 {
-    throw cms::CMSException("illegal use - not implemented");
+	//TO DO handle copy, should  throw if source is not TemporaryTopic?
 }
 
 bool stonex::amqp::TemporaryTopic::equals(const cms::Destination& other) const
@@ -61,7 +61,6 @@ bool stonex::amqp::TemporaryTopic::equals(const cms::Destination& other) const
 
 const cms::CMSProperties& stonex::amqp::TemporaryTopic::getCMSProperties() const
 {
-    // TODO: insert return statement here
     return MessageProperties();
 }
 
@@ -72,5 +71,5 @@ std::string stonex::amqp::TemporaryTopic::getTopicName() const
 
 void stonex::amqp::TemporaryTopic::destroy()
 {
-    throw cms::CMSException("illegal use - not implemented");
+	//TO DO implement temporary Topic
 }

@@ -46,7 +46,7 @@ cms::Destination* stonex::amqp::Queue::clone() const
 
 void stonex::amqp::Queue::copy(const Destination& source)
 {
-    throw cms::CMSException("illegal use - not implemented");
+	//TO DO handle copy, should  throw if source is not Queue?
 }
 
 bool stonex::amqp::Queue::equals(const Destination& other) const
@@ -62,7 +62,6 @@ bool stonex::amqp::Queue::equals(const Destination& other) const
 
 const cms::CMSProperties& stonex::amqp::Queue::getCMSProperties() const
 {
-    // TODO: insert return statement here
     return MessageProperties();
 }
 

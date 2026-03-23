@@ -54,6 +54,9 @@ void stonex::amqp::Connection::start()
 
 void stonex::amqp::Connection::stop()
 {
+	//AMQP connection has no Stopabble interface
+	//TO DO implement Stopable behaviour like in CMS
+	close();
 }
 
 void stonex::amqp::Connection::close()
@@ -81,17 +84,18 @@ cms::Session* stonex::amqp::Connection::createSession(Session::AcknowledgeMode a
 
 std::string  stonex::amqp::Connection::getClientID() const
 {
+	//TO DO implement clientID management
 	return {};
 }
 
 void  stonex::amqp::Connection::setClientID(const std::string& clientID)
 {
-	
+	//TO DO implement clientID management
 }
 
 cms::ExceptionListener*  stonex::amqp::Connection::getExceptionListener() const
 {
-	return nullptr;
+	return mExceptionListener;
 }
 
 void  stonex::amqp::Connection::setExceptionListener(cms::ExceptionListener* listener)
@@ -101,7 +105,7 @@ void  stonex::amqp::Connection::setExceptionListener(cms::ExceptionListener* lis
 
 void  stonex::amqp::Connection::setMessageTransformer(cms::MessageTransformer* transformer)
 {
-
+	//TO DO implement message transformer management
 }
 
 cms::MessageTransformer*  stonex::amqp::Connection::getMessageTransformer() const

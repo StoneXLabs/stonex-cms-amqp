@@ -35,8 +35,6 @@
 #include "MessageConsumer.h"
 
 
-
-
 stonex::amqp::Session::Session::Session(proton::connection& connection, cms::Session::AcknowledgeMode ackMode)
 	:mConnection{connection}
 {
@@ -62,7 +60,9 @@ void stonex::amqp::Session::Session::start()
 
 void stonex::amqp::Session::Session::stop()
 {
-
+	//AMQP session has no Stopabble interface
+	//TO DO implement Stopable behaviour like in CMS
+	close();
 }
 
 void stonex::amqp::Session::Session::close()
@@ -74,17 +74,17 @@ void stonex::amqp::Session::Session::close()
 
 void stonex::amqp::Session::Session::commit()
 {
-
+	//TO DO implement Transactions
 }
 
 void stonex::amqp::Session::Session::rollback()
 {
-
+	//TO DO implement Transactions
 }
 
 void stonex::amqp::Session::Session::recover()
 {
-
+	//TO DO implement Transactions
 }
 
 
@@ -100,12 +100,15 @@ cms::MessageConsumer* stonex::amqp::Session::createConsumer(const cms::Destinati
 
 cms::MessageConsumer* stonex::amqp::Session::createConsumer(const cms::Destination* destination, const std::string& selector, bool noLocal)
 {
-     return nullptr;
+	
+	//TO DO implement noLocal behaviour
+    return nullptr;
 }
 
 cms::MessageConsumer* stonex::amqp::Session::createDurableConsumer(const cms::Topic* destination, const std::string& name, const std::string& selector, bool noLocal )
 {
-     return nullptr;
+	//TO DO implement noLocal behaviour
+    return nullptr;
 }
 
 cms::MessageProducer* stonex::amqp::Session::createProducer(const cms::Destination* destination)
@@ -115,37 +118,39 @@ cms::MessageProducer* stonex::amqp::Session::createProducer(const cms::Destinati
 
 cms::QueueBrowser* stonex::amqp::Session::createBrowser(const cms::Queue* queue)
 {
-     return nullptr;
+	//TO DO implement Browser
+    return nullptr;
 }
 
 cms::QueueBrowser* stonex::amqp::Session::createBrowser(const cms::Queue* queue, const std::string& selector)
 {
-     return nullptr;
+	//TO DO implement Browser
+    return nullptr;
 }
 
 cms::Queue* stonex::amqp::Session::createQueue(const std::string& queueName)
 {
-     return new Queue(queueName);
+    return new Queue(queueName);
 }
 
 cms::Topic* stonex::amqp::Session::createTopic(const std::string& topicName)
 {
-     return new Topic(topicName);
+    return new Topic(topicName);
 }
 
 cms::TemporaryQueue* stonex::amqp::Session::createTemporaryQueue()
 {
-     return new TemporaryQueue();
+    return new TemporaryQueue();
 }
 
 cms::TemporaryTopic* stonex::amqp::Session::createTemporaryTopic()
 {
-     return new TemporaryTopic();
+    return new TemporaryTopic();
 }
 
 cms::Message* stonex::amqp::Session::createMessage()
 {
-     return nullptr;
+    return nullptr;
 }
 
 cms::BytesMessage* stonex::amqp::Session::createBytesMessage()
@@ -160,12 +165,13 @@ cms::BytesMessage* stonex::amqp::Session::createBytesMessage(const unsigned char
 
 cms::StreamMessage* stonex::amqp::Session::createStreamMessage()
 {
-     return nullptr;
+	//TO DO implement Stream Message
+    return nullptr;
 }
 
 cms::TextMessage* stonex::amqp::Session::createTextMessage()
 {
-     return new TextMessage("");
+    return new TextMessage("");
 }
 
 cms::TextMessage* stonex::amqp::Session::createTextMessage(const std::string& text)
@@ -175,29 +181,35 @@ cms::TextMessage* stonex::amqp::Session::createTextMessage(const std::string& te
 
 cms::MapMessage* stonex::amqp::Session::createMapMessage()
 {
-     return nullptr;
+	//TO DO implement Map Message
+    return nullptr;
 }
 
 cms::Session::AcknowledgeMode stonex::amqp::Session::getAcknowledgeMode() const
 {
+	//not_implemented<>();
 	return {};
 }
 
 bool stonex::amqp::Session::isTransacted() const
-{
-     return {};
+{	
+	//TO DO implement Transactions
+    return false;
 }
 
 void stonex::amqp::Session::unsubscribe(const std::string& name)
 {
+	//TO DO implement Transactions
 }
 
 void stonex::amqp::Session::setMessageTransformer(cms::MessageTransformer* transformer)
 {
+	//TO DO implement message transformer management
 }
 
 cms::MessageTransformer* stonex::amqp::Session::getMessageTransformer() const
 {
+	//TO DO implement message transformer management
 	return nullptr;
 }
 

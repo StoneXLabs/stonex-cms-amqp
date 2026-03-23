@@ -24,7 +24,6 @@
 #include <proton/work_queue.hpp>
 #include <proton/annotation_key.hpp>
 #include <proton/delivery.hpp>
-
 #include <proton/message_id.hpp>
 
 
@@ -140,20 +139,23 @@ std::string stonex::amqp::MessageConsumer::getMessageSelector() const
 
 void stonex::amqp::MessageConsumer::setMessageTransformer(cms::MessageTransformer* transformer)
 {
-
+	//TO DO implement message transformer management
 }
 
 cms::MessageTransformer* stonex::amqp::MessageConsumer::getMessageTransformer() const
 {
+	//TO DO implement message transformer management
 	return nullptr;
 }
 
 void stonex::amqp::MessageConsumer::setMessageAvailableListener(cms::MessageAvailableListener* listener)
 {
+	//TO DO implement message available listener management
 }
 
 cms::MessageAvailableListener* stonex::amqp::MessageConsumer::getMessageAvailableListener() const
 {
+	//TO DO implement message available listener management
 	return nullptr;
 }
 
@@ -182,7 +184,6 @@ void stonex::amqp::MessageConsumer::on_receiver_detach(proton::receiver& receive
 void stonex::amqp::MessageConsumer::on_receiver_error(proton::receiver& receiver)
 {
 	LOG4CXX_ERROR(mLogger, std::format("Consumer error {} {}", receiver.source().address(), receiver.error().what()));
-
 }
 
 void stonex::amqp::MessageConsumer::on_receiver_drain_finish(proton::receiver& receiver)

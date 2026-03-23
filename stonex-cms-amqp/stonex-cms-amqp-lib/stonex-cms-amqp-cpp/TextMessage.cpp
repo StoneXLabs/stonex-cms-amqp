@@ -55,8 +55,7 @@ cms::Message* stonex::amqp::TextMessage::clone() const
 
 void stonex::amqp::TextMessage::acknowledge() const
 { 
-
-	//mMessageDelivery.accept();
+	//TO DO implement user acknoweledgement
 }
 
 void stonex::amqp::TextMessage::clearBody()
@@ -88,8 +87,6 @@ cms::Message::ValueType stonex::amqp::TextMessage::getPropertyValueType(const st
 	return mProperties.getType(name);
 }
 
-
-//getters
 bool stonex::amqp::TextMessage::getBooleanProperty(const std::string& name) const
 {
 	try
@@ -104,7 +101,6 @@ bool stonex::amqp::TextMessage::getBooleanProperty(const std::string& name) cons
 
 unsigned char stonex::amqp::TextMessage::getByteProperty(const std::string& name) const
 {
-
 	try
 	{
 		return mProperties.get<unsigned char>(name);
@@ -117,7 +113,6 @@ unsigned char stonex::amqp::TextMessage::getByteProperty(const std::string& name
 
 double stonex::amqp::TextMessage::getDoubleProperty(const std::string& name) const
 {
-
 	try
 	{
 		return mProperties.get<double>(name);
@@ -130,7 +125,6 @@ double stonex::amqp::TextMessage::getDoubleProperty(const std::string& name) con
 
 float stonex::amqp::TextMessage::getFloatProperty(const std::string& name) const
 {
-
 	try
 	{
 		return mProperties.get<float>(name);
@@ -143,7 +137,6 @@ float stonex::amqp::TextMessage::getFloatProperty(const std::string& name) const
 
 int stonex::amqp::TextMessage::getIntProperty(const std::string& name) const
 {
-
 	try
 	{
 		return mProperties.get<int>(name);
@@ -156,7 +149,6 @@ int stonex::amqp::TextMessage::getIntProperty(const std::string& name) const
 
 long long stonex::amqp::TextMessage::getLongProperty(const std::string& name) const
 {
-
 	try
 	{
 		return mProperties.get<long long>(name);
@@ -169,7 +161,6 @@ long long stonex::amqp::TextMessage::getLongProperty(const std::string& name) co
 
 short stonex::amqp::TextMessage::getShortProperty(const std::string& name) const
 {
-
 	try
 	{
 		return mProperties.get<short>(name);
@@ -182,7 +173,6 @@ short stonex::amqp::TextMessage::getShortProperty(const std::string& name) const
 
 std::string stonex::amqp::TextMessage::getStringProperty(const std::string& name) const
 {
-
 	try
 	{
 		return mProperties.get<std::string>(name);
@@ -193,7 +183,6 @@ std::string stonex::amqp::TextMessage::getStringProperty(const std::string& name
 	}
 }
 
-//setters
 void stonex::amqp::TextMessage::setBooleanProperty(const std::string& name, bool value)
 {
 	if (name.empty())
@@ -263,7 +252,6 @@ void stonex::amqp::TextMessage::setStringProperty(const std::string& name, const
 
 	mProperties.set(name, value);
 }
-//////
 
 std::string stonex::amqp::TextMessage::getCMSCorrelationID() const
 {
@@ -294,9 +282,6 @@ const cms::Destination* stonex::amqp::TextMessage::getCMSDestination() const
 void stonex::amqp::TextMessage::setCMSDestination(const cms::Destination* destination)
 {
 	mProperties.destination.reset(internal::DestinationConverter::createProtonDestination(destination));
-	/*
-	mMessage.to(internal::DestinationConverter::address(destination));
-	mMessage.message_annotations().put(internal::annotation::JMS_DESTINATION_TYPE, static_cast<int8_t>(internal::DestinationConverter::jmsDestinationType(destination)));*/
 }
 
 long long stonex::amqp::TextMessage::getCMSExpiration() const
@@ -335,7 +320,6 @@ void stonex::amqp::TextMessage::setCMSPriority(int priority)
 
 bool stonex::amqp::TextMessage::getCMSRedelivered() const
 {
-	//should use delivery annotations?
 	return mProperties.redelivered;
 }
 
@@ -353,9 +337,6 @@ const cms::Destination* stonex::amqp::TextMessage::getCMSReplyTo() const
 void stonex::amqp::TextMessage::setCMSReplyTo(const cms::Destination* destination)
 {
 	mProperties.replyTo.reset(internal::DestinationConverter::createProtonDestination(destination));
-	/*
-	mMessage.reply_to(internal::DestinationConverter::address(destination));
-	mMessage.message_annotations().put(internal::annotation::JMS_REPLY_TO_TYPE, static_cast<int8_t>(internal::DestinationConverter::jmsDestinationType(destination)));*/
 }
 
 long long stonex::amqp::TextMessage::getCMSTimestamp() const

@@ -89,11 +89,6 @@ namespace internal {
 	
 	private:
 		static void transformProperties(const proton::message& message, cms::Message* cmsMessage);
-	//	static proton::message fromCmsMessage(const cms::Message* message);
-
-	//	private:
-	//	static proton::message fromCmsMessage(const cms::TextMessage *destination);
-	//	static proton::message fromCmsMessage(const cms::BytesMessage *destination);
 	};
 
 	
@@ -138,13 +133,11 @@ namespace internal {
 
 		std::string correlationId;
 		int deliveryMode{cms::Message::DEFAULT_DELIVERY_MODE};
-		//destination
 		std::unique_ptr<internal::Destination> destination;
 		long long expiration{0};
 		std::string messageId;
 		int priority{cms::Message::DEFAULT_MSG_PRIORITY};
 		bool redelivered{false};
-		//replyTo
 		std::unique_ptr<internal::Destination> replyTo;
 		long long timeStamp{0};
 		std::string type;

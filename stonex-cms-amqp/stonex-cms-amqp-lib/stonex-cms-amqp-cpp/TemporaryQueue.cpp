@@ -55,7 +55,7 @@ cms::Destination* stonex::amqp::TemporaryQueue::clone() const
 
 void stonex::amqp::TemporaryQueue::copy(const Destination& source)
 {
-    throw cms::CMSException("illegal use - not implemented");
+	//TO DO handle copy, should  throw if source is not TemporaryQueue?
 }
 
 bool stonex::amqp::TemporaryQueue::equals(const Destination& other) const
@@ -71,7 +71,6 @@ bool stonex::amqp::TemporaryQueue::equals(const Destination& other) const
 
 const cms::CMSProperties& stonex::amqp::TemporaryQueue::getCMSProperties() const
 {
-    // TODO: insert return statement here
     return MessageProperties();
 }
 
@@ -82,5 +81,5 @@ std::string stonex::amqp::TemporaryQueue::getQueueName() const
 
 void stonex::amqp::TemporaryQueue::destroy()
 {
-    throw cms::CMSException("illegal use - not implemented");
+	//TO DO implement temporary queue
 }

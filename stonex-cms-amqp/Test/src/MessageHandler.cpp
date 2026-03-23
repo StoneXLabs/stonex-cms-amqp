@@ -86,6 +86,7 @@ MyMessageHandler::~MyMessageHandler()
 
 	for(const auto& groupId : receivedGroups)
 	{
+		LOG4CXX_INFO(mLogger, std::format("Received messages from groups: {}", groupId));
 	}
 	
 }
@@ -100,13 +101,6 @@ void MyMessageHandler::onMessage(const cms::Message* message)
 		{
 			LOG4CXX_INFO(mLogger, std::format("Received new group: {}", groupId));
 			receivedGroups.insert(groupId);
-		}
-
-		for (const auto& property : message->getPropertyNames()) {
-			try {
-
-			} catch (const cms::CMSException& ex) {
-			}
 		}
 	}
 

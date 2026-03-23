@@ -73,8 +73,8 @@ namespace stonex::amqp
 		void setTimeToLive(long long time) override;
 		long long getTimeToLive() const override;
 
-		void setMessageTransformer(cms::MessageTransformer* transformer) override { };
-		cms::MessageTransformer* getMessageTransformer() const override { return nullptr; };
+		void setMessageTransformer(cms::MessageTransformer* transformer) override;
+		cms::MessageTransformer* getMessageTransformer() const override;
 		
 		void close();
 	

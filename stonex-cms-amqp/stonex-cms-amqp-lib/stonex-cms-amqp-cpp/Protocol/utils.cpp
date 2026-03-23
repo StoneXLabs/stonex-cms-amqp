@@ -185,10 +185,15 @@ namespace internal
 	{
 		cms::Destination* destination{ nullptr };
 
+		auto annotation = message.message_annotations().get(internal::annotation::JMS_DESTINATION_TYPE);
+		if (annotation.type() != proton::type_id::BYTE && annotation.type() == proton::type_id::NULL_TYPE)
+		{
+			//TO DO throw And handle
+			return nullptr;
+		}
+
 		try
 		{
-			auto annotation = message.message_annotations().get(internal::annotation::JMS_DESTINATION_TYPE);
-
 			switch (annotation::DESTINATION_TYPE(proton::get<int8_t>(annotation)))
 			{
 			case annotation::DESTINATION_TYPE::QUEUE:
@@ -220,9 +225,15 @@ namespace internal
 	{
 		cms::Destination* destination{ nullptr };
 
+		auto annotation = message.message_annotations().get(internal::annotation::JMS_REPLY_TO_TYPE);
+		if (annotation.type() != proton::type_id::BYTE && annotation.type() == proton::type_id::NULL_TYPE)
+		{
+			//TO DO throw And handle
+			return nullptr;
+		}
+
 		try
 		{
-			auto annotation = message.message_annotations().get(internal::annotation::JMS_REPLY_TO_TYPE);
 
 			switch (annotation::DESTINATION_TYPE(proton::get<int8_t>(annotation)))
 			{
@@ -466,14 +477,11 @@ namespace internal
 			}
 		}
 
-		try
+		if (const auto protonCorrelationId = message.correlation_id(); protonCorrelationId.type() == proton::type_id::STRING)
 		{
 			cmsMessage->setCMSCorrelationID(proton::get<std::string>(message.correlation_id()));
 		}
-		catch (const std::exception&)
-		{
 
-		}
 
 		//delivery mode
 		cmsMessage->setCMSDeliveryMode(message.durable() ? cms::DeliveryMode::DELIVERY_MODE::PERSISTENT : cms::DeliveryMode::DELIVERY_MODE::NON_PERSISTENT);
@@ -487,15 +495,8 @@ namespace internal
 		//expiration
 		cmsMessage->setCMSExpiration(message.expiry_time().milliseconds());
 
-		try
-		{
-			cmsMessage->setCMSMessageID(proton::get<std::string>(message.id()));
-		}
-		catch (const std::exception&)
-		{
-
-		}
-
+		cmsMessage->setCMSMessageID(proton::get<std::string>(message.id()));
+		
 		//priority
 		cmsMessage->setCMSPriority(message.priority());
 
@@ -511,15 +512,9 @@ namespace internal
 
 		//timestamp
 		cmsMessage->setCMSTimestamp(message.creation_time().milliseconds());
+		
 		//type
-		try
-		{
-			cmsMessage->setCMSType(message.subject());
-		}
-		catch (const std::exception&)
-		{
-
-		}
+		cmsMessage->setCMSType(message.subject());
 	}
 	
 	MessageProperties::MessageProperties(const MessageProperties& other)

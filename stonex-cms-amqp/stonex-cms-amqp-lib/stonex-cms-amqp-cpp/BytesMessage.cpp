@@ -29,11 +29,11 @@
 #include <proton/annotation_key.hpp>
 #include <proton/byte_array.hpp>
 #include <proton/types.hpp>
+#include <proton/type_id.hpp>
 
 #include <cms/InvalidDestinationException.h>
 #include <cms/BytesMessage.h>
 #include "Protocol/utils.h"
-#include <proton/type_id.hpp>
 
 
 stonex::amqp::BytesMessage::BytesMessage(const unsigned char* array, size_t size)
@@ -63,7 +63,7 @@ stonex::amqp::BytesMessage::BytesMessage(const BytesMessage& other)
 
 void stonex::amqp::BytesMessage::acknowledge() const
 {
-//	const_cast<proton::delivery*>(mMessageDelivery)->accept();
+	//TO DO implement user acknoweledgement
 }
 
 void stonex::amqp::BytesMessage::clearBody()
@@ -94,7 +94,6 @@ cms::Message::ValueType stonex::amqp::BytesMessage::getPropertyValueType(const s
 	return mProperties.getType(name);
 }
 
-//getters
 bool stonex::amqp::BytesMessage::getBooleanProperty(const std::string& name) const
 {
 	try
@@ -198,8 +197,6 @@ std::string stonex::amqp::BytesMessage::getStringProperty(const std::string& nam
 	}
 }
 
-
-//setters
 void stonex::amqp::BytesMessage::setBooleanProperty(const std::string& name, bool value)
 {
 	if (name.empty())
@@ -270,8 +267,6 @@ void stonex::amqp::BytesMessage::setStringProperty(const std::string& name, cons
 	mProperties.set(name, value);
 }
 
-///////
-
 std::string stonex::amqp::BytesMessage::getCMSCorrelationID() const
 {
 	return mProperties.correlationId;
@@ -301,9 +296,6 @@ const cms::Destination* stonex::amqp::BytesMessage::getCMSDestination() const
 void stonex::amqp::BytesMessage::setCMSDestination(const cms::Destination* destination)
 {
 	mProperties.destination.reset(internal::DestinationConverter::createProtonDestination(destination));
-	/*
-	mMessage.to(internal::DestinationConverter::address(destination));
-	mMessage.message_annotations().put(internal::annotation::JMS_DESTINATION_TYPE, static_cast<int8_t>(internal::DestinationConverter::jmsDestinationType(destination)));*/
 }
 
 long long stonex::amqp::BytesMessage::getCMSExpiration() const
@@ -342,7 +334,6 @@ void stonex::amqp::BytesMessage::setCMSPriority(int priority)
 
 bool stonex::amqp::BytesMessage::getCMSRedelivered() const
 {
-	//should use delivery annotations?
 	return mProperties.redelivered;
 }
 
@@ -360,9 +351,6 @@ const cms::Destination* stonex::amqp::BytesMessage::getCMSReplyTo() const
 void stonex::amqp::BytesMessage::setCMSReplyTo(const cms::Destination* destination)
 {
 	mProperties.replyTo.reset(internal::DestinationConverter::createProtonDestination(destination));
-	/*
-	mMessage.reply_to(internal::DestinationConverter::address(destination));
-	mMessage.message_annotations().put(internal::annotation::JMS_REPLY_TO_TYPE, static_cast<int8_t>(internal::DestinationConverter::jmsDestinationType(destination)));*/
 }
 
 long long stonex::amqp::BytesMessage::getCMSTimestamp() const
@@ -386,7 +374,6 @@ void stonex::amqp::BytesMessage::setCMSType(const std::string& type)
 	mProperties.type = type;
 }
 
-///Bytes message impl
 void stonex::amqp::BytesMessage::setBodyBytes(const unsigned char* buffer, int numBytes)
 {
 	mBody.clear();
@@ -491,16 +478,29 @@ int stonex::amqp::BytesMessage::readBytes(unsigned char* buffer, int length) con
 		read_position = read_position += remainingBytes;
 		return value;
 	}
-	catch (const std::exception&)
+	catch (const std::exception& ex)
 	{
+		throw cms::CMSException(ex.what());
 	}
+
 	return -1;
 }
 
 void stonex::amqp::BytesMessage::writeBytes(const unsigned char* value, int offset, int length)
 {
-	//TO DO offset
-	throw std::exception("not implemented");
+	if(length == 0)
+		return;
+
+	if(value == nullptr)
+		throw cms::CMSException("value cannot be null");
+
+	if(offset > mBody.size() || offset < 0)
+		throw cms::CMSException("offset parameter out of bounds");
+		
+	if(mBody.size() < offset + length)
+    	mBody.resize(offset + length);
+
+	std::copy(value, value + length, mBody.begin() + offset);
 }
 
 char stonex::amqp::BytesMessage::readChar() const
@@ -585,11 +585,13 @@ void stonex::amqp::BytesMessage::writeString(const std::string& value)
 
 std::string stonex::amqp::BytesMessage::readUTF() const
 {
-	return {};
+    return {};
 }
 
 void stonex::amqp::BytesMessage::writeUTF(const std::string& value)
-{}
+{
+	
+}
 
 cms::BytesMessage* stonex::amqp::BytesMessage::clone() const
 {

@@ -65,7 +65,6 @@ cms::Message::ValueType stonex::amqp::Message::getPropertyValueType(const std::s
 	return mProperties.getType(name);
 }
 
-//getters
 bool stonex::amqp::Message::getBooleanProperty(const std::string& name) const
 {
 	try
@@ -119,7 +118,6 @@ float stonex::amqp::Message::getFloatProperty(const std::string& name) const
 
 int stonex::amqp::Message::getIntProperty(const std::string& name) const
 {
-
 	try
 	{
 		return mProperties.get<int>(name);
@@ -132,7 +130,6 @@ int stonex::amqp::Message::getIntProperty(const std::string& name) const
 
 long long stonex::amqp::Message::getLongProperty(const std::string& name) const
 {
-
 	try
 	{
 		return mProperties.get<long long>(name);
@@ -145,7 +142,6 @@ long long stonex::amqp::Message::getLongProperty(const std::string& name) const
 
 short stonex::amqp::Message::getShortProperty(const std::string& name) const
 {
-
 	try
 	{
 		return mProperties.get<short>(name);
@@ -158,7 +154,6 @@ short stonex::amqp::Message::getShortProperty(const std::string& name) const
 
 std::string stonex::amqp::Message::getStringProperty(const std::string& name) const
 {
-
 	try
 	{
 		return mProperties.get<std::string>(name);
@@ -169,8 +164,6 @@ std::string stonex::amqp::Message::getStringProperty(const std::string& name) co
 	}
 }
 
-
-//setters
 void stonex::amqp::Message::setBooleanProperty(const std::string& name, bool value)
 {
 	if (name.empty())
@@ -180,7 +173,6 @@ void stonex::amqp::Message::setBooleanProperty(const std::string& name, bool val
 
 void stonex::amqp::Message::setByteProperty(const std::string& name, unsigned char value)
 {
-
 	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
 
@@ -189,7 +181,6 @@ void stonex::amqp::Message::setByteProperty(const std::string& name, unsigned ch
 
 void stonex::amqp::Message::setDoubleProperty(const std::string& name, double value)
 {
-
 	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
 
@@ -198,7 +189,6 @@ void stonex::amqp::Message::setDoubleProperty(const std::string& name, double va
 
 void stonex::amqp::Message::setFloatProperty(const std::string& name, float value)
 {
-
 	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
 
@@ -207,7 +197,6 @@ void stonex::amqp::Message::setFloatProperty(const std::string& name, float valu
 
 void stonex::amqp::Message::setIntProperty(const std::string& name, int value)
 {
-
 	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
 
@@ -216,7 +205,6 @@ void stonex::amqp::Message::setIntProperty(const std::string& name, int value)
 
 void stonex::amqp::Message::setLongProperty(const std::string& name, long long value)
 {
-
 	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
 
@@ -225,7 +213,6 @@ void stonex::amqp::Message::setLongProperty(const std::string& name, long long v
 
 void stonex::amqp::Message::setShortProperty(const std::string& name, short value)
 {
-
 	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
 
@@ -234,14 +221,11 @@ void stonex::amqp::Message::setShortProperty(const std::string& name, short valu
 
 void stonex::amqp::Message::setStringProperty(const std::string& name, const std::string& value)
 {
-
 	if (name.empty())
 		throw cms::CMSException("property name cannot be empty");
 
 	mProperties.set(name, value);
 }
-
-///////
 
 std::string stonex::amqp::Message::getCMSCorrelationID() const
 {
@@ -310,7 +294,6 @@ void stonex::amqp::Message::setCMSPriority(int priority)
 
 bool stonex::amqp::Message::getCMSRedelivered() const
 {
-	//should use delivery annotations?
 	return mProperties.redelivered;
 }
 

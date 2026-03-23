@@ -84,7 +84,6 @@ namespace stonex::amqp
 		void setMessageAvailableListener(cms::MessageAvailableListener* listener) override;
 		cms::MessageAvailableListener* getMessageAvailableListener() const override;
 
-
 		void on_receiver_open(proton::receiver& receiver) override;
 		void on_receiver_close(proton::receiver& receiver) override;
 		void on_receiver_detach(proton::receiver& receiver) override;

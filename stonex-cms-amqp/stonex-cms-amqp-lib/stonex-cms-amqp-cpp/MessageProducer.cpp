@@ -46,11 +46,9 @@ namespace {
 		{
 			dest.body(msg->getText());
 			dest.message_annotations().put(internal::annotation::JMS_MESSAGE_TYPE, static_cast<int8_t>(internal::annotation::MESSAGE_TYPE::TEXT_MESSAGE));
-
 		}
 		else if (auto msg = dynamic_cast<cms::BytesMessage*>(src))
 		{
-
 			std::vector<unsigned char> buf;
 			buf.reserve(msg->getBodyLength());
 
@@ -115,7 +113,6 @@ namespace {
 stonex::amqp::MessageProducer::MessageProducer(proton::session& session, const cms::Destination* destination)
 :mSession(session)
 {
-
 	if (destination)
 	{
 		mDefaultDestination.reset(internal::DestinationConverter::createProtonDestination(destination));
@@ -134,8 +131,6 @@ stonex::amqp::MessageProducer::MessageProducer(proton::session& session, const c
 	std::unique_lock lk(mMutex);
 	mCv.wait(lk, [this]() { return mWorkQueue; });
 }
-
-
 
 stonex::amqp::MessageProducer::~MessageProducer()
 {
@@ -162,7 +157,6 @@ void stonex::amqp::MessageProducer::send(cms::Message* message, int deliveryMode
 	send(nullptr, message, deliveryMode, priority, timeToLive, onComplete);
 }
 
-
 void stonex::amqp::MessageProducer::send(const cms::Destination* destination, cms::Message* message)
 {
 	if(!destination)
@@ -186,7 +180,6 @@ void stonex::amqp::MessageProducer::send(const cms::Destination *destination, cm
 
 void stonex::amqp::MessageProducer::send(const cms::Destination* destination, cms::Message* message, int deliveryMode, int priority, long long timeToLive, cms::AsyncCallback* onComplete)
 {
-	
 	std::unique_lock lk(mMutex);
 	mReadyToSend = false;
 
@@ -209,7 +202,6 @@ void stonex::amqp::MessageProducer::send(const cms::Destination* destination, cm
 
 	message->setCMSExpiration(timeToLive);
 	message->setCMSPriority(priority);
-
 
 	proton::message protonMessage;
 
@@ -345,3 +337,14 @@ long long stonex::amqp::MessageProducer::getTimeToLive() const
 {
 	return mTTL;
 }
+
+void stonex::amqp::MessageProducer::setMessageTransformer(cms::MessageTransformer* transformer)
+{
+	//TO DO implement message available listener management
+};
+
+cms::MessageTransformer* stonex::amqp::MessageProducer::getMessageTransformer() const
+{
+	//TO DO implement message available listener management
+	return nullptr; 
+};

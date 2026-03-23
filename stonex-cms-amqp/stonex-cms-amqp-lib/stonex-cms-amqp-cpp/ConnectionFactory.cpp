@@ -25,14 +25,8 @@
 #include <proton/reconnect_options.hpp>
 #include <proton/connection.hpp>
 
-
-
-
 #include "Connection.h"
 #include "ProtonCppLibrary.h"
-
-
-////
 
 #include <algorithm>
 #include <regex>
@@ -187,10 +181,12 @@ cms::ExceptionListener* stonex::amqp::ConnectionFactory::getExceptionListener() 
 
 void stonex::amqp::ConnectionFactory::setMessageTransformer(cms::MessageTransformer* transformer)
 {
+	//TO DO implement message transformer management
 }
 
 cms::MessageTransformer* stonex::amqp::ConnectionFactory::getMessageTransformer() const
 {
+	//TO DO implement message transformer management
 	return nullptr;
 }
 

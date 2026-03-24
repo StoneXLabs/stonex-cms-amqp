@@ -45,7 +45,7 @@ namespace {
 		if (auto msg = dynamic_cast<cms::TextMessage*>(src))
 		{
 			dest.body(msg->getText());
-			dest.message_annotations().put(internal::annotation::JMS_MESSAGE_TYPE, static_cast<int8_t>(internal::annotation::MESSAGE_TYPE::TEXT_MESSAGE));
+			dest.message_annotations().put(stonex::amqp::internal::annotation::JMS_MESSAGE_TYPE, static_cast<int8_t>(stonex::amqp::internal::annotation::MESSAGE_TYPE::TEXT_MESSAGE));
 		}
 		else if (auto msg = dynamic_cast<cms::BytesMessage*>(src))
 		{
@@ -58,7 +58,7 @@ namespace {
 			delete body;
 
 			dest.body(proton::binary(buf));
-			dest.message_annotations().put(internal::annotation::JMS_MESSAGE_TYPE, static_cast<int8_t>(internal::annotation::MESSAGE_TYPE::BYTES_MESSAGE));
+			dest.message_annotations().put(stonex::amqp::internal::annotation::JMS_MESSAGE_TYPE, static_cast<int8_t>(stonex::amqp::internal::annotation::MESSAGE_TYPE::BYTES_MESSAGE));
 		}
 	}
 
@@ -95,7 +95,7 @@ namespace {
 				dest.properties().put(propertyName, src->getFloatProperty(propertyName));
 				break;
 			case cms::Message::ValueType::STRING_TYPE:
-				if (propertyName == internal::properties::JMSX_GROUP_ID || propertyName == internal::properties::CMSX_GROUP_ID)
+				if (propertyName == stonex::amqp::internal::properties::JMSX_GROUP_ID || propertyName == stonex::amqp::internal::properties::CMSX_GROUP_ID)
 					dest.group_id(src->getStringProperty(propertyName));
 
 				dest.properties().put(propertyName, src->getStringProperty(propertyName));
@@ -115,9 +115,9 @@ stonex::amqp::MessageProducer::MessageProducer(proton::session& session, const c
 {
 	if (destination)
 	{
-		mDefaultDestination.reset(internal::DestinationConverter::createProtonDestination(destination));
-		auto capabilities = internal::DestinationConverter::capabilities(destination);
-		const auto address = internal::DestinationConverter::address(destination);
+		mDefaultDestination.reset(stonex::amqp::internal::DestinationConverter::createProtonDestination(destination));
+		auto capabilities = stonex::amqp::internal::DestinationConverter::capabilities(destination);
+		const auto address = stonex::amqp::internal::DestinationConverter::address(destination);
 
 		proton::sender_options opts;
 		proton::target_options target_options;
@@ -188,8 +188,10 @@ void stonex::amqp::MessageProducer::send(const cms::Destination* destination, cm
 		message->setCMSDestination(destination);
 	}
 	else
-	{
-		message->setCMSDestination(internal::DestinationConverter::createCMSDestination(*mDefaultDestination));
+	{	
+		auto dest = stonex::amqp::internal::DestinationConverter::createCMSDestination(*mDefaultDestination);
+		message->setCMSDestination(dest);
+		delete dest;
 	}
 
 	//JMSDeliveryMode
@@ -210,8 +212,8 @@ void stonex::amqp::MessageProducer::send(const cms::Destination* destination, cm
 	if (!mMessageIdDisabed)
 	{
 		protonMessage.id(message->getCMSMessageID());
-		protonMessage.properties().put(internal::properties::JMSX_MESSAGE_ID, message->getCMSMessageID());
-		protonMessage.properties().put(internal::properties::AMQP_MESSAGE_ID, message->getCMSMessageID());
+		protonMessage.properties().put(stonex::amqp::internal::properties::JMSX_MESSAGE_ID, message->getCMSMessageID());
+		protonMessage.properties().put(stonex::amqp::internal::properties::AMQP_MESSAGE_ID, message->getCMSMessageID());
 	}
 
 	if (!mTimestampDisabed)
@@ -219,15 +221,15 @@ void stonex::amqp::MessageProducer::send(const cms::Destination* destination, cm
 
 	if (const auto dest = message->getCMSDestination(); dest != nullptr)
 	{
-		protonMessage.to(internal::DestinationConverter::address(dest));
-		protonMessage.address(internal::DestinationConverter::address(dest));
-		protonMessage.message_annotations().put(internal::annotation::JMS_DESTINATION_TYPE, static_cast<int8_t>(internal::DestinationConverter::jmsDestinationType(dest)));
+		protonMessage.to(stonex::amqp::internal::DestinationConverter::address(dest));
+		protonMessage.address(stonex::amqp::internal::DestinationConverter::address(dest));
+		protonMessage.message_annotations().put(stonex::amqp::internal::annotation::JMS_DESTINATION_TYPE, static_cast<int8_t>(stonex::amqp::internal::DestinationConverter::jmsDestinationType(dest)));
 	}
 
 	if (const auto dest = message->getCMSReplyTo(); dest != nullptr)
 	{
-		protonMessage.reply_to(internal::DestinationConverter::address(dest));
-		protonMessage.message_annotations().put(internal::annotation::JMS_REPLY_TO_TYPE, static_cast<int8_t>(internal::DestinationConverter::jmsDestinationType(dest)));
+		protonMessage.reply_to(stonex::amqp::internal::DestinationConverter::address(dest));
+		protonMessage.message_annotations().put(stonex::amqp::internal::annotation::JMS_REPLY_TO_TYPE, static_cast<int8_t>(stonex::amqp::internal::DestinationConverter::jmsDestinationType(dest)));
 	}
 
 	setMessageBody(protonMessage, message);

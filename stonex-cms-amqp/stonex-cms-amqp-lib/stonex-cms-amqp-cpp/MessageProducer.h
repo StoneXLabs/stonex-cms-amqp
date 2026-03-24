@@ -44,7 +44,7 @@ namespace stonex::amqp
 	{
 	public:
 		MessageProducer(proton::session& session, const cms::Destination* destination);
-		~MessageProducer();
+		virtual ~MessageProducer();
 		
 		void send(cms::Message* message) override;
 		void send(cms::Message* message, cms::AsyncCallback* onComplete) override;
@@ -86,7 +86,7 @@ namespace stonex::amqp
 	    void on_error(const proton::error_condition& error) override;
 
 	private:
-		log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("CMS") };
+		log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("com.stonex.cms.MessageProducer") };
 		bool mReadyToSend{false};
 		proton::session mSession;
 		proton::sender mSender;
@@ -95,7 +95,7 @@ namespace stonex::amqp
 		std::condition_variable mCv;
 		std::unique_ptr<internal::Destination> mDefaultDestination{ nullptr };
 
-		cms::DeliveryMode::DELIVERY_MODE mDeliveryMode = (cms::DeliveryMode::DELIVERY_MODE)cms::Message::DEFAULT_DELIVERY_MODE;
+		cms::DeliveryMode::DELIVERY_MODE mDeliveryMode = static_cast<cms::DeliveryMode::DELIVERY_MODE>(cms::Message::DEFAULT_DELIVERY_MODE);
 		bool mMessageIdDisabed{ false };
 		bool mTimestampDisabed{ false };
 		int mPriority = cms::Message::DEFAULT_MSG_PRIORITY;

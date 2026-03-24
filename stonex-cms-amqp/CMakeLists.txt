@@ -2,18 +2,15 @@
 cmake_minimum_required(VERSION 3.16)
 project(stonex-cms-amqp LANGUAGES CXX)
 
-#set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD  20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
-
-if(CONAN_BUILD)
-	include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-	conan_basic_setup(TARGETS)
-else()
-	if(NOT QPID_INCLUDES)
-		message(FATAL_ERROR "QPID PROTON path missing, QPID_INCLUDES not defined")
-	endif()
-endif()
 
 if(BUILD_SHARED_LIBS)
 else()
@@ -28,5 +25,4 @@ add_subdirectory(stonex-cms-amqp-lib)
 
 add_subdirectory(UnitTest)
 add_subdirectory(Test)
-#add_subdirectory(QPID)
 

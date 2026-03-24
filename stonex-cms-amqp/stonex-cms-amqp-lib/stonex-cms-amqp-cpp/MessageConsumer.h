@@ -62,7 +62,7 @@ namespace stonex::amqp
 	public:
 		explicit MessageConsumer(proton::session& session, const cms::Destination* destination, const std::string& selector);
 
-		~MessageConsumer();
+		virtual ~MessageConsumer();
 
 		
 		void start() override;
@@ -92,9 +92,8 @@ namespace stonex::amqp
 
 		void on_message(proton::delivery& delivery, proton::message& message) override;
 
-
 	private:
-		log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("CMS") };
+		log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("com.stonex.cms.MessageConsumer") };
 		proton::session mSession;
 		proton::receiver mReceiver;
 		cms::MessageListener *mListener{ nullptr };

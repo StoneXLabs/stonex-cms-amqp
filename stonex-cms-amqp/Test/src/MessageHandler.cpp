@@ -70,7 +70,7 @@ cms::Message* MessageFactory::createTextMessage(const UserData& message)
 
 void MessageFactory::setGroupId(const std::string& groupId, cms::Message* message)
 {
-	message->setStringProperty(internal::properties::JMSX_GROUP_ID, groupId);
+	message->setStringProperty(stonex::amqp::internal::properties::JMSX_GROUP_ID, groupId);
 }
 
 MyMessageHandler::MyMessageHandler(const std::string& id, std::chrono::seconds timeout)
@@ -94,9 +94,9 @@ MyMessageHandler::~MyMessageHandler()
 void MyMessageHandler::onMessage(const cms::Message* message)
 {
 	trigger();
-	if(message->propertyExists(internal::properties::JMSX_GROUP_ID))
+	if(message->propertyExists(stonex::amqp::internal::properties::JMSX_GROUP_ID))
 	{
-		std::string groupId = message->getStringProperty(internal::properties::JMSX_GROUP_ID);
+		std::string groupId = message->getStringProperty(stonex::amqp::internal::properties::JMSX_GROUP_ID);
 		if (receivedGroups.find(groupId) == receivedGroups.end())
 		{
 			LOG4CXX_INFO(mLogger, std::format("Received new group: {}", groupId));

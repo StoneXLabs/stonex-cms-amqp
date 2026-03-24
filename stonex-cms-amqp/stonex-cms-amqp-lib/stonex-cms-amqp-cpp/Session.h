@@ -37,7 +37,7 @@ namespace stonex::amqp
 	{
 	public:
 		explicit Session(proton::connection& connection, cms::Session::AcknowledgeMode ackMode);
-		~Session();
+		virtual ~Session();
 
 		void start() override;
 		void stop() override;
@@ -69,13 +69,12 @@ namespace stonex::amqp
         void setMessageTransformer(cms::MessageTransformer* transformer) override;
         cms::MessageTransformer* getMessageTransformer() const override;
 
-
 		void on_session_open(proton::session& session) override;
 		void on_session_close(proton::session& session) override;
 		void on_session_error(proton::session& session) override;
 
 	private:
-        log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("CMS") };
+        log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("com.stonex.cms.Session") };
 		proton::connection mConnection;
 		proton::session mSession;
 		proton::work_queue* mWorkQueue{nullptr};

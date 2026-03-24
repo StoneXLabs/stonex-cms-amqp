@@ -13,7 +13,7 @@
 
 void publishSubscribe(int messageCount, Destination producer, std::vector<Destination> consumers, int groupCount)
 {
-	activemq::library::ActiveMQCPP::initialize_library();
+	//activemq::library::ActiveMQCPP::initialize_library();
 	//prepare messages
 	std::queue<cms::Message*> messageQueue;
 
@@ -22,10 +22,9 @@ void publishSubscribe(int messageCount, Destination producer, std::vector<Destin
 			messageQueue.push(MessageFactory::createBytesMessage(MessageFactory::createMessage()));
 			if (groupCount > 0)
 			{
-				messageQueue.back()->setStringProperty(internal::properties::JMSX_GROUP_ID, "group" + std::to_string(i%groupCount));
+				messageQueue.back()->setStringProperty(stonex::amqp::internal::properties::JMSX_GROUP_ID, "group" + std::to_string(i%groupCount));
 			}
-		}
-	
+		}	
 	{
 		//start consumers
 		auto factory = stonex::amqp::ConnectionFactory::createCMSConnectionFactory("localhost:5672");
@@ -88,15 +87,15 @@ void publishSubscribe(int messageCount, Destination producer, std::vector<Destin
 		{
 			delete consumer;
 		}
-		for (auto& listener : messageHandlers)
-		{
-			delete listener;
-		}
 
 		delete session;
 		delete connection;
 
-		
+
+		for (auto& listener : messageHandlers)
+		{
+			delete listener;
+		}
 	}
 
 }
@@ -104,7 +103,7 @@ void publishSubscribe(int messageCount, Destination producer, std::vector<Destin
 void publishSubscribeText(int messageCount, Destination producer, std::vector<Destination> consumers, int groupCount)
 {
 	//prepare messages
-	activemq::library::ActiveMQCPP::initialize_library();
+	//activemq::library::ActiveMQCPP::initialize_library();
 	std::queue<cms::Message*> messageQueue;
 
 	for (int i = 0; i < messageCount; i++)
@@ -112,7 +111,7 @@ void publishSubscribeText(int messageCount, Destination producer, std::vector<De
 		messageQueue.push(MessageFactory::createTextMessage(MessageFactory::createMessage()));
 		if (groupCount > 0)
 		{
-			messageQueue.back()->setStringProperty(internal::properties::JMSX_GROUP_ID, "group" + std::to_string(i % groupCount));
+			messageQueue.back()->setStringProperty(stonex::amqp::internal::properties::JMSX_GROUP_ID, "group" + std::to_string(i % groupCount));
 		}
 	}
 
@@ -178,13 +177,15 @@ void publishSubscribeText(int messageCount, Destination producer, std::vector<De
 		{
 			delete consumer;
 		}
+
+		delete session;
+		delete connection;
+
+
 		for (auto& listener : messageHandlers)
 		{
 			delete listener;
 		}
-
-		delete session;
-		delete connection;
 
 
 	}

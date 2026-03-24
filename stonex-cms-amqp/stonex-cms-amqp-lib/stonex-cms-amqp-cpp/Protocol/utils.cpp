@@ -12,6 +12,7 @@
 #include <proton/message_id.hpp>
 
 #include <cms/DeliveryMode.h>
+AMQP_DEFINES
 
 namespace internal
 {
@@ -71,7 +72,7 @@ namespace internal
 	}
 
 	
-	internal::annotation::DESTINATION_TYPE internal::DestinationConverter::jmsDestinationType(const cms::Destination::DestinationType& destinationType)
+	annotation::DESTINATION_TYPE DestinationConverter::jmsDestinationType(const cms::Destination::DestinationType& destinationType)
 	{
 		
 		annotation::DESTINATION_TYPE destType;
@@ -115,7 +116,7 @@ namespace internal
 		}
 	}
 	
-	cms::Destination* DestinationConverter::createCMSDestination(const internal::Destination& destination)
+	cms::Destination* DestinationConverter::createCMSDestination(const Destination& destination)
 	{
 		switch(destination.type)
 		{
@@ -185,7 +186,7 @@ namespace internal
 	{
 		cms::Destination* destination{ nullptr };
 
-		auto annotation = message.message_annotations().get(internal::annotation::JMS_DESTINATION_TYPE);
+		auto annotation = message.message_annotations().get(annotation::JMS_DESTINATION_TYPE);
 		if (annotation.type() != proton::type_id::BYTE && annotation.type() == proton::type_id::NULL_TYPE)
 		{
 			//TO DO throw And handle
@@ -225,7 +226,7 @@ namespace internal
 	{
 		cms::Destination* destination{ nullptr };
 
-		auto annotation = message.message_annotations().get(internal::annotation::JMS_REPLY_TO_TYPE);
+		auto annotation = message.message_annotations().get(annotation::JMS_REPLY_TO_TYPE);
 		if (annotation.type() != proton::type_id::BYTE && annotation.type() == proton::type_id::NULL_TYPE)
 		{
 			//TO DO throw And handle
@@ -261,23 +262,23 @@ namespace internal
 		return destination;
 	}
 	
-	internal::Destination* internal::DestinationConverter::createProtonDestination(const cms::Destination* destination)
+	Destination* DestinationConverter::createProtonDestination(const cms::Destination* destination)
 	{
-		internal::Destination* dest{ nullptr };
+		Destination* dest{ nullptr };
 
 		switch (destination->getDestinationType())
 		{
 		case cms::Destination::DestinationType::QUEUE:
-			dest = new internal::Destination{ cms::Destination::DestinationType::QUEUE, dynamic_cast<const cms::Queue*>(destination)->getQueueName() };
+			dest = new Destination{ cms::Destination::DestinationType::QUEUE, dynamic_cast<const cms::Queue*>(destination)->getQueueName() };
 			break;
 		case cms::Destination::DestinationType::TOPIC:
-			dest = new internal::Destination{ cms::Destination::DestinationType::TOPIC, dynamic_cast<const cms::Topic*>(destination)->getTopicName() };
+			dest = new Destination{ cms::Destination::DestinationType::TOPIC, dynamic_cast<const cms::Topic*>(destination)->getTopicName() };
 			break;
 		case cms::Destination::DestinationType::TEMPORARY_QUEUE:
-			dest = new internal::Destination{ cms::Destination::DestinationType::TEMPORARY_QUEUE, dynamic_cast<const cms::TemporaryQueue*>(destination)->getQueueName() };
+			dest = new Destination{ cms::Destination::DestinationType::TEMPORARY_QUEUE, dynamic_cast<const cms::TemporaryQueue*>(destination)->getQueueName() };
 			break;
 		case cms::Destination::DestinationType::TEMPORARY_TOPIC:
-			dest = new internal::Destination{ cms::Destination::DestinationType::TEMPORARY_TOPIC, dynamic_cast<const cms::TemporaryTopic*>(destination)->getTopicName() };
+			dest = new Destination{ cms::Destination::DestinationType::TEMPORARY_TOPIC, dynamic_cast<const cms::TemporaryTopic*>(destination)->getTopicName() };
 			break;
 		default:
 			break;
@@ -377,7 +378,7 @@ namespace internal
 		cms::Message* cmsMessage{ nullptr };
 		try
 		{
-			auto annotation = message.message_annotations().get(internal::annotation::JMS_MESSAGE_TYPE);
+			auto annotation = message.message_annotations().get(annotation::JMS_MESSAGE_TYPE);
 
 			switch (annotation::MESSAGE_TYPE(proton::get<int8_t>(annotation)))
 			{
@@ -506,7 +507,7 @@ namespace internal
 
 		if (auto replyTo = DestinationConverter::createCMSReplyTo(message))
 		{
-			cmsMessage->setCMSDestination(replyTo);
+			cmsMessage->setCMSReplyTo(replyTo);
 			delete replyTo;
 		}
 
@@ -525,13 +526,14 @@ namespace internal
 		priority(other.priority),
 		redelivered(other.redelivered),
 		timeStamp(other.timeStamp),
-		type(other.type)
+		type(other.type),
+		mProperties(other.mProperties)
 	{
 		if(other.destination)
-			destination = std::make_unique<internal::Destination>(*other.destination);
+			destination.reset(other.destination->clone());
 
 		if (other.replyTo)
-			replyTo = std::make_unique<internal::Destination>(*other.replyTo);
+			replyTo.reset(other.replyTo->clone());
 	}
 	
 	void MessageProperties::clear()
@@ -542,8 +544,8 @@ namespace internal
 	std::vector<std::string> MessageProperties::getNames() const
 	{
 		std::vector<std::string> names;
-		for (const auto& pair : mProperties)
-			names.push_back(pair.first);
+		for (const auto& [key, value] : mProperties)
+			names.push_back(key);
 
 		return names;
 	}
@@ -581,8 +583,10 @@ namespace internal
 		return mProperties.find(name) != mProperties.end();
 	}
 
-	void MessageProperties::set(const std::string& name, property value)
+	void MessageProperties::set(const std::string& name, PropertyValue value)
 	{
 		mProperties[name] = std::move(value);
 	}
 }
+
+AMQP_DEFINES_CLOSE

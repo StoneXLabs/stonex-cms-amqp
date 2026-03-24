@@ -40,7 +40,7 @@ AMQP_DEFINES
 		explicit BytesMessage(const proton::message& message);
 		BytesMessage(const BytesMessage& other);
 
-		~BytesMessage() override = default;
+		virtual ~BytesMessage() override;
 
 		void acknowledge() const override;
 		void clearBody() override;

@@ -7,6 +7,10 @@
 #include <cms/Topic.h>
 #include <cms/TemporaryTopic.h>
 
+#include "../stonex-cms-amqp-lib-defines.h"
+
+AMQP_DEFINES
+
 namespace internal
 {
 	struct Destination
@@ -15,3 +19,5 @@ namespace internal
 		std::string address{};
 	};
 }
+
+AMQP_DEFINES_CLOSE

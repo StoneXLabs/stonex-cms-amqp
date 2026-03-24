@@ -38,6 +38,15 @@
 stonex::amqp::Session::Session::Session(proton::connection& connection, cms::Session::AcknowledgeMode ackMode)
 	:mConnection{connection}
 {
+	mConnection.work_queue().add([this]() {
+
+		proton::session_options sessionOptions;
+		sessionOptions.handler(*this);
+		mConnection.open_session(sessionOptions);
+	});
+
+	std::unique_lock<std::mutex> lk(mMutex);
+	mCv.wait(lk, [this]() { return mWorkQueue; });
 }
 
 stonex::amqp::Session::Session::~Session()
@@ -47,15 +56,6 @@ stonex::amqp::Session::Session::~Session()
 
 void stonex::amqp::Session::Session::start()
 {
-	mConnection.work_queue().add([this](){
-		
-		proton::session_options sessionOptions;
-		sessionOptions.handler(*this);
-		mConnection.open_session(sessionOptions); 
-		});
-	
-	std::unique_lock<std::mutex> lk(mMutex);
-	mCv.wait(lk, [this]() { return mWorkQueue; });
 }
 
 void stonex::amqp::Session::Session::stop()
@@ -67,7 +67,8 @@ void stonex::amqp::Session::Session::stop()
 
 void stonex::amqp::Session::Session::close()
 {
-	mWorkQueue->add([=] {mSession.close(); });
+	mWorkQueue->add([=] { mSession.close();	});
+
 	std::unique_lock lk(mMutex);
 	mCv.wait(lk, [this]() { return !mWorkQueue; });
 }

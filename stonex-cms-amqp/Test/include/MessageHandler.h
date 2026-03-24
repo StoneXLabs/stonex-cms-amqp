@@ -34,5 +34,5 @@ protected:
 	bool triggered = true;
 	std::mutex mutex;
 	std::thread thread;
-	log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("CMS.messageHandler") };
+	log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("App.messageHandler") };
 };

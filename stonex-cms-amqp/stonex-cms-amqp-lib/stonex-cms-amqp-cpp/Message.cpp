@@ -249,13 +249,15 @@ void stonex::amqp::Message::setCMSDeliveryMode(int mode)
 
 const cms::Destination* stonex::amqp::Message::getCMSDestination() const
 {
-	if(mProperties.destination)
-		return internal::DestinationConverter::createCMSDestination(*mProperties.destination);
+	return mProperties.destination.get();
 }
 
 void stonex::amqp::Message::setCMSDestination(const cms::Destination* destination)
 {
-	mProperties.destination.reset(internal::DestinationConverter::createProtonDestination(destination));
+	if(destination)
+		mProperties.destination.reset(destination->clone());
+	else
+		mProperties.destination.reset();
 }
 
 long long stonex::amqp::Message::getCMSExpiration() const
@@ -304,13 +306,15 @@ void stonex::amqp::Message::setCMSRedelivered(bool redelivered)
 
 const cms::Destination* stonex::amqp::Message::getCMSReplyTo() const
 {
-	if (mProperties.replyTo)
-		return internal::DestinationConverter::createCMSDestination(*mProperties.replyTo);
+	return mProperties.replyTo.get();
 }
 
 void stonex::amqp::Message::setCMSReplyTo(const cms::Destination* destination)
 {
-	mProperties.replyTo.reset(internal::DestinationConverter::createProtonDestination(destination));
+	if(destination)
+		mProperties.replyTo.reset(destination->clone());
+	else
+		mProperties.replyTo.reset();
 }
 
 long long stonex::amqp::Message::getCMSTimestamp() const

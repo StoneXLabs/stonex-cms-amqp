@@ -23,6 +23,7 @@
 
 #include <cms/ConnectionFactory.h>
 #include <log4cxx/logger.h>
+#include <proton/container.hpp>
 #include <vector>
 
 namespace stonex::amqp
@@ -43,9 +44,10 @@ namespace stonex::amqp
         static cms::ConnectionFactory* createCMSConnectionFactory(const std::string& brokerURI);
 
 	private:
+		log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("com.stonex.cms.ConnectionFactory") };
 		const std::string mPrimaryUrl;
 		const std::vector<std::string> mFailoverUrl;
-		log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("CMS") };
+		proton::container& mContainer;
 	};
 };
 

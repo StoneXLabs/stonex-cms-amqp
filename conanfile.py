@@ -10,7 +10,7 @@ def get_verion_tag():
 
 class StonexCMSAMQPLib(ConanFile):
     name = "stonex-cms-amqp-lib"
-    version = get_verion_tag()
+    version = "2.0.0"
     license = "Apache 2.0"
     author = "Krzysztof Obrebski krzysztof.obrebski@stonex.com"
     url = "https://github.com/StoneXLabs/stonex-cms-amqp.git"
@@ -19,12 +19,13 @@ class StonexCMSAMQPLib(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = {"shared": False, "fPIC": True}  
-    generators = "cmake"
-    exports_sources = ["include/activemq-cpp/src/main/*"]
+    generators = ["cmake", "cmake_find_package"]
     
+    def export_sources(self):
+        self.copy("*", dst="stonex-cms-amqp/", src="stonex-cms-amqp/")
 
     def requirements(self):
-        self.requires("amq-clients/2.11.0")
+        self.requires("red-hat-amq-client/2.11.0")
         self.requires("log4cxx/1.2.0")  
 
     def build_requirements(self):
@@ -47,21 +48,24 @@ class StonexCMSAMQPLib(ConanFile):
                     self.run(f'"{protoc_exec}" --cpp_out="{os.path.join(self.source_folder,"stonex-cms-amqp","Test","schema")}" --proto_path="{os.path.join(self.source_folder,"stonex-cms-amqp","Test","schema")}"  "{proto_file}"')
 
         cmake = CMake(self)
-        cmake.definitions["CONAN_BUILD"] = "ON"
         cmake.definitions["BUILD_TEST"] = "ON"
         cmake.verbose = True
-        cmake.configure(source_folder="stonex-cms-amqp")
-        cmake.build()
-		
-          
-        print("##teamcity[setParameter name='{}' value='{}']".format("stonex-cms-amqp-lib_version",get_verion_tag()))
 
+    # Add MSVC MAP file generation
+        if self.settings.compiler == "Visual Studio" or self.settings.get_safe("compiler") == "msvc":
+            cmake.definitions["CMAKE_EXE_LINKER_FLAGS"] = "/MAP"
+            cmake.definitions["CMAKE_SHARED_LINKER_FLAGS"] = "/MAP"
+            cmake.definitions["CMAKE_MODULE_LINKER_FLAGS"] = "/MAP"
+    
+            cmake.configure(source_folder="stonex-cms-amqp")
+            cmake.build()
 
     def package(self):
         self.copy("activemq-cpp\src\main\cms\*", dst="include",src="stonex-cms-amqp\stonex-cms-amqp-lib",keep_path=True)
-        self.copy("stonex-cms-amqp-lib.lib", dst="lib",src="lib", keep_path=False)
-        self.copy("stonex-cms-amqp-lib.pdb", dst="lib",src="lib", keep_path=False)
-        self.copy("*.dll", dst="bin",src="bin", keep_path=False)
+        self.copy("*.h", dst="include",src="stonex-cms-amqp\stonex-cms-amqp-lib\stonex-cms-amqp-cpp",keep_path=True)
+        self.copy("*.lib", dst="lib", keep_path=False)
+        self.copy("*.pdb", dst="bin", keep_path=False)
+        self.copy("*.dll", dst="bin", keep_path=False)
 
 
     def package_info(self):

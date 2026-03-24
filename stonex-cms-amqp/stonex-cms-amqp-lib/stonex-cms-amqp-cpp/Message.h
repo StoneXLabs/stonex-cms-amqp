@@ -31,7 +31,7 @@ AMQP_DEFINES
 	{
 		friend class MessageProducer;
 	public:
-		~Message() override = default;
+		virtual ~Message() override = default;
 
 		cms::Message* clone() const override;
 		void acknowledge() const override {};

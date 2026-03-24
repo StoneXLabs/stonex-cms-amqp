@@ -4,8 +4,8 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 cmake_minimum_required(VERSION 3.16)
 project(stonex-cms-amqp-lib LANGUAGES CXX)
 
-
-#set(CMAKE_CXX_STANDARD 17)
+find_package(red-hat-amq-client)
+find_package(log4cxx)
 
 file(GLOB ActiveMQAPI ${PROJECT_SOURCE_DIR}/activemq-cpp/src/main/cms/*)
 
@@ -54,14 +54,7 @@ target_compile_definitions(stonex-cms-amqp-lib PRIVATE PN_CPP_DECLARE_STATIC)
 
 target_include_directories(stonex-cms-amqp-lib PUBLIC ${PROJECT_SOURCE_DIR}/stonex-cms-amqp-cpp/ ${PROJECT_SOURCE_DIR}/activemq-cpp/src/main/ ${PROJECT_SOURCE_DIR})
 
-if(CONAN_BUILD)
-	target_link_libraries(stonex-cms-amqp-lib PUBLIC CONAN_PKG::amq-clients CONAN_PKG::jsoncpp CONAN_PKG::log4cxx Dbghelp)
-else()
-	set_property(TARGET stonex-cms-amqp-lib PROPERTY  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-	target_include_directories(stonex-cms-amqp-lib BEFORE PUBLIC  ${QPID_INCLUDES} ${QPID_INCLUDES}/cpp ${QPID_INCLUDES}/c)
-	target_link_directories(stonex-cms-amqp-lib PUBLIC ${QPID_LIBRARIES})
-	target_link_libraries(stonex-cms-amqp-lib PUBLIC qpid-proton-core-static qpid-proton-cpp-static qpid-proton-proactor-static qpid-proton-static)
-endif()
+target_link_libraries(stonex-cms-amqp-lib PUBLIC red-hat-amq-client::red-hat-amq-client log4cxx::log4cxx Dbghelp)
 
 if(WIN32)
 Set(CUSTOM_COMMAND_ARCH "X64")

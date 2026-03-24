@@ -18,120 +18,106 @@
  */
 
 #include "ProtonCppLibrary.h"
-
-#include <proton/log.h>
-
-#include <iostream>
-
+#include <cms/IllegalStateException.h>
 #include <dbghelp.h>
 #include <fstream>
+#include <log4cxx/logmanager.h>
+#include <log4cxx/consoleappender.h>
+#include <log4cxx/patternlayout.h>
 
-void WriteMiniDump(EXCEPTION_POINTERS* pExceptionPointers)
+
+namespace
 {
+    void WriteMiniDump(EXCEPTION_POINTERS* pExceptionPointers)
+    {
 
-    SYSTEMTIME st;
-    GetSystemTime(&st);
-    char dumpFileName[MAX_PATH];
-    sprintf_s(dumpFileName, MAX_PATH, "CrashDump_amq_lib%04d-%02d-%02d_%02d-%02d-%02d.dmp",
-        st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+        SYSTEMTIME st;
+        GetSystemTime(&st);
+        char dumpFileName[MAX_PATH];
+        sprintf_s(dumpFileName, MAX_PATH, "CrashDump_amq_lib%04d-%02d-%02d_%02d-%02d-%02d.dmp",
+            st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 
-    HANDLE hFile = CreateFileA(
-        dumpFileName,
-        GENERIC_WRITE,
-        0,
-        nullptr,
-        CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL,
-        nullptr
-    );
-
-    if (hFile != INVALID_HANDLE_VALUE) {
-        MINIDUMP_EXCEPTION_INFORMATION dumpInfo;
-        dumpInfo.ThreadId = GetCurrentThreadId();
-        dumpInfo.ExceptionPointers = pExceptionPointers;
-        dumpInfo.ClientPointers = TRUE;
-
-        // Write the dump
-        MiniDumpWriteDump(
-            GetCurrentProcess(),
-            GetCurrentProcessId(),
-            hFile,
-            MiniDumpWithFullMemory,
-            &dumpInfo,
+        HANDLE hFile = CreateFileA(
+            dumpFileName,
+            GENERIC_WRITE,
+            0,
             nullptr,
+            CREATE_ALWAYS,
+            FILE_ATTRIBUTE_NORMAL,
             nullptr
         );
 
-        CloseHandle(hFile);
+        if (hFile != INVALID_HANDLE_VALUE) {
+            MINIDUMP_EXCEPTION_INFORMATION dumpInfo;
+            dumpInfo.ThreadId = GetCurrentThreadId();
+            dumpInfo.ExceptionPointers = pExceptionPointers;
+            dumpInfo.ClientPointers = TRUE;
 
+            // Write the dump
+            MiniDumpWriteDump(
+                GetCurrentProcess(),
+                GetCurrentProcessId(),
+                hFile,
+                MiniDumpWithFullMemory,
+                &dumpInfo,
+                nullptr,
+                nullptr
+            );
+
+            CloseHandle(hFile);
+
+        }
     }
-}
+
+    LONG WINAPI UnhandledExceptionHandler(EXCEPTION_POINTERS* pExceptionPointers) {
+        WriteMiniDump(pExceptionPointers);
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+};
 
 
 
 
 stonex::amqp::ProtonCppLibrary::ProtonCppLibrary()
+	:mLogger(log4cxx::Logger::getLogger("com.stonex.cms.ProtonCppLibrary")),
+    mContainer(proton::container(*this)),
+    mThread([this]() {
+    mContainer.auto_stop(false);
+	mContainer.run();
+    })
 {
+	std::unique_lock<std::mutex> lk(mMutex);
+	mCv.wait(lk);
     SetUnhandledExceptionFilter(UnhandledExceptionHandler);
-
-    auto logger = pn_default_logger();
-
-    pn_logger_reset_mask(logger, PN_SUBSYSTEM_ALL, PN_LEVEL_ALL);
-
-    mContainer = std::make_shared<proton::container>(*this);
-    mContainer->auto_stop(false);
-    mContainerThread = std::make_unique<std::thread>(std::thread([this] {
-        try
-        {
-
-            mContainer->run();
-
-            std::cout << "proton container work done" << std::endl;
-        }
-        catch (const std::exception& ex)
-        {
-
-        }
-        }));
 }
 
 stonex::amqp::ProtonCppLibrary::~ProtonCppLibrary()
 {
-    mContainer->stop();
-    mContainerThread->join();
-}
-
-std::shared_ptr<proton::container> stonex::amqp::ProtonCppLibrary::getContainer()
-{
-
-    return ProtonCppLibrary::getInstance().mContainer;
-}
-
-
-LONG WINAPI stonex::amqp::ProtonCppLibrary::UnhandledExceptionHandler(EXCEPTION_POINTERS* pExceptionPointers) {
-    WriteMiniDump(pExceptionPointers);
-    return EXCEPTION_CONTINUE_SEARCH;
+    mContainer.stop();
+    if (mThread.joinable())
+        mThread.join();
 }
 
 stonex::amqp::ProtonCppLibrary &stonex::amqp::ProtonCppLibrary::getInstance()
 {
-    static ProtonCppLibrary sInstance;
+    static ProtonCppLibrary mInstance;
+	return mInstance;
+}
 
-    return sInstance;
+
+proton::container& stonex::amqp::ProtonCppLibrary::getContainer()
+{
+    return mContainer;
 }
 
 void stonex::amqp::ProtonCppLibrary::on_container_start(proton::container& container)
 {
-
+    LOG4CXX_INFO(mLogger, "Container started "<<container.id());
+    mCv.notify_all();
 }
 
 void stonex::amqp::ProtonCppLibrary::on_container_stop(proton::container& container)
 {
-
-}
-
-void activemq::library::ActiveMQCPP::initialize_library()
-{
-    stonex::amqp::ProtonCppLibrary::getInstance();
+    LOG4CXX_INFO(mLogger, "Container stoped " << container.id());
 
 }

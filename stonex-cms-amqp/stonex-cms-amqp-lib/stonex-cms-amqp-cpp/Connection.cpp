@@ -33,12 +33,6 @@
 #include <mutex>
 #include <format>
 
-stonex::amqp::Connection::Connection(const std::string& primaryUrl, proton::connection_options& connectionOptions)
-:mPrimaryUrl{primaryUrl},
-mConnectionOptions{std::move(connectionOptions.handler(*this))}
-{
-}
-
 stonex::amqp::Connection::~Connection()
 {
   close();
@@ -48,7 +42,6 @@ stonex::amqp::Connection::~Connection()
 void stonex::amqp::Connection::start()
 {
 	std::unique_lock<std::mutex> lk(mMutex);
-	ProtonCppLibrary::getContainer()->connect(mPrimaryUrl, mConnectionOptions);
 	mCv.wait(lk, [this]() { return mWorkQueue; });
 }
 
@@ -73,11 +66,15 @@ const cms::ConnectionMetaData* stonex::amqp::Connection::getMetaData() const
 
 cms::Session* stonex::amqp::Connection::createSession()
 {
+	std::unique_lock<std::mutex> lk(mMutex);
+	mCv.wait(lk, [this]() { return mWorkQueue; });
 	return new stonex::amqp::Session(mConnection, Session::AcknowledgeMode::AUTO_ACKNOWLEDGE);
 }
 
 cms::Session* stonex::amqp::Connection::createSession(Session::AcknowledgeMode ackMode)
 {
+	std::unique_lock<std::mutex> lk(mMutex);
+	mCv.wait(lk, [this]() { return mWorkQueue; });
 	return new stonex::amqp::Session(mConnection, ackMode);
 }
 
@@ -115,12 +112,15 @@ cms::MessageTransformer*  stonex::amqp::Connection::getMessageTransformer() cons
 
 void  stonex::amqp::Connection::on_transport_open(proton::transport& transport)
 {
-	LOG4CXX_INFO(mLogger, std::format("Transport open {}", transport.error().what()));
+	LOG4CXX_INFO(mLogger, std::format("Transport open {}", transport.error().empty() ? "" : "error " + transport.error().what()));
 }
 
 void  stonex::amqp::Connection::on_transport_close(proton::transport& transport)
 {
+	std::unique_lock lk(mMutex);
+	mWorkQueue = nullptr;
 	LOG4CXX_INFO(mLogger, std::format("Transport close"));
+	mCv.notify_one();
 }
 
 void  stonex::amqp::Connection::on_transport_error(proton::transport& transport)
@@ -133,15 +133,12 @@ void  stonex::amqp::Connection::on_connection_open(proton::connection& connectio
 	std::unique_lock<std::mutex> lk(mMutex);
 	mConnection = connection;
 	mWorkQueue = &connection.work_queue();
-	LOG4CXX_INFO(mLogger, std::format("Creating connection ID {} to broker URL: {} with username: {}", connection.container_id(), mPrimaryUrl, connection.user()));
+	LOG4CXX_INFO(mLogger, "Connection open");
 	mCv.notify_all();
 }
 void  stonex::amqp::Connection::on_connection_close(proton::connection& connection)
 {
-	std::unique_lock lk(mMutex);
-	mWorkQueue = nullptr;
-	LOG4CXX_INFO(mLogger, std::format("Connection closed URL: {}", mPrimaryUrl));
-	mCv.notify_one();
+	LOG4CXX_INFO(mLogger, "Connection closed");
 }
 
 void  stonex::amqp::Connection::on_connection_error(proton::connection& connection)

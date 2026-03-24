@@ -8,11 +8,14 @@
 
 #include <cms/Message.h>
 
-
 #include <variant>
 #include <map>
 
 #include "Destination.h"
+
+#include "stonex-cms-amqp-lib-defines.h"
+
+AMQP_DEFINES
 
 namespace internal {
 
@@ -94,7 +97,7 @@ namespace internal {
 	
 	class MessageProperties
 	{
-		using property = std::variant<bool, unsigned char, double, float, int, long long, short, std::string>;
+		using PropertyValue = std::variant<bool, unsigned char, double, float, int, long long, short, std::string>;
 
 	public:
 		MessageProperties() = default;
@@ -104,7 +107,7 @@ namespace internal {
 		std::vector<std::string> getNames() const;
 		cms::Message::ValueType getType(const std::string& name) const;
 		bool exists(const std::string& name) const;
-		void set(const std::string& name, property value);
+		void set(const std::string& name, PropertyValue value);
 		
 
 		template<typename T>
@@ -122,7 +125,7 @@ namespace internal {
 			}, it->second);
 		}
 
-		property get(const std::string& name) const
+		PropertyValue get(const std::string& name) const
 		{
 			auto it = mProperties.find(name);
 			if (it == mProperties.end())
@@ -133,16 +136,18 @@ namespace internal {
 
 		std::string correlationId;
 		int deliveryMode{cms::Message::DEFAULT_DELIVERY_MODE};
-		std::unique_ptr<internal::Destination> destination;
+		std::unique_ptr<cms::Destination> destination;
 		long long expiration{0};
 		std::string messageId;
 		int priority{cms::Message::DEFAULT_MSG_PRIORITY};
 		bool redelivered{false};
-		std::unique_ptr<internal::Destination> replyTo;
+		std::unique_ptr<cms::Destination> replyTo;
 		long long timeStamp{0};
 		std::string type;
 
 	private:
-		std::map<std::string, property> mProperties;
+		std::map<std::string, PropertyValue> mProperties;
 	};
 }
+
+AMQP_DEFINES_CLOSE

@@ -87,7 +87,9 @@ void stonex::amqp::MessageConsumer::stop()
 
 void stonex::amqp::MessageConsumer::close()
 {
-	mWorkQueue->add([=] {mReceiver.close(); });
+	mWorkQueue->add([=] { 
+		mReceiver.close(); 
+	});
 	std::unique_lock lk(mMutex);
 	mCv.wait(lk, [this]() { return !mWorkQueue; });
 }

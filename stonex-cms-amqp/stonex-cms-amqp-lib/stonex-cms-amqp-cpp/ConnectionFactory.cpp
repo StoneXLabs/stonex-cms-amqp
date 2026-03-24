@@ -134,7 +134,8 @@ namespace
 
 stonex::amqp::ConnectionFactory::ConnectionFactory(const std::string& brokerURI)
 :mPrimaryUrl{getPrimaryUrl(getBrokerURI(brokerURI))},
-mFailoverUrl{getFailoverUrls(getBrokerURI(brokerURI))}
+mFailoverUrl{getFailoverUrls(getBrokerURI(brokerURI))},
+mContainer(ProtonCppLibrary::getInstance().getContainer())
 {
 	if(brokerURI.empty())
 		throw cms::CMSException("Connection factory creation with EMPTY broker URL is forbidden");
@@ -167,7 +168,12 @@ cms::Connection* stonex::amqp::ConnectionFactory::createConnection(const std::st
     }
 
 	LOG4CXX_INFO(mLogger, std::format("Creating connection to brokers: {} with username: {}", failoverHosts, username));
-    return new stonex::amqp::Connection(mPrimaryUrl,connectionOptions);
+	auto cmsConnection = new stonex::amqp::Connection();
+
+	connectionOptions.handler(*cmsConnection);
+
+    mContainer.connect(mPrimaryUrl, connectionOptions);
+    return cmsConnection;
 }
 
 void stonex::amqp::ConnectionFactory::setExceptionListener(cms::ExceptionListener* listener)

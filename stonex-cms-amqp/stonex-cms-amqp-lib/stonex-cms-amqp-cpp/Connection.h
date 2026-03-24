@@ -43,7 +43,7 @@ namespace stonex::amqp
 	class Connection : public proton::messaging_handler, public cms::Connection
 	{
 	public:
-		Connection(const std::string& primaryUrl, proton::connection_options& connectionOptions);
+		Connection() = default;
 
 		Connection(const Connection&) = delete;
 		Connection(Connection&&) = delete;
@@ -51,7 +51,7 @@ namespace stonex::amqp
 		Connection& operator = (const Connection&) = delete;
 		Connection& operator = (Connection&&) = delete;
 
-		~Connection() override;
+		virtual ~Connection() override;
 		void start() override;
 		void stop() override;
 		void close() override;
@@ -77,13 +77,11 @@ namespace stonex::amqp
 		cms::MessageTransformer* mMessageTransformer{ nullptr };
 
 	private:
-		log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("CMS") };
+		log4cxx::LoggerPtr mLogger{ log4cxx::Logger::getLogger("com.stonex.cms.Connection") };
 		std::mutex mMutex;
 		std::condition_variable mCv;
 		proton::connection mConnection;
 		proton::work_queue* mWorkQueue{ nullptr };
-		const std::string mPrimaryUrl;
-		const proton::connection_options mConnectionOptions;
 	};
 
 };

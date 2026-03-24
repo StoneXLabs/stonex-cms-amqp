@@ -25,7 +25,7 @@ Build instructions
 	
 		stonex-cms-amqp
 			QPID PROTON CLIENT
-				amq-clients-2.10.4
+				red-hat-amq-client-2.10.4
 				jsoncpp 1.9.5
 				openssl 3.2.0
 				

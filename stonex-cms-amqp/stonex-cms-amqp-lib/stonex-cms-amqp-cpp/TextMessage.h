@@ -37,7 +37,7 @@ AMQP_DEFINES
 		explicit TextMessage(const proton::message& message);
 
 
-		~TextMessage() override = default;
+		virtual ~TextMessage() override = default;
 
 		Message* clone() const override;
 		void acknowledge() const override;

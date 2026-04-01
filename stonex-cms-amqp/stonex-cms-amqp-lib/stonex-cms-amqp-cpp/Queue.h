@@ -18,7 +18,7 @@
  */
 
 #pragma once
-#include "MessageProperties.h" 
+#include "Properties.h" 
 
 #include <cms/Queue.h>
 
@@ -49,6 +49,7 @@ AMQP_DEFINES
     private:
         const std::string mQueueName;
         const cms::Destination::DestinationType mDestinationType;
+        Properties mProperties;
     };
 
 

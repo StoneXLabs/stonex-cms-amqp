@@ -64,10 +64,12 @@ class StonexCMSAMQPLib(ConanFile):
         self.copy("activemq-cpp\src\main\cms\*", dst="include",src="stonex-cms-amqp\stonex-cms-amqp-lib",keep_path=True)
         self.copy("*.h", dst="include",src="stonex-cms-amqp\stonex-cms-amqp-lib\stonex-cms-amqp-cpp",keep_path=True)
         self.copy("*.lib", dst="lib", keep_path=False)
+        self.copy("*.map", dst="lib", keep_path=False)
         self.copy("*.pdb", dst="bin", keep_path=False)
         self.copy("*.dll", dst="bin", keep_path=False)
 
 
     def package_info(self):
         self.cpp_info.includedirs.append("include/activemq-cpp/src/main")
+        self.cpp_info.system_libs.append("dbghelp")
         self.cpp_info.libs = self.collect_libs()

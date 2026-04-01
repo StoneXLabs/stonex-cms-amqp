@@ -19,7 +19,6 @@
 
 #include "Queue.h"
 
-#include "MessageProperties.h"
 
 
 stonex::amqp::Queue::Queue(const std::string& queueName)
@@ -62,7 +61,7 @@ bool stonex::amqp::Queue::equals(const Destination& other) const
 
 const cms::CMSProperties& stonex::amqp::Queue::getCMSProperties() const
 {
-    return MessageProperties();
+    return mProperties;
 }
 
 std::string stonex::amqp::Queue::getQueueName() const

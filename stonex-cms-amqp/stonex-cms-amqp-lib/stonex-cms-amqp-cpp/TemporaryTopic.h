@@ -19,7 +19,7 @@
 
 #pragma once
 #include "cms/TemporaryTopic.h"
-
+#include "Properties.h"
 #include "stonex-cms-amqp-lib-defines.h"
 
 AMQP_DEFINES
@@ -52,6 +52,7 @@ AMQP_DEFINES
     private:
         mutable std::string mTopicName;
         const cms::Destination::DestinationType mDestinationType;
+        Properties mProperties;
         void destroy() override;
     };
 

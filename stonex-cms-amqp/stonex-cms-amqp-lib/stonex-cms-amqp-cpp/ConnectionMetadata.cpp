@@ -1,5 +1,4 @@
 #include "ConnectionMetadata.h"
-#include <proton/version.h>
 
 
 std::string stonex::amqp::ConnectionMetaData::getCMSVersion() const
@@ -24,22 +23,22 @@ std::string stonex::amqp::ConnectionMetaData::getCMSProviderName() const
 
 std::string stonex::amqp::ConnectionMetaData::getProviderVersion() const
 {
-    return std::to_string(PN_VERSION_MAJOR)+"."+std::to_string(PN_VERSION_MINOR)+"."+std::to_string(PN_VERSION_POINT);
+    return {};
 }
 
 int stonex::amqp::ConnectionMetaData::getProviderMajorVersion() const
 {
-    return PN_VERSION_MAJOR;
+    return {};
 }
 
 int stonex::amqp::ConnectionMetaData::getProviderMinorVersion() const
 {
-    return PN_VERSION_MINOR;
+    return {};
 }
 
 int stonex::amqp::ConnectionMetaData::getProviderPatchVersion() const
 {
-    return PN_VERSION_POINT;
+    return {};
 }
 
 std::vector<std::string> stonex::amqp::ConnectionMetaData::getCMSXPropertyNames() const

@@ -18,7 +18,6 @@
  */
 
 #include "TemporaryTopic.h"
-#include "MessageProperties.h"
 
 stonex::amqp::TemporaryTopic::TemporaryTopic(const std::string& topicName)
     :mTopicName{topicName},
@@ -61,7 +60,7 @@ bool stonex::amqp::TemporaryTopic::equals(const cms::Destination& other) const
 
 const cms::CMSProperties& stonex::amqp::TemporaryTopic::getCMSProperties() const
 {
-    return MessageProperties();
+    return mProperties;
 }
 
 std::string stonex::amqp::TemporaryTopic::getTopicName() const

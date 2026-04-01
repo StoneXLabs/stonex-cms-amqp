@@ -25,6 +25,7 @@ file(GLOB sourceFiles
 	${PROJECT_SOURCE_DIR}/stonex-cms-amqp-cpp/Message.cpp
 	${PROJECT_SOURCE_DIR}/stonex-cms-amqp-cpp/TextMessage.cpp
 	${PROJECT_SOURCE_DIR}/stonex-cms-amqp-cpp/BytesMessage.cpp
+	${PROJECT_SOURCE_DIR}/stonex-cms-amqp-cpp/Properties.cpp
 	${PROJECT_SOURCE_DIR}/stonex-cms-amqp-cpp/Protocol/utils.cpp
 )
 file(GLOB headerFiles
@@ -43,6 +44,7 @@ file(GLOB headerFiles
 	${PROJECT_SOURCE_DIR}/stonex-cms-amqp-cpp/Message.h
 	${PROJECT_SOURCE_DIR}/stonex-cms-amqp-cpp/TextMessage.h
 	${PROJECT_SOURCE_DIR}/stonex-cms-amqp-cpp/BytesMessage.h
+	${PROJECT_SOURCE_DIR}/stonex-cms-amqp-cpp/Properties.h
 	${PROJECT_SOURCE_DIR}/stonex-cms-amqp-cpp/Protocol/utils.h
 )
 

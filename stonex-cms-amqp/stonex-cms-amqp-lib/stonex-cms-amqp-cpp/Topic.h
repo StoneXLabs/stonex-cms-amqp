@@ -21,6 +21,7 @@
 #include <cms/Topic.h>
 
 #include "stonex-cms-amqp-lib-defines.h"
+#include "Properties.h"
 
 AMQP_DEFINES
 
@@ -47,6 +48,7 @@ AMQP_DEFINES
     private:
         const std::string mTopicName;
         const Destination::DestinationType mDestinationType;
+        Properties mProperties;
 	};
 
 

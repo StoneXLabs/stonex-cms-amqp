@@ -19,8 +19,6 @@
 
 #include "TemporaryQueue.h"
 
-#include "MessageProperties.h"
-
 #include <chrono>
 
 stonex::amqp::TemporaryQueue::TemporaryQueue(const std::string& queueName)
@@ -71,7 +69,7 @@ bool stonex::amqp::TemporaryQueue::equals(const Destination& other) const
 
 const cms::CMSProperties& stonex::amqp::TemporaryQueue::getCMSProperties() const
 {
-    return MessageProperties();
+    return mProperties;
 }
 
 std::string stonex::amqp::TemporaryQueue::getQueueName() const

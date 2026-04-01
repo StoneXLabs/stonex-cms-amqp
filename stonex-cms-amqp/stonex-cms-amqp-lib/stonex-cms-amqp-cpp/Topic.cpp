@@ -19,7 +19,7 @@
 
 #include "Topic.h"
 
-#include "MessageProperties.h"
+#include "Properties.h"
 
 stonex::amqp::Topic::Topic(const std::string& topicName)
     :mTopicName{ topicName },
@@ -61,7 +61,7 @@ bool stonex::amqp::Topic::equals(const cms::Destination& other) const
 
 const cms::CMSProperties& stonex::amqp::Topic::getCMSProperties() const
 {
-    return MessageProperties();
+    return mProperties;
 }
 
 std::string stonex::amqp::Topic::getTopicName() const

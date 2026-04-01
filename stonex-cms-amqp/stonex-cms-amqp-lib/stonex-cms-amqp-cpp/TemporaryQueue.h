@@ -19,7 +19,7 @@
 
 #pragma once
 #include "cms/TemporaryQueue.h"
-
+#include "Properties.h"
 #include "stonex-cms-amqp-lib-defines.h"
 
 AMQP_DEFINES
@@ -54,6 +54,7 @@ AMQP_DEFINES
     private:
         mutable std::string mQueueName;
         /*const*/ cms::Destination::DestinationType mDestinationType;
+        Properties mProperties;
 		void destroy() override;
 	};
 

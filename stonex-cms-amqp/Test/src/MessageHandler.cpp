@@ -86,7 +86,7 @@ MyMessageHandler::~MyMessageHandler()
 
 	for(const auto& groupId : receivedGroups)
 	{
-		LOG4CXX_INFO(mLogger, std::format("Received messages from groups: {}", groupId));
+		LOG4CXX_INFO(mLogger, "Received messages from groups: "<< groupId);
 	}
 	
 }
@@ -99,7 +99,7 @@ void MyMessageHandler::onMessage(const cms::Message* message)
 		std::string groupId = message->getStringProperty(stonex::amqp::internal::properties::JMSX_GROUP_ID);
 		if (receivedGroups.find(groupId) == receivedGroups.end())
 		{
-			LOG4CXX_INFO(mLogger, std::format("Received new group: {}", groupId));
+			LOG4CXX_INFO(mLogger, "Received new group: "<< groupId);
 			receivedGroups.insert(groupId);
 		}
 	}

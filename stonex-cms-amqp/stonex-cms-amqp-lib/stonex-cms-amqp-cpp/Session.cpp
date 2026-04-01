@@ -223,7 +223,7 @@ void stonex::amqp::Session::Session::on_session_open(proton::session& session)
 	mSession = session;
 	mWorkQueue = &session.work_queue();
 
-	LOG4CXX_INFO(mLogger, std::format("Session open"));
+	LOG4CXX_INFO(mLogger, "Session open");
 	mCv.notify_all();
 }
 
@@ -231,11 +231,11 @@ void stonex::amqp::Session::Session::on_session_close(proton::session& session)
 {
 	std::unique_lock lk(mMutex);
 	mWorkQueue = nullptr;
-	LOG4CXX_INFO(mLogger, std::format("Session close"));
+	LOG4CXX_INFO(mLogger, "Session close");
 	mCv.notify_one();
 }
 
 void stonex::amqp::Session::Session::on_session_error(proton::session& session)
 {
-	LOG4CXX_ERROR(mLogger, std::format("Session error {}", session.error().what()));
+	LOG4CXX_ERROR(mLogger, "Session error "<< session.error().what());
 }

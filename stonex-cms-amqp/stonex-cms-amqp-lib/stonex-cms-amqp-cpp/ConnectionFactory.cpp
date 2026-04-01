@@ -32,7 +32,6 @@
 #include <regex>
 #include <memory>
 #include <iterator>
-#include <format>
 
 namespace
 {
@@ -140,7 +139,7 @@ mContainer(ProtonCppLibrary::getInstance().getContainer())
 	if(brokerURI.empty())
 		throw cms::CMSException("Connection factory creation with EMPTY broker URL is forbidden");
 
-    LOG4CXX_INFO(mLogger, std::format("Creating connection factory {}", brokerURI));
+    LOG4CXX_INFO(mLogger, "Creating connection factory " << brokerURI);
 }
 
 
@@ -167,7 +166,7 @@ cms::Connection* stonex::amqp::ConnectionFactory::createConnection(const std::st
         failoverHosts += url;
     }
 
-	LOG4CXX_INFO(mLogger, std::format("Creating connection to brokers: {} with username: {}", failoverHosts, username));
+	LOG4CXX_INFO(mLogger, "Creating connection to brokers: "<<failoverHosts <<" with username: " << username);
 	auto cmsConnection = new stonex::amqp::Connection();
 
 	connectionOptions.handler(*cmsConnection);

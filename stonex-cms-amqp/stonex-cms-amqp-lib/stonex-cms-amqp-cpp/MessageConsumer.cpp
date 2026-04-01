@@ -34,7 +34,6 @@
 #include "TemporaryQueue.h"
 #include "TemporaryTopic.h"
 
-#include <format>
 
 #include "Protocol/utils.h"
 
@@ -166,7 +165,7 @@ void stonex::amqp::MessageConsumer::on_receiver_open(proton::receiver& receiver)
 	std::unique_lock lk(mMutex);
 	mWorkQueue = &receiver.work_queue();
 	mReceiver = receiver;
-	LOG4CXX_INFO(mLogger, std::format("Consumer open {}", receiver.source().address()));
+	LOG4CXX_INFO(mLogger, "Consumer open "<< receiver.source().address());
 	mCv.notify_one();
 }
 
@@ -174,23 +173,23 @@ void stonex::amqp::MessageConsumer::on_receiver_close(proton::receiver& receiver
 {
 	std::unique_lock lk(mMutex);
 	mWorkQueue = nullptr;
-	LOG4CXX_INFO(mLogger, std::format("Consumer close {}", receiver.source().address()));
+	LOG4CXX_INFO(mLogger, "Consumer close "<< receiver.source().address());
 	mCv.notify_one();
 }
 
 void stonex::amqp::MessageConsumer::on_receiver_detach(proton::receiver& receiver)
 {
-	LOG4CXX_INFO(mLogger, std::format("Consumer detatch {}", receiver.source().address()));
+	LOG4CXX_INFO(mLogger, "Consumer detatch "<< receiver.source().address());
 }
 
 void stonex::amqp::MessageConsumer::on_receiver_error(proton::receiver& receiver)
 {
-	LOG4CXX_ERROR(mLogger, std::format("Consumer error {} {}", receiver.source().address(), receiver.error().what()));
+	LOG4CXX_ERROR(mLogger, "Consumer error "<< receiver.source().address() <<" "<< receiver.error().what());
 }
 
 void stonex::amqp::MessageConsumer::on_receiver_drain_finish(proton::receiver& receiver)
 {
-	LOG4CXX_INFO(mLogger, std::format("Consumer drain finish {}", receiver.source().address()));
+	LOG4CXX_INFO(mLogger, "Consumer drain finish " << receiver.source().address());
 }
 
 

@@ -250,7 +250,7 @@ void stonex::amqp::MessageProducer::on_sendable(proton::sender& sender)
 	std::unique_lock lk(mMutex);
 	mReadyToSend = true;
 	if(sender.credit() == 0)
-		LOG4CXX_INFO(mLogger, std::format("producer credits {}", sender.credit()));
+		LOG4CXX_INFO(mLogger, "producer credits "<< sender.credit());
 	mCv.notify_all();
 }
 
@@ -259,26 +259,26 @@ void stonex::amqp::MessageProducer::on_sender_open(proton::sender& sender)
 	std::unique_lock lk(mMutex);
 	mWorkQueue = &sender.work_queue();
 	mSender = sender;
-	LOG4CXX_INFO(mLogger, std::format("producer open credits {}", sender.credit()));
+	LOG4CXX_INFO(mLogger, "producer open credits "<< sender.credit());
 	mCv.notify_all();
 }
 
 void stonex::amqp::MessageProducer::on_sender_error(proton::sender & sender)
 {
-	LOG4CXX_ERROR(mLogger, std::format("producer error {}", sender.error().what()));
+	LOG4CXX_ERROR(mLogger, "producer error "<< sender.error().what());
 }
 
 void stonex::amqp::MessageProducer::on_sender_close(proton::sender& sender)
 {
 	std::unique_lock lk(mMutex);
 	mWorkQueue = nullptr;
-	LOG4CXX_INFO(mLogger, std::format("producer close"));
+	LOG4CXX_INFO(mLogger, "producer close");
 	mCv.notify_all();
 }
 
 void stonex::amqp::MessageProducer::on_error(const proton::error_condition& error)
 {
-	LOG4CXX_ERROR(mLogger, std::format("producer error {}", error.what()));
+	LOG4CXX_ERROR(mLogger, "producer error " << error.what());
 }
 
 void stonex::amqp::MessageProducer::setDeliveryMode(int mode)

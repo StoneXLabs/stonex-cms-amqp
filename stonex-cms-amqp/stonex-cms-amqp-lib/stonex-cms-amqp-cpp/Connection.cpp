@@ -31,7 +31,6 @@
 #include "ConnectionMetadata.h"
 
 #include <mutex>
-#include <format>
 
 stonex::amqp::Connection::~Connection()
 {
@@ -112,20 +111,27 @@ cms::MessageTransformer*  stonex::amqp::Connection::getMessageTransformer() cons
 
 void  stonex::amqp::Connection::on_transport_open(proton::transport& transport)
 {
-	LOG4CXX_INFO(mLogger, std::format("Transport open {}", transport.error().empty() ? "" : "error " + transport.error().what()));
+	if(transport.error().empty())
+	{
+		LOG4CXX_INFO(mLogger, "Transport open ");
+	}
+	else
+	{
+		LOG4CXX_ERROR(mLogger, "Transport open error " << transport.error().what());
+	}
 }
 
 void  stonex::amqp::Connection::on_transport_close(proton::transport& transport)
 {
 	std::unique_lock lk(mMutex);
 	mWorkQueue = nullptr;
-	LOG4CXX_INFO(mLogger, std::format("Transport close"));
+	LOG4CXX_INFO(mLogger, "Transport close");
 	mCv.notify_one();
 }
 
 void  stonex::amqp::Connection::on_transport_error(proton::transport& transport)
 {
-	LOG4CXX_INFO(mLogger, std::format("Transport error {}", transport.error().what()));
+	LOG4CXX_INFO(mLogger,"Transport error " << transport.error().what());
 }
 
 void  stonex::amqp::Connection::on_connection_open(proton::connection& connection)
@@ -143,5 +149,5 @@ void  stonex::amqp::Connection::on_connection_close(proton::connection& connecti
 
 void  stonex::amqp::Connection::on_connection_error(proton::connection& connection)
 {
-	LOG4CXX_ERROR(mLogger, std::format("Connection error {}", connection.error().what()));
+	LOG4CXX_ERROR(mLogger, "Connection error " << connection.error().what());
 }
